@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
+import numpy as np
 import random
-from math import floor
+from math import floor, exp
+from cst_random import truncated_normal
 
 class World(object):
     """The world model. Each World Types is build using a proccess close to the
@@ -34,12 +36,12 @@ class World(object):
                                                                   avg_srf_temperature)
 
     def __str__(self):
-        return '{self.__class__.__name__} (ocean coverage= {self.ocean_coverage},\
- atmosphere mass= {self.atm_mass} atm⊕, \
+        return '{self.__class__.__name__} (ocean coverage= {self.ocean_coverage:.2f},\
+ atmosphere mass= {self.atm_mass:.2f} atm⊕, \
 atmosphere composition= {self.atm_composition}, \
 average surface temperature= {self.avg_srf_temperature} K, \
 climate= {self.climate}, \
-blackbody temperature= {self.blackbody_temperature} K)'.format(self=self)
+blackbody temperature= {self.blackbody_temperature:.2f} K)'.format(self=self)
 
     """associate proper climate from given average surface temperature in K
     based on gurps space 4th edition World Climate Table"""
@@ -116,10 +118,14 @@ class StandardChthonian(World):
 
 class StandardGreenhouse(World):
     def __init__(self):
-        ocean_coverage = random.uniform(.0, .5)
+        """adjusted ocean coverage between 0 and .5 using exponential distribution
+        with scale 5. increase scale to make high value rarer."""
+        ocean_coverage = exp(-np.random.exponential(scale=5)) * .5
+        """adjusted atm mass value between 10 and 100 using exponential distribution
+        with scale 1. increase scale to make high value rarer."""
         super(StandardGreenhouse, self).__init__(ocean_coverage=ocean_coverage,
-                         atm_mass=random.uniform(.5, 1.5),
-                         atm_composition=['CO2'] if ocean_coverage == 0 else ['N2', 'H2O', 'O2'],
+                         atm_mass=(1 - exp(-np.random.exponential(scale=1))) * 90 + 10,
+                         atm_composition=['CO2'] if ocean_coverage < .1 else ['N2', 'H2O', 'O2'],
                          avg_srf_temperature=random.randint(500, 950),
                          absorption_factor=.77, greenhouse_factor=2.0)
 
@@ -146,7 +152,10 @@ class StandardIce(World):
 
 class StandardOcean(World):
     def __init__(self):
-        super(StandardOcean, self).__init__(ocean_coverage=random.uniform(.5, 1.0),
+        """adjusted ocean coverage between .5 and 1.0 using normal distribution
+        with mean of .75 and standard deviation of .1"""
+        ocean_coverage = truncated_normal(loc=.75, scale=.1, low=.5, up=1.0)
+        super(StandardOcean, self).__init__(ocean_coverage=ocean_coverage,
                          atm_mass=random.uniform(.5, 1.5),
                          atm_composition=['CO2', 'N2'],
                          avg_srf_temperature=random.randint(80, 140),
@@ -154,7 +163,10 @@ class StandardOcean(World):
 
 class StandardGarden(World):
     def __init__(self):
-        super(StandardGarden, self).__init__(ocean_coverage=random.uniform(.5, 1.0),
+        """adjusted ocean coverage between .5 and 1.0 using normal distribution
+        with mean of .75 and standard deviation of .1"""
+        ocean_coverage = truncated_normal(loc=.75, scale=.1, low=.5, up=1.0)
+        super(StandardGarden, self).__init__(ocean_coverage=ocean_coverage,
                          atm_mass=random.uniform(.5, 1.5),
                          atm_composition=['N2', 'O2'],
                          avg_srf_temperature=random.randint(250, 340),
@@ -167,10 +179,14 @@ class LargeChthonian(World):
 
 class LargeGreenhouse(World):
     def __init__(self):
-        ocean_coverage = random.uniform(.0, .5)
+        """adjusted ocean coverage between 0 and .5 using exponential distribution
+        with scale 5. increase scale to make high value rarer."""
+        ocean_coverage = exp(-np.random.exponential(scale=5)) * .5
+        """adjusted atm mass value between 10 and 100 using exponential distribution
+        with scale 1. increase scale to make high value rarer."""
         super(LargeGreenhouse, self).__init__(ocean_coverage=ocean_coverage,
-                         atm_mass=random.uniform(.5, 1.5),
-                         atm_composition=['CO2'] if ocean_coverage == 0 else ['N2', 'H2O', 'O2'],
+                         atm_mass=(1 - exp(-np.random.exponential(scale=1))) * 90 + 10,
+                         atm_composition=['CO2'] if ocean_coverage < .1 == 0 else ['N2', 'H2O', 'O2'],
                          avg_srf_temperature=random.randint(500, 950),
                          absorption_factor=.77, greenhouse_factor=2.0)
 
@@ -192,7 +208,10 @@ class LargeIce(World):
 
 class LargeOcean(World):
     def __init__(self):
-        super(LargeOcean, self).__init__(ocean_coverage=random.uniform(.7, 1.0),
+        """adjusted ocean coverage between .7 and 1.0 using normal distribution
+        with mean of .85 and standard deviation of .075"""
+        ocean_coverage = truncated_normal(loc=.85, scale=.075, low=.7, up=1.0)
+        super(LargeOcean, self).__init__(ocean_coverage=ocean_coverage,
                          atm_mass=random.uniform(.5, 1.5),
                          atm_composition=['He', 'N2'],
                          avg_srf_temperature=random.randint(250, 340),
@@ -200,7 +219,10 @@ class LargeOcean(World):
 
 class LargeGarden(World):
     def __init__(self):
-        super(LargeGarden, self).__init__(ocean_coverage=random.uniform(.6, 1.0),
+        """adjusted ocean coverage between .7 and 1.0 using normal distribution
+        with mean of .85 and standard deviation of .075"""
+        ocean_coverage = truncated_normal(loc=.85, scale=.075, low=.7, up=1.0)
+        super(LargeGarden, self).__init__(ocean_coverage=ocean_coverage,
                          atm_mass=random.uniform(.5, 1.5),
                          atm_composition=['N2', 'O2', 'He', 'Ne', 'Ar',
                                                   'Kr', 'Xe'],
