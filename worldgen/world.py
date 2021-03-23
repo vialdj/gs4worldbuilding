@@ -39,8 +39,10 @@ class World(object):
                                    density)
         # The world diameter in D⊕
         self.diameter = diameter
-        # The surface gravity in G⊕
-        self.surface_gravity = diameter * density
+        # The surface gravity in G⊕ as G = d * D with density d and diameter D
+        self.surface_gravity = density * diameter
+        # The mass in M⊕ as M = d * D^3 with density d and diameter D
+        self.mass = density * diameter**3
 
         # A string describing the core
         self.core = core
@@ -57,7 +59,8 @@ blackbody temperature= {self.blackbody_temperature:.2f} K, \
 density= {self.density:.2f} d⊕, \
 core= {self.core}, \
 diameter= {self.diameter:.2f} D⊕, \
-gravity= {self.surface_gravity:.2f} G⊕)'.format(self=self)
+gravity= {self.surface_gravity:.2f} G⊕, \
+mass= {self.mass:.2f} M⊕)'.format(self=self)
 
     """associate proper climate from given average surface temperature in K
     based on gurps space 4th edition World Climate Table"""
