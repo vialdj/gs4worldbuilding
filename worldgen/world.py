@@ -17,32 +17,39 @@ class World(object):
     def __init__(self, avg_srf_temperature, absorption_factor,
                  size_constraint=SizeConstraint(0, 0),
                  core='None', density=np.nan, ocean_coverage=.0,
-                 atm_mass=.0, atm_key_elems=[], greenhouse_factor=.0):
+                 relative_atm_mass=.0, atm_key_elems=[],
+                 greenhouse_factor=.0, pressure_factor=0):
         # The proportion of surface occupied by liquid elements
         self.ocean_coverage = ocean_coverage
-        # atm mass in earth atm⊕
-        self.atm_mass = atm_mass
+        # relative supply of gaseous volatiles to other worlds of the same type
+        self.relative_atm_mass = relative_atm_mass
         # atm composition as a list of elements
         self.atm_key_elems = atm_key_elems
         # The average temperature in kelvins K
         self.avg_srf_temperature = avg_srf_temperature
         # The density of the world in earth densities d⊕
         self.density = density
+        # The blackbody temperature in kelvin
         blackbody_temperature = self.__blackbody_temperature(absorption_factor,
                                                              greenhouse_factor,
-                                                             atm_mass,
+                                                             relative_atm_mass,
                                                              avg_srf_temperature)
-        # The blackbody temperature in kelvin
         self.blackbody_temperature = blackbody_temperature
+        # The world diameter in D⊕
         diameter = self.__diameter(size_constraint,
                                    blackbody_temperature,
                                    density)
-        # The world diameter in D⊕
         self.diameter = diameter
-        # The surface gravity in G⊕ as G = d * D with density d and diameter D
-        self.surface_gravity = density * diameter
-        # The mass in M⊕ as M = d * D^3 with density d and diameter D
+        # The surface gravity in G⊕ as S = d * D with density d and diameter D
+        surface_gravity = density * diameter
+        self.surface_gravity = surface_gravity
+        # The mass in M⊕ as m = d * D^3 with density d and diameter D
         self.mass = density * diameter**3
+        """The world atmospheric pressure in atm⊕ as P = M * F * S with A the
+        relative supply of gaseous volatiles to other worlds of the same type,
+        F the given pressure factor according to gurps space 4th edition
+        Pressure Factors Table and the surface gravity S"""
+        self.atm_pressure = relative_atm_mass * pressure_factor * surface_gravity
 
         # A string describing the core
         self.core = core
@@ -50,9 +57,9 @@ class World(object):
         self.climate = self.__climate(avg_srf_temperature)
 
     def __str__(self):
-        return '{self.__class__.__name__} (ocean coverage= {self.ocean_coverage:.2f},\
- atmosphere mass= {self.atm_mass:.2f} atm⊕, \
+        return '{self.__class__.__name__} (ocean coverage= {self.ocean_coverage:.2f}, \
 atmosphere composition= {self.atm_key_elems}, \
+atmosphere pressure= {self.atm_pressure:.2f} atm⊕, \
 average surface temperature= {self.avg_srf_temperature} K, \
 climate= {self.climate}, \
 blackbody temperature= {self.blackbody_temperature:.2f} K, \
@@ -89,18 +96,20 @@ mass= {self.mass:.2f} M⊕)'.format(self=self)
             return 'Infernal'
 
     """ From gurps space 4th edition as blackbody temperature B = T / C where
-    C = A * [1 + (M * G)] """
+    C = A * [1 + (M * G)] with A the absorption factor, M the relative
+    atmospheric mass and G the greenhouse factor (A and G given in the
+    Temperature Factors Table)"""
     def __blackbody_temperature(self,
                                 absorption_factor,
                                 greenhouse_factor,
-                                atm_mass,
+                                relative_atm_mass,
                                 avg_srf_temperature):
-        return avg_srf_temperature / (absorption_factor * floor(1 + atm_mass * greenhouse_factor))
+        return avg_srf_temperature / (absorption_factor * floor(1 + relative_atm_mass * greenhouse_factor))
 
     """ Select a diameter at random from gurps space 4th edition as diameter
-    range in [Dmin, Dmax] as Dmin = sqrt(B / d) * size_constraint.minimum and
-    Dmax = sqrt(B / d) * size_constraint.maximum with B is blackbody_temperature
-    and d is density"""
+    range in [Dmin, Dmax] as Dmin = sqrt(B / K) * size_constraint.minimum and
+    Dmax = sqrt(B / K) * size_constraint.maximum with B is blackbody_temperature
+    and K is density"""
     def __diameter(self, size_constraint, blackbody_temperature, density):
         dmin = sqrt(blackbody_temperature / density) * size_constraint.minimum
         dmax = sqrt(blackbody_temperature / density) * size_constraint.maximum
@@ -115,7 +124,6 @@ class TinySulfur(World):
         with mean of .5 and standard deviation of .08"""
         density = truncated_normal(loc=.5, scale=.08, low=.3, up=.7)
         super(TinySulfur, self).__init__(avg_srf_temperature=random.randint(80, 140),
-                                         size_constraint=SizeConstraint(0.004, 0.024),
                                          density=density, absorption_factor=.77,
                                          core='Icy Core')
 
@@ -155,12 +163,13 @@ class SmallIce(World):
         with mean of .5 and standard deviation of .08"""
         density = truncated_normal(loc=.5, scale=.08, low=.3, up=.7)
         super(SmallIce, self).__init__(ocean_coverage=random.uniform(.3, .8),
-                                       atm_mass=random.uniform(.5, 1.5),
+                                       relative_atm_mass=random.uniform(.5, 1.5),
                                        atm_key_elems=['N2', 'CH4'],
                                        avg_srf_temperature=random.randint(80, 140),
                                        size_constraint=SizeConstraint(0.024, 0.030),
                                        absorption_factor=.93,
                                        greenhouse_factor=.1,
+                                       pressure_factor=10,
                                        density=density,
                                        core='Icy Core')
 
@@ -193,15 +202,14 @@ class StandardGreenhouse(World):
         """adjusted ocean coverage between 0 and .5 using exponential distribution
         with scale 5. increase scale to make high value rarer."""
         ocean_coverage = exp(-np.random.exponential(scale=5)) * .5
-        """adjusted atm mass value between 10 and 100 using exponential distribution
-        with scale 1. increase scale to make high value rarer."""
         super(StandardGreenhouse, self).__init__(ocean_coverage=ocean_coverage,
-                                                 atm_mass=(1 - exp(-np.random.exponential(scale=1))) * 90 + 10,
+                                                 relative_atm_mass=random.uniform(.5, 1.5),
                                                  atm_key_elems=['CO2'] if ocean_coverage < .1 else ['N2', 'H2O', 'O2'],
                                                  avg_srf_temperature=random.randint(500, 950),
                                                  size_constraint=SizeConstraint(0.030, 0.065),
                                                  absorption_factor=.77,
                                                  greenhouse_factor=2.0,
+                                                 pressure_factor=100,
                                                  density=density,
                                                  core='Large Iron Core')
 
@@ -211,12 +219,13 @@ class StandardAmmonia(World):
         with mean of .5 and standard deviation of .08"""
         density = truncated_normal(loc=.5, scale=.08, low=.3, up=.7)
         super(StandardAmmonia, self).__init__(ocean_coverage=random.uniform(.5, 1.0),
-                                              atm_mass=random.uniform(.5, 1.5),
+                                              relative_atm_mass=random.uniform(.5, 1.5),
                                               atm_key_elems=['N2', 'NH3', 'CH4'],
                                               avg_srf_temperature=random.randint(140, 215),
                                               size_constraint=SizeConstraint(0.030, 0.065),
                                               absorption_factor=.84,
                                               greenhouse_factor=.2,
+                                              pressure_factor=1,
                                               density=density,
                                               core='Icy Core')
 
@@ -237,12 +246,13 @@ class StandardIce(World):
         with mean of 1.0 and standard deviation of .08"""
         density = truncated_normal(loc=1.0, scale=.08, low=.8, up=1.2)
         super(StandardIce, self).__init__(ocean_coverage=random.uniform(.0, .2),
-                                          atm_mass=random.uniform(.5, 1.5),
+                                          relative_atm_mass=random.uniform(.5, 1.5),
                                           atm_key_elems=['CO2', 'N2'],
                                           avg_srf_temperature=random.randint(80, 230),
                                           size_constraint=SizeConstraint(0.030, 0.065),
                                           absorption_factor=.86,
                                           greenhouse_factor=.2,
+                                          pressure_factor=1,
                                           density=density,
                                           core='Large Iron Core')
 
@@ -255,12 +265,13 @@ class StandardOcean(World):
         with mean of .75 and standard deviation of .1"""
         ocean_coverage = truncated_normal(loc=.75, scale=.1, low=.5, up=1.0)
         super(StandardOcean, self).__init__(ocean_coverage=ocean_coverage,
-                                            atm_mass=random.uniform(.5, 1.5),
+                                            relative_atm_mass=random.uniform(.5, 1.5),
                                             atm_key_elems=['CO2', 'N2'],
-                                            avg_srf_temperature=random.randint(80, 140),
+                                            avg_srf_temperature=random.randint(250, 340),
                                             size_constraint=SizeConstraint(0.030, 0.065),
                                             absorption_factor=.88,
                                             greenhouse_factor=.16,
+                                            pressure_factor=1,
                                             density=density,
                                             core='Large Iron Core')
 
@@ -273,12 +284,13 @@ class StandardGarden(World):
         with mean of .75 and standard deviation of .1"""
         ocean_coverage = truncated_normal(loc=.75, scale=.1, low=.5, up=1.0)
         super(StandardGarden, self).__init__(ocean_coverage=ocean_coverage,
-                                             atm_mass=random.uniform(.5, 1.5),
+                                             relative_atm_mass=random.uniform(.5, 1.5),
                                              atm_key_elems=['N2', 'O2'],
                                              avg_srf_temperature=random.randint(250, 340),
                                              size_constraint=SizeConstraint(0.030, 0.065),
                                              absorption_factor=.88,
                                              greenhouse_factor=.16,
+                                             pressure_factor=1,
                                              density=density,
                                              core='Large Iron Core')
 
@@ -301,15 +313,14 @@ class LargeGreenhouse(World):
         """adjusted ocean coverage between 0 and .5 using exponential distribution
         with scale 5. increase scale to make high value rarer."""
         ocean_coverage = exp(-np.random.exponential(scale=5)) * .5
-        """adjusted atm mass value between 10 and 100 using exponential distribution
-        with scale 1. increase scale to make high value rarer."""
         super(LargeGreenhouse, self).__init__(ocean_coverage=ocean_coverage,
-                                              atm_mass=(1 - exp(-np.random.exponential(scale=1))) * 90 + 10,
+                                              relative_atm_mass=random.uniform(.5, 1.5),
                                               atm_key_elems=['CO2'] if ocean_coverage < .1 == 0 else ['N2', 'H2O', 'O2'],
                                               avg_srf_temperature=random.randint(500, 950),
                                               size_constraint=SizeConstraint(0.065, 0.091),
                                               absorption_factor=.77,
                                               greenhouse_factor=2.0,
+                                              pressure_factor=500,
                                               density=density,
                                               core='Large Iron Core')
 
@@ -319,12 +330,13 @@ class LargeAmmonia(World):
         with mean of .5 and standard deviation of .08"""
         density = truncated_normal(loc=.5, scale=.08, low=.3, up=.7)
         super(LargeAmmonia, self).__init__(ocean_coverage=random.uniform(0.5, 1.0),
-                                           atm_mass=random.uniform(.5, 1.5),
+                                           relative_atm_mass=random.uniform(.5, 1.5),
                                            atm_key_elems=['He', 'NH3', 'CH4'],
                                            avg_srf_temperature=random.randint(140, 215),
                                            size_constraint=SizeConstraint(0.065, 0.091),
                                            absorption_factor=.84,
                                            greenhouse_factor=.2,
+                                           pressure_factor=5,
                                            density=density,
                                            core='Icy Core')
 
@@ -334,12 +346,13 @@ class LargeIce(World):
         with mean of 1.0 and standard deviation of .08"""
         density = truncated_normal(loc=1.0, scale=.08, low=.8, up=1.2)
         super(LargeIce, self).__init__(ocean_coverage=random.uniform(.0, .2),
-                                       atm_mass=random.uniform(.5, 1.5),
+                                       relative_atm_mass=random.uniform(.5, 1.5),
                                        atm_key_elems=['He', 'N2'],
                                        avg_srf_temperature=random.randint(80, 230),
                                        size_constraint=SizeConstraint(0.065, 0.091),
                                        absorption_factor=.86,
                                        greenhouse_factor=.2,
+                                       pressure_factor=5,
                                        density=density,
                                        core='Large Iron Core')
 
@@ -352,12 +365,13 @@ class LargeOcean(World):
         with mean of .85 and standard deviation of .075"""
         ocean_coverage = truncated_normal(loc=.85, scale=.075, low=.7, up=1.0)
         super(LargeOcean, self).__init__(ocean_coverage=ocean_coverage,
-                                         atm_mass=random.uniform(.5, 1.5),
+                                         relative_atm_mass=random.uniform(.5, 1.5),
                                          atm_key_elems=['He', 'N2'],
                                          avg_srf_temperature=random.randint(250, 340),
                                          size_constraint=SizeConstraint(0.065, 0.091),
                                          absorption_factor=.88,
                                          greenhouse_factor=.16,
+                                         pressure_factor=5,
                                          density=density,
                                          core='Large Iron Core')
 
@@ -370,13 +384,14 @@ class LargeGarden(World):
         with mean of .85 and standard deviation of .075"""
         ocean_coverage = truncated_normal(loc=.85, scale=.075, low=.7, up=1.0)
         super(LargeGarden, self).__init__(ocean_coverage=ocean_coverage,
-                                          atm_mass=random.uniform(.5, 1.5),
+                                          relative_atm_mass=random.uniform(.5, 1.5),
                                           atm_key_elems=['N2', 'O2', 'He', 'Ne', 'Ar',
                                                          'Kr', 'Xe'],
                                           avg_srf_temperature=random.randint(250, 340),
                                           size_constraint=SizeConstraint(0.065, 0.091),
                                           absorption_factor=.88,
                                           greenhouse_factor=.16,
+                                          pressure_factor=5,
                                           density=density,
                                           core='Large Iron Core')
 
