@@ -36,7 +36,7 @@ class WorldGenerator():
 
         """l = []
         for _ in range(1000):
-            l.append(truncated_normal(loc=.75, scale=.1, low=.5, up=1.0))
+            l.append(truncated_normal(loc=.5, scale=.08, low=.3, up=.7))
         l.sort(reverse=True)
         n, bins, patches=plt.hist(l)
         plt.xlabel("Values")
