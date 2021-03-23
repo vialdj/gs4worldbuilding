@@ -34,17 +34,6 @@ class WorldGenerator():
                                     LargeOcean: 0.00938964,
                                     AsteroidBelt: 0.16274024}
 
-        """l = []
-        for _ in range(1000):
-            l.append(truncated_normal(loc=.5, scale=.2, low=.0, up=1.0))
-        l.sort(reverse=True)
-        n, bins, patches=plt.hist(l)
-        plt.xlabel("Values")
-        plt.ylabel("Frequency")
-        plt.title("Histogram")
-        plt.show()
-        print(max(l))
-        print(min(l))"""
         world_type = np.random.choice(world_types_distribution.keys(),
                                       p=world_types_distribution.values())
         self.world = world_type()

@@ -16,9 +16,9 @@ class World(object):
     World Types are represented by the World subclasses"""
     def __init__(self, avg_srf_temperature, absorption_factor,
                  size_constraint=SizeConstraint(0, 0),
-                 core='None', density=np.nan, ocean_coverage=.0,
+                 core='Unapplicable', density=.0, ocean_coverage=.0,
                  relative_atm_mass=.0, atm_key_elems=[],
-                 greenhouse_factor=.0, pressure_factor=0):
+                 greenhouse_factor=.0, pressure_factor=.0):
         # The proportion of surface occupied by liquid elements
         self.ocean_coverage = ocean_coverage
         # relative supply of gaseous volatiles to other worlds of the same type
@@ -38,7 +38,7 @@ class World(object):
         # The world diameter in D⊕
         diameter = self.__diameter(size_constraint,
                                    blackbody_temperature,
-                                   density)
+                                   density) if density > 0 else .0
         self.diameter = diameter
         # The surface gravity in G⊕ as S = d * D with density d and diameter D
         surface_gravity = density * diameter
