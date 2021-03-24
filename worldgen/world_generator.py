@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from cst_random import truncated_normal
 from scipy.interpolate import interp1d
 
 from world import TinySulfur, TinyIce, TinyRock, SmallHadean, SmallIce, \
@@ -36,7 +35,7 @@ class WorldGenerator():
 
         """l = []
         for _ in range(1000):
-            l.append(truncated_normal(loc=0.375, scale=0.1875, low=0, up=1))
+            l.append(min(np.random.triangular(0.2, .7, 1.2), 1))
         l.sort(reverse=True)
         n, bins, patches=plt.hist(l)
         plt.xlabel("Values")
