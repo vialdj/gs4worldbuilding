@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from math import exp
 from cst_random import truncated_normal
+from scipy.interpolate import interp1d
 
 from world import TinySulfur, TinyIce, TinyRock, SmallHadean, SmallIce, \
 SmallRock, StandardChthonian, StandardGreenhouse, StandardAmmonia, \
@@ -34,6 +34,25 @@ class WorldGenerator():
                                     LargeOcean: 0.00938964,
                                     AsteroidBelt: 0.16274024}
 
+        """l = []
+        for _ in range(1000):
+            l.append(truncated_normal(loc=0.375, scale=0.1875, low=0, up=1))
+        l.sort(reverse=True)
+        n, bins, patches=plt.hist(l)
+        plt.xlabel("Values")
+        plt.ylabel("Frequency")
+        plt.title("Histogram")
+        plt.show()
+        print(max(l))
+        print(min(l))"""
+        """sum = ['3-6', '7-10', '11-14', '15-17', '18']
+        p = [0.0926, 0.4074, 0.4074, 0.08797, 0.00463]
+#        f = interp1d(range(len(p)), p, kind='cubic')
+        plt.bar(sum, p)
+#        plt.plot(range(len(p)), f(range(len(p))), color='red')
+        plt.xlabel("Sum of 3d")
+        plt.ylabel("P")
+        plt.show()"""
         world_type = np.random.choice(world_types_distribution.keys(),
                                       p=world_types_distribution.values())
         self.world = world_type()
