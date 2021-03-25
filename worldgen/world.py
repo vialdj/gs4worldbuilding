@@ -107,11 +107,11 @@ class World(object):
 
     # sum of a 3d-3 roll times step value add minimum
     def __temp(self, temp):
-        min = temp[0]
-        max = temp[1]
+        tmin = temp[0]
+        tmax = temp[1]
         roll = truncnorm((0 - 7.5) / 2.958040, (15 - 7.5) / 2.958040,
                          loc=7.5, scale=2.958040).rvs()
-        return min + roll / 15 * (max - min)
+        return min + roll / 15 * (tmax - tmin)
 
     # match atmospheric pressure to Atmospheric Pressure Categories Table
     def __atm_category(self, pressure):
