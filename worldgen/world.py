@@ -25,7 +25,7 @@ class World(object):
         LARGE = 4
 
     def __init__(self, temp, absorption, size=Size.NONE, core=Core.NONE,
-                 oceans=.0, atm=[], greenhouse=.0, pressure=.0):
+                 atm=[], pressure=.0, greenhouse=.0, oceans=.0):
         # the ocean coverage proportion
         self.oceans = oceans
         # key elements in the atmosphere
@@ -34,6 +34,7 @@ class World(object):
         atm_mass = self.__atm_mass(atm)
         self.atm_mass = atm_mass
         # average surface temperature in K
+        temp = self.__temp(temp)
         self.temp = temp
         # climate type
         self.climate = self.__climate(temp)
@@ -99,11 +100,18 @@ class World(object):
                              loc=10.5, scale=2.958040).rvs() / 10
         return .0
 
+    """sum of a 3d-3 roll times step value add minimum"""
+    def __temp(self, temp):
+        min = temp[0]
+        max = temp[1]
+        return (truncnorm((0 - 7.5) / 2.958040, (15 - 7.5) / 2.958040,
+                         loc=7.5, scale=2.958040).rvs() / 15) * (max - min) + min
+
     def __str__(self):
         return '{self.__class__.__name__} (ocean coverage= {self.oceans:.2f}, \
 atmosphere composition= {self.atm}, \
 atmosphere pressure= {self.atm_pressure:.2f} atm⊕, \
-average surface temperature= {self.temp} K, \
+average surface temperature= {self.temp:.2f} K, \
 climate= {self.climate}, \
 blackbody temperature= {self.bb_temp:.2f} K, \
 density= {self.density:.2f} d⊕, \
@@ -112,168 +120,164 @@ diameter= {self.diameter:.2f} D⊕, \
 gravity= {self.gravity:.2f} G⊕, \
 mass= {self.mass:.2f} M⊕)'.format(self=self)
 
-
-
 class TinySulfur(World):
     def __init__(self):
-        super(TinySulfur, self).__init__(temp=random.randint(80, 140),
-                                         absorption=.77, core=self.Core.ICY_CORE,
-                                         size=self.Size.TINY)
+        super(TinySulfur, self).__init__(temp=(80, 140), absorption=.77,
+                                         size=self.Size.TINY,
+                                         core=self.Core.ICY_CORE)
 
 class TinyIce(World):
     def __init__(self):
-        super(TinyIce, self).__init__(temp=random.randint(80, 140),
-                                      size=self.Size.TINY, absorption=.86,
+        super(TinyIce, self).__init__(temp=(80, 140), absorption=.86,
+                                      size=self.Size.TINY,
                                       core=self.Core.ICY_CORE)
 
 class TinyRock(World):
     def __init__(self):
-        super(TinyRock, self).__init__(temp=random.randint(140, 500),
-                                       size=self.Size.TINY, absorption=.97,
+        super(TinyRock, self).__init__(temp=(140, 500), absorption=.97,
+                                       size=self.Size.TINY,
                                        core=self.Core.SMALL_IRON_CORE)
 
 class SmallHadean(World):
     def __init__(self):
-        super(SmallHadean, self).__init__(temp=random.randint(50, 80),
-                                          size=self.Size.SMALL, absorption=.67,
+        super(SmallHadean, self).__init__(temp=(50, 80), absorption=.67,
+                                          size=self.Size.SMALL,
                                           core=self.Core.ICY_CORE)
 
 class SmallIce(World):
     def __init__(self):
         """roll of 1d+2 divided by 10"""
         oceans = random.uniform(.3, .8)
-        super(SmallIce, self).__init__(oceans=oceans, atm=['N2', 'CH4'],
-                                       temp=random.randint(80, 140),
-                                       size=self.Size.SMALL, pressure=10,
-                                       absorption=.93, greenhouse=.1,
-                                       core=self.Core.ICY_CORE)
+        super(SmallIce, self).__init__(temp=(80, 140), absorption=.93,
+                                       size=self.Size.SMALL,
+                                       core=self.Core.ICY_CORE,
+                                       atm=['N2', 'CH4'],
+                                       pressure=10,
+                                       greenhouse=.1,
+                                       oceans=oceans)
 
 class SmallRock(World):
     def __init__(self):
-        super(SmallRock, self).__init__(temp=random.randint(140, 500),
-                                        size=self.Size.SMALL, absorption=.96,
+        super(SmallRock, self).__init__(temp=(140, 500), absorption=.96,
+                                        size=self.Size.SMALL,
                                         core=self.Core.SMALL_IRON_CORE)
 
 class StandardChthonian(World):
     def __init__(self):
-        super(StandardChthonian, self).__init__(temp=random.randint(500, 950),
+        super(StandardChthonian, self).__init__(temp=(500, 950), absorption=.97,
                                                 size=self.Size.STANDARD,
-                                                absorption=.97,
                                                 core=self.Core.LARGE_IRON_CORE)
 
 class StandardGreenhouse(World):
     def __init__(self):
-        super(StandardGreenhouse, self).__init__(atm=['CO2'], pressure=100,
-                                                 temp=random.randint(500, 950),
+        super(StandardGreenhouse, self).__init__(temp=(500, 950), absorption=.77,
                                                  size=self.Size.STANDARD,
-                                                 absorption=.77, greenhouse=2.0,
-                                                 core=self.Core.LARGE_IRON_CORE)
+                                                 core=self.Core.LARGE_IRON_CORE,
+                                                 atm=['CO2'], pressure=100,
+                                                 greenhouse=2.0)
 
 class StandardAmmonia(World):
     def __init__(self):
         """roll of 2d maximum at 10 and divided by 10"""
         oceans = min(np.random.triangular(0.2, .7, 1.2), 1)
-        super(StandardAmmonia, self).__init__(oceans=oceans, pressure=1,
-                                              atm=['N2', 'NH3', 'CH4'],
-                                              temp=random.randint(140, 215),
+        super(StandardAmmonia, self).__init__(temp=(140, 215), absorption=.84,
                                               size=self.Size.STANDARD,
-                                              absorption=.84, greenhouse=.2,
-                                              core=self.Core.ICY_CORE)
+                                              core=self.Core.ICY_CORE,
+                                              atm=['N2', 'NH3', 'CH4'],
+                                              pressure=1, greenhouse=.2,
+                                              oceans=oceans)
 
 class StandardHadean(World):
     def __init__(self):
-        super(StandardHadean, self).__init__(temp=random.randint(50, 80),
+        super(StandardHadean, self).__init__(temp=(50, 80), absorption=.67,
                                              size=self.Size.STANDARD,
-                                             absorption=.67,
                                              core=self.Core.ICY_CORE)
 
 class StandardIce(World):
     def __init__(self):
         """roll of 2d-10 minimum at 0 and divided by 10"""
         oceans = max(np.random.triangular(-.8, -.3, .2), 0)
-        super(StandardIce, self).__init__(oceans=oceans, atm=['CO2', 'N2'],
-                                          temp=random.randint(80, 230),
-                                          absorption=.86, greenhouse=.2,
-                                          pressure=1, size=self.Size.STANDARD,
-                                          core=self.Core.LARGE_IRON_CORE)
+        super(StandardIce, self).__init__(temp=(80, 230), absorption=.86,
+                                          size=self.Size.STANDARD,
+                                          core=self.Core.LARGE_IRON_CORE,
+                                          atm=['CO2', 'N2'], pressure=1,
+                                          greenhouse=.2, oceans=oceans)
 
 class StandardOcean(World):
     def __init__(self):
         """roll of 1d+4 divided by 10"""
         oceans = random.uniform(.5, 1.0)
-        super(StandardOcean, self).__init__(oceans=oceans, atm=['CO2', 'N2'],
-                                            temp=random.randint(250, 340),
-                                            size=self.Size.STANDARD, pressure=1,
-                                            absorption=.88, greenhouse=.16,
-                                            core=self.Core.LARGE_IRON_CORE)
+        super(StandardOcean, self).__init__(temp=(250, 340), absorption=.88,
+                                            size=self.Size.STANDARD,
+                                            core=self.Core.LARGE_IRON_CORE,
+                                            atm=['CO2', 'N2'], pressure=1,
+                                            greenhouse=.16, oceans=oceans)
 
 class StandardGarden(World):
     def __init__(self):
         """roll of 1d+4 divided by 10"""
         oceans = random.uniform(.5, 1.0)
-        super(StandardGarden, self).__init__(oceans=oceans, atm=['N2', 'O2'],
-                                             temp=random.randint(250, 340),
-                                             size=self.Size.STANDARD, pressure=1,
-                                             absorption=.88, greenhouse=.16,
-                                             core=self.Core.LARGE_IRON_CORE)
+        super(StandardGarden, self).__init__(temp=(250, 340), absorption=.88,
+                                             size=self.Size.STANDARD,
+                                             core=self.Core.LARGE_IRON_CORE,
+                                             atm=['N2', 'O2'], pressure=1,
+                                             greenhouse=.16, oceans=oceans)
 
 class LargeChthonian(World):
     def __init__(self):
-        super(LargeChthonian, self).__init__(temp=random.randint(500, 950),
+        super(LargeChthonian, self).__init__(temp=(500, 950), absorption=.97,
                                              size=self.Size.LARGE,
-                                             absorption=.97,
                                              core=self.Core.LARGE_IRON_CORE)
 
 class LargeGreenhouse(World):
     def __init__(self):
-        super(LargeGreenhouse, self).__init__(atm=['CO2'], size=self.Size.LARGE,
-                                              temp=random.randint(500, 950),
-                                              absorption=.77, greenhouse=2.0,
-                                              pressure=500,
-                                              core=self.Core.LARGE_IRON_CORE)
+        super(LargeGreenhouse, self).__init__(temp=(500, 950), absorption=.77,
+                                              size=self.Size.LARGE,
+                                              core=self.Core.LARGE_IRON_CORE,
+                                              atm=['CO2'], pressure=500,
+                                              greenhouse=2.0)
 
 class LargeAmmonia(World):
     def __init__(self):
         """roll of 2d capped at 10 and divided by 10"""
         oceans = min(np.random.triangular(0.2, .7, 1.2), 1)
-        super(LargeAmmonia, self).__init__(oceans=oceans, size=self.Size.LARGE,
-                                           atm=['He', 'NH3', 'CH4'],
-                                           temp=random.randint(140, 215),
-                                           absorption=.84, greenhouse=.2,
-                                           pressure=5, core=self.Core.ICY_CORE)
+        super(LargeAmmonia, self).__init__(temp=(140, 215), absorption=.84,
+                                           size=self.Size.LARGE,
+                                           core=self.Core.ICY_CORE,
+                                           atm=['He', 'NH3', 'CH4'], pressure=5,
+                                           greenhouse=.2, oceans=oceans)
 
 class LargeIce(World):
     def __init__(self):
         """roll of 2d-10 minimum at 0 and divided by 10"""
         oceans = max(np.random.triangular(-.8, -.3, .2), 0)
-        super(LargeIce, self).__init__(oceans=oceans, atm=['He', 'N2'],
-                                       temp=random.randint(80, 230),
-                                       size=self.Size.LARGE, absorption=.86,
-                                       greenhouse=.2, pressure=5,
-                                       core=self.Core.LARGE_IRON_CORE)
+        super(LargeIce, self).__init__(temp=(80, 230), absorption=.86,
+                                       size=self.Size.LARGE,
+                                       core=self.Core.LARGE_IRON_CORE,
+                                       atm=['He', 'N2'], pressure=5,
+                                       greenhouse=.2, oceans=oceans)
 
 class LargeOcean(World):
     def __init__(self):
         """roll of 1d+6 maxed at 10 divided by 10"""
         oceans = min(random.uniform(.7, 1.2), 1)
-        super(LargeOcean, self).__init__(oceans=oceans, atm=['He', 'N2'],
-                                         temp=random.randint(250, 340),
-                                         size=self.Size.LARGE, pressure=5,
-                                         absorption=.88, greenhouse=.16,
-                                         core=self.Core.LARGE_IRON_CORE)
+        super(LargeOcean, self).__init__(temp=(250, 340), absorption=.88,
+                                         core=self.Core.LARGE_IRON_CORE,
+                                         size=self.Size.LARGE,
+                                         atm=['He', 'N2'], pressure=5,
+                                         greenhouse=.16, oceans=oceans)
 
 class LargeGarden(World):
     def __init__(self):
         """roll of 1d+6 maxed at 10 divided by 10"""
         oceans = min(random.uniform(.7, 1.2), 1)
-        super(LargeGarden, self).__init__(oceans=oceans, size=self.Size.LARGE,
+        super(LargeGarden, self).__init__(temp=(250, 340), absorption=.88,
+                                          size=self.Size.LARGE,
+                                          core=self.Core.LARGE_IRON_CORE,
                                           atm=['N2', 'O2', 'He', 'Ne', 'Ar',
                                                'Kr', 'Xe'], pressure=5,
-                                          temp=random.randint(250, 340),
-                                          absorption=.88, greenhouse=.16,
-                                          core=self.Core.LARGE_IRON_CORE)
+                                          greenhouse=.16, oceans=oceans)
 
 class AsteroidBelt(World):
     def __init__(self):
-        super(AsteroidBelt, self).__init__(temp=random.randint(140, 500),
-                                           absorption=.97)
+        super(AsteroidBelt, self).__init__(temp=(140, 500), absorption=.97)
