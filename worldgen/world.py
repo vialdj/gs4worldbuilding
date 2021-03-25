@@ -60,7 +60,7 @@ class World(object):
         atm_pressure = atm_mass * pressure * gravity
         self.atm_pressure = atm_pressure
         # atmosphere category
-        self.atm_category = self.__atm_category(atm_pressure)
+        self.atm_p_category = self.__atm_category(atm_pressure)
 
 
     """match surface temperature to World Climate Table"""
@@ -124,7 +124,7 @@ class World(object):
     def __str__(self):
         return '{self.__class__.__name__} (ocean coverage= {self.oceans:.2f}, \
 atmosphere composition= {self.atm}, \
-atmosphere pressure= {self.atm_pressure:.2f} atm⊕ ({self.atm_category}), \
+atmosphere pressure= {self.atm_pressure:.2f} atm⊕ ({self.atm_p_category}), \
 average surface temperature= {self.temp:.2f} K ({self.climate}), \
 blackbody temperature= {self.bb_temp:.2f} K, \
 density= {self.density:.2f} d⊕, \

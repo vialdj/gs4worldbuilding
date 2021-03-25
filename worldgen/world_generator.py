@@ -1,16 +1,15 @@
 import numpy as np
-import matplotlib.pyplot as plt
-from scipy.interpolate import interp1d
 
-from world import TinySulfur, TinyIce, TinyRock, SmallHadean, SmallIce, \
-SmallRock, StandardChthonian, StandardGreenhouse, StandardAmmonia, \
-StandardHadean, StandardIce, StandardOcean, StandardGarden, LargeChthonian, \
+from world import TinySulfur, TinyIce, TinyRock, SmallHadean, SmallIce,
+SmallRock, StandardChthonian, StandardGreenhouse, StandardAmmonia,
+StandardHadean, StandardIce, StandardOcean, StandardGarden, LargeChthonian,
 LargeGreenhouse, LargeAmmonia, LargeIce, LargeOcean, LargeGarden, AsteroidBelt
 
-"""
-world generator.
-"""
+
 class WorldGenerator():
+    """
+    world generator.
+    """
     def __init__(self):
         world_types_distribution = {TinySulfur: 0.0457488,
                                     TinyIce: 0.16274024,
@@ -33,25 +32,6 @@ class WorldGenerator():
                                     LargeOcean: 0.00938964,
                                     AsteroidBelt: 0.16274024}
 
-        """l = []
-        for _ in range(1000):
-            l.append(min(np.random.triangular(0.2, .7, 1.2), 1))
-        l.sort(reverse=True)
-        n, bins, patches=plt.hist(l)
-        plt.xlabel("Values")
-        plt.ylabel("Frequency")
-        plt.title("Histogram")
-        plt.show()
-        print(max(l))
-        print(min(l))"""
-        """sum = ['3-6', '7-10', '11-14', '15-17', '18']
-        p = [0.0926, 0.4074, 0.4074, 0.08797, 0.00463]
-#        f = interp1d(range(len(p)), p, kind='cubic')
-        plt.bar(sum, p)
-#        plt.plot(range(len(p)), f(range(len(p))), color='red')
-        plt.xlabel("Sum of 3d")
-        plt.ylabel("P")
-        plt.show()"""
         world_type = np.random.choice(world_types_distribution.keys(),
                                       p=world_types_distribution.values())
         self.world = world_type()
