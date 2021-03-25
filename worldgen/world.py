@@ -8,16 +8,16 @@ from scipy.stats import truncnorm
 
 
 class World(object):
-    """The World Model"""
+    # the World Model
 
-    """Internal Core Enum from World Density Table"""
+    # internal Core Enum from World Density Table
     class Core(Enum):
         NONE = 0
         ICY_CORE = 1
         SMALL_IRON_CORE = 2
         LARGE_IRON_CORE = 3
 
-    """Internal Size Enum from Size Constraints Table"""
+    # internal Size Enum from Size Constraints Table
     class Size(Enum):
         NONE = 0
         TINY = 1
@@ -27,11 +27,11 @@ class World(object):
 
     def __init__(self, temp, absorption, size=Size.NONE, core=Core.NONE,
                  atm=[], pressure=.0, greenhouse=.0, oceans=.0):
-        # the ocean coverage proportion
+        # the ocean coverage proportion
         self.oceans = oceans
         # key elements in the atmosphere
         self.atm = atm
-        # relative supply of gaseous atm to other worlds of the same type
+        # relative supply of gaseous atm to other worlds of the same type
         atm_mass = self.__atm_mass(atm)
         self.atm_mass = atm_mass
         # average surface temperature in K
@@ -51,19 +51,18 @@ class World(object):
         # diameter in D⊕
         diameter = self.__diameter(size, bb_temp, density)
         self.diameter = diameter
-        # surface gravity in G⊕
+        # surface gravity in G⊕
         gravity = density * diameter
         self.gravity = gravity
-        # mass in M⊕
+        # mass in M⊕
         self.mass = density * diameter**3
-        # atmospheric pressure in atm⊕
+        # atmospheric pressure in atm⊕
         atm_pressure = atm_mass * pressure * gravity
         self.atm_pressure = atm_pressure
         # atmosphere category
         self.atm_p_category = self.__atm_category(atm_pressure)
 
-
-    """match surface temperature to World Climate Table"""
+    # match surface temperature to World Climate Table
     def __climate(self, temp):
         d = {244: 'Frozen', 255: 'Very Cold', 266: 'Cold', 278: 'Chilly',
              289: 'Cool', 300: 'Normal', 311: 'Warm', 322: 'Tropical',
@@ -71,13 +70,13 @@ class World(object):
         k = list(filter(lambda x: x >= temp, sorted(d.keys())))
         return d[k[0]] if len(k) > 0 else 'Infernal'
 
-    """ blackbody temperature B = T / C where C = A * [1 + (M * G)]
-    with A the absorption factor, M the relative atmospheric mass and G the
-    greenhouse factor (A and G given in the Temperature Factors Table)"""
+    # blackbody temperature B = T / C where C = A * [1 + (M * G)]
+    # with A the absorption factor, M the relative atmospheric mass and G the
+    # greenhouse factor (A and G given in the Temperature Factors Table)
     def __blackbody_temperature(self, absorption, greenhouse, atm, temp):
         return temp / (absorption * floor(1 + atm * greenhouse))
 
-    """ roll of 2d-2 in range [Dmin, Dmax]"""
+    # roll of 2d-2 in range [Dmin, Dmax]
     def __diameter(self, size, bb_temp, density):
         if size != self.Size.NONE:
             d = {self.Size.TINY: (0.004, 0.024),
@@ -89,7 +88,7 @@ class World(object):
             return dmin + np.random.triangular(0, .5, 1) * (dmax - dmin)
         return .0
 
-    """sum of a 3d roll over World Density Table"""
+    # sum of a 3d roll over World Density Table
     def __density(self, core):
         if core != self.Core.NONE:
             densities = {self.Core.ICY_CORE: [0.3, 0.4, 0.5, 0.6, 0.7],
@@ -99,14 +98,14 @@ class World(object):
                                                         0.08797, 0.00463])
         return .0
 
-    """sum of a 3d roll divided by 10"""
+    # sum of a 3d roll divided by 10
     def __atm_mass(self, atm):
         if len(atm) > 0:
             return truncnorm((3 - 10.5) / 2.958040, (18 - 10.5) / 2.958040,
                              loc=10.5, scale=2.958040).rvs() / 10
         return .0
 
-    """sum of a 3d-3 roll times step value add minimum"""
+    # sum of a 3d-3 roll times step value add minimum
     def __temp(self, temp):
         min = temp[0]
         max = temp[1]
@@ -114,7 +113,7 @@ class World(object):
                          loc=7.5, scale=2.958040).rvs()
         return min + roll / 15 * (max - min)
 
-    """match atmospheric pressure to Atmospheric Pressure Categories Table"""
+    # match atmospheric pressure to Atmospheric Pressure Categories Table
     def __atm_category(self, pressure):
         d = {.01: 'Trace', .51: 'Very Thin', .81: 'Thin', 1.21: 'Standard',
              1.51: 'Dense', 10: 'Very Dense'}
@@ -232,13 +231,12 @@ class StandardIce(World):
 
 class StandardOcean(World):
     def __init__(self):
-        """roll of 1d+4 divided by 10"""
+        # roll of 1d+4 divided by 10
         oceans = random.uniform(.5, 1.0)
-        """match ocean coverage to Temperature Factors Table"""
+        # match ocean coverage to Temperature Factors Table
         d = {.20: .95, .50: .92, .90: .88, 1: .84}
-        absorption = d[list(filter(lambda x: x >= oceans, sorted(d.keys())))[0]]
-        super(StandardOcean, self).__init__(temp=(250, 340),
-                                            absorption=absorption,
+        a = d[list(filter(lambda x: x >= oceans, sorted(d.keys())))[0]]
+        super(StandardOcean, self).__init__(temp=(250, 340), absorption=a,
                                             size=self.Size.STANDARD,
                                             core=self.Core.LARGE_IRON_CORE,
                                             atm=['CO2', 'N2'], pressure=1,
@@ -247,13 +245,12 @@ class StandardOcean(World):
 
 class StandardGarden(World):
     def __init__(self):
-        """roll of 1d+4 divided by 10"""
+        # roll of 1d+4 divided by 10
         oceans = random.uniform(.5, 1.0)
-        """match ocean coverage to Temperature Factors Table"""
+        # match ocean coverage to Temperature Factors Table
         d = {.20: .95, .50: .92, .90: .88, 1: .84}
-        absorption = d[list(filter(lambda x: x >= oceans, sorted(d.keys())))[0]]
-        super(StandardGarden, self).__init__(temp=(250, 340),
-                                             absorption=absorption,
+        a = d[list(filter(lambda x: x >= oceans, sorted(d.keys())))[0]]
+        super(StandardGarden, self).__init__(temp=(250, 340), absorption=a,
                                              size=self.Size.STANDARD,
                                              core=self.Core.LARGE_IRON_CORE,
                                              atm=['N2', 'O2'], pressure=1,
@@ -278,7 +275,7 @@ class LargeGreenhouse(World):
 
 class LargeAmmonia(World):
     def __init__(self):
-        """roll of 2d capped at 10 and divided by 10"""
+        # roll of 2d capped at 10 and divided by 10
         oceans = min(np.random.triangular(0.2, .7, 1.2), 1)
         super(LargeAmmonia, self).__init__(temp=(140, 215), absorption=.84,
                                            size=self.Size.LARGE,
@@ -290,7 +287,7 @@ class LargeAmmonia(World):
 
 class LargeIce(World):
     def __init__(self):
-        """roll of 2d-10 minimum at 0 and divided by 10"""
+        # roll of 2d-10 minimum at 0 and divided by 10
         oceans = max(np.random.triangular(-.8, -.3, .2), 0)
         super(LargeIce, self).__init__(temp=(80, 230), absorption=.86,
                                        size=self.Size.LARGE,
@@ -301,13 +298,12 @@ class LargeIce(World):
 
 class LargeOcean(World):
     def __init__(self):
-        """roll of 1d+6 maxed at 10 divided by 10"""
+        # roll of 1d+6 maxed at 10 divided by 10
         oceans = min(random.uniform(.7, 1.2), 1)
-        """match ocean coverage to Temperature Factors Table"""
+        # match ocean coverage to Temperature Factors Table
         d = {.20: .95, .50: .92, .90: .88, 1: .84}
-        absorption = d[list(filter(lambda x: x >= oceans, sorted(d.keys())))[0]]
-        super(LargeOcean, self).__init__(temp=(250, 340),
-                                         absorption=absorption,
+        a = d[list(filter(lambda x: x >= oceans, sorted(d.keys())))[0]]
+        super(LargeOcean, self).__init__(temp=(250, 340), absorption=a,
                                          core=self.Core.LARGE_IRON_CORE,
                                          size=self.Size.LARGE,
                                          atm=['He', 'N2'], pressure=5,
@@ -316,13 +312,12 @@ class LargeOcean(World):
 
 class LargeGarden(World):
     def __init__(self):
-        """roll of 1d+6 maxed at 10 divided by 10"""
+        # roll of 1d+6 maxed at 10 divided by 10
         oceans = min(random.uniform(.7, 1.2), 1)
-        """match ocean coverage to Temperature Factors Table"""
+        # match ocean coverage to Temperature Factors Table
         d = {.20: .95, .50: .92, .90: .88, 1: .84}
-        absorption = d[list(filter(lambda x: x >= oceans, sorted(d.keys())))[0]]
-        super(LargeGarden, self).__init__(temp=(250, 340),
-                                          absorption=absorption,
+        a = d[list(filter(lambda x: x >= oceans, sorted(d.keys())))[0]]
+        super(LargeGarden, self).__init__(temp=(250, 340), absorption=a,
                                           size=self.Size.LARGE,
                                           core=self.Core.LARGE_IRON_CORE,
                                           atm=['N2', 'O2', 'He', 'Ne', 'Ar',

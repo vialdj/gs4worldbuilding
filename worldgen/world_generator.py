@@ -7,9 +7,7 @@ LargeGreenhouse, LargeAmmonia, LargeIce, LargeOcean, LargeGarden, AsteroidBelt
 
 
 class WorldGenerator():
-    """
-    world generator.
-    """
+    # World generator
     def __init__(self):
         world_types_distribution = {TinySulfur: 0.0457488,
                                     TinyIce: 0.16274024,
