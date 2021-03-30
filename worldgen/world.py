@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 
-import numpy as np
 import random
 from enum import Enum
+from collections import NamedTuple
 from math import sqrt, floor
 from scipy.stats import truncnorm
-
+import numpy as np
 
 class World(object):
     # the World Model
@@ -24,6 +24,14 @@ class World(object):
         SMALL = 2
         STANDARD = 3
         LARGE = 4
+
+    # internal Atmosphere class
+    class Atmosphere(NamedTuple):
+        composition: list = None
+        pressure_factor: float = .0
+        relative_mass: float = .0
+        pressure: float = .0
+        category: string = ''
 
     def __init__(self, temp, absorption, size=Size.NONE, core=Core.NONE,
                  atm=[], pressure=.0, greenhouse=.0, oceans=.0):
