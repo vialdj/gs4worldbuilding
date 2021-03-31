@@ -2,7 +2,7 @@
 
 import random
 from enum import Enum
-from collections import NamedTuple
+from typing import NamedTuple
 from math import sqrt, floor
 from scipy.stats import truncnorm
 import numpy as np
@@ -11,19 +11,17 @@ class World(object):
     # the World Model
 
     # internal Core Enum from World Density Table
-    class Core(Enum):
-        NONE = 0
-        ICY_CORE = 1
-        SMALL_IRON_CORE = 2
-        LARGE_IRON_CORE = 3
+    class Core(str, Enum):
+        ICY_CORE = 'Icy core'
+        SMALL_IRON_CORE = 'Small iron core'
+        LARGE_IRON_CORE = 'Large iron core'
 
     # internal Size Enum from Size Constraints Table
-    class Size(Enum):
-        NONE = 0
-        TINY = 1
-        SMALL = 2
-        STANDARD = 3
-        LARGE = 4
+    class Size(str, Enum):
+        TINY = 'Tiny'
+        SMALL = 'Small'
+        STANDARD = 'Standard'
+        LARGE = 'Large'
 
     # internal Atmosphere class
     class Atmosphere(NamedTuple):
@@ -31,10 +29,12 @@ class World(object):
         pressure_factor: float = .0
         relative_mass: float = .0
         pressure: float = .0
-        category: string = ''
+        category: str = ''
 
-    def __init__(self, temp, absorption, size=Size.NONE, core=Core.NONE,
+    def __init__(self, temp, absorption, size=None, core=None,
                  atm=[], pressure=.0, greenhouse=.0, oceans=.0):
+        # size value
+        self.size = size
         # the ocean coverage proportion
         self.oceans = oceans
         # key elements in the atmosphere
@@ -86,7 +86,7 @@ class World(object):
 
     # roll of 2d-2 in range [Dmin, Dmax]
     def __diameter(self, size, bb_temp, density):
-        if size != self.Size.NONE:
+        if size is not None:
             d = {self.Size.TINY: (0.004, 0.024),
                  self.Size.SMALL: (0.024, 0.030),
                  self.Size.STANDARD: (0.030, 0.065),
@@ -98,7 +98,7 @@ class World(object):
 
     # sum of a 3d roll over World Density Table
     def __density(self, core):
-        if core != self.Core.NONE:
+        if core is not None:
             densities = {self.Core.ICY_CORE: [0.3, 0.4, 0.5, 0.6, 0.7],
                          self.Core.SMALL_IRON_CORE: [0.6, 0.7, 0.8, 0.9, 1.0],
                          self.Core.LARGE_IRON_CORE: [0.8, 0.9, 1.0, 1.1, 1.2]}
@@ -119,7 +119,7 @@ class World(object):
         tmax = temp[1]
         roll = truncnorm((0 - 7.5) / 2.958040, (15 - 7.5) / 2.958040,
                          loc=7.5, scale=2.958040).rvs()
-        return min + roll / 15 * (tmax - tmin)
+        return tmin + roll / 15 * (tmax - tmin)
 
     # match atmospheric pressure to Atmospheric Pressure Categories Table
     def __atm_category(self, pressure):
@@ -133,6 +133,7 @@ class World(object):
 atmosphere composition= {self.atm}, \
 atmosphere pressure= {self.atm_pressure:.2f} atm⊕ ({self.atm_p_category}), \
 average surface temperature= {self.temp:.2f} K ({self.climate}), \
+size= {self.size}, \
 blackbody temperature= {self.bb_temp:.2f} K, \
 density= {self.density:.2f} d⊕, \
 core= {self.core}, \
@@ -171,7 +172,7 @@ class SmallHadean(World):
 
 class SmallIce(World):
     def __init__(self):
-        """roll of 1d+2 divided by 10"""
+        # roll of 1d+2 divided by 10
         oceans = random.uniform(.3, .8)
         super(SmallIce, self).__init__(temp=(80, 140), absorption=.93,
                                        size=self.Size.SMALL,
@@ -209,7 +210,7 @@ class StandardGreenhouse(World):
 
 class StandardAmmonia(World):
     def __init__(self):
-        """roll of 2d maximum at 10 and divided by 10"""
+        # roll of 2d maximum at 10 and divided by 10
         oceans = min(np.random.triangular(0.2, .7, 1.2), 1)
         super(StandardAmmonia, self).__init__(temp=(140, 215), absorption=.84,
                                               size=self.Size.STANDARD,
@@ -228,7 +229,7 @@ class StandardHadean(World):
 
 class StandardIce(World):
     def __init__(self):
-        """roll of 2d-10 minimum at 0 and divided by 10"""
+        # roll of 2d-10 minimum at 0 and divided by 10
         oceans = max(np.random.triangular(-.8, -.3, .2), 0)
         super(StandardIce, self).__init__(temp=(80, 230), absorption=.86,
                                           size=self.Size.STANDARD,

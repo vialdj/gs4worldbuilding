@@ -1,9 +1,9 @@
 import numpy as np
 
-from world import TinySulfur, TinyIce, TinyRock, SmallHadean, SmallIce,
+from world import (TinySulfur, TinyIce, TinyRock, SmallHadean, SmallIce,
 SmallRock, StandardChthonian, StandardGreenhouse, StandardAmmonia,
 StandardHadean, StandardIce, StandardOcean, StandardGarden, LargeChthonian,
-LargeGreenhouse, LargeAmmonia, LargeIce, LargeOcean, LargeGarden, AsteroidBelt
+LargeGreenhouse, LargeAmmonia, LargeIce, LargeOcean, LargeGarden, AsteroidBelt)
 
 
 class WorldGenerator():
@@ -30,8 +30,8 @@ class WorldGenerator():
                                     LargeOcean: 0.00938964,
                                     AsteroidBelt: 0.16274024}
 
-        world_type = np.random.choice(world_types_distribution.keys(),
-                                      p=world_types_distribution.values())
+        world_type = np.random.choice(list(world_types_distribution.keys()),
+                                      p=list(world_types_distribution.values()))
         self.world = world_type()
 
     def __str__(self):
