@@ -2,10 +2,12 @@
 
 import random
 from enum import Enum
-from typing import NamedTuple
+from collections import namedtuple
 from math import sqrt, floor
 from scipy.stats import truncnorm
 import numpy as np
+
+Range = namedtuple('Range', ['min', 'max'])
 
 class World(object):
     # the World Model
@@ -47,6 +49,18 @@ class World(object):
         VERY_DENSE = 'Very dense'
         SUPER_DENSE = 'Super dense'
 
+    # temperature range static member
+    temperature_range = Range(0, 0)
+
+    @classmethod
+    def random_temperature(cls):
+        # sum of a 3d-3 roll times step value add minimum
+        tmin = cls.temperature_range.min
+        tmax = cls.temperature_range.max
+        roll = truncnorm((0 - 7.5) / 2.958040, (15 - 7.5) / 2.958040,
+                         loc=7.5, scale=2.958040).rvs()
+        return tmin + roll / 15 * (tmax - tmin)
+
     # internal Atmosphere class
     # class Atmosphere(NamedTuple):
     #     composition: list = None
@@ -55,7 +69,7 @@ class World(object):
     #     pressure: float = .0
     #     category: str = ''
 
-    def __init__(self, temp, absorption, size=None, core=None,
+    def __init__(self, absorption, size=None, core=None,
                  atm=[], pressure=.0, greenhouse=.0, oceans=.0):
         # size value
         self.size = size
@@ -63,17 +77,14 @@ class World(object):
         self.oceans = oceans
         # key elements in the atmosphere
         self.atm = atm
-        # relative supply of gaseous atm to other worlds of the same type
+        # relative supply of gaseous elements to other worlds of the same type
         atm_mass = self.__atm_mass(atm)
         self.atm_mass = atm_mass
         # average surface temperature in K
-        temp = self.__temp(temp)
-        self.temp = temp
-        # climate type
-        self.climate = self.__climate(temp)
+        self.temperature = self.random_temperature()
         # blackbody temperature in K
         bb_temp = self.__blackbody_temperature(absorption, greenhouse,
-                                               atm_mass, temp)
+                                               atm_mass, self.temperature)
         self.bb_temp = bb_temp
         # core type
         self.core = core
@@ -94,8 +105,24 @@ class World(object):
         # atmosphere category
         self.atm_p_category = self.__atm_category(atm_pressure)
 
-    # match surface temperature to World Climate Table
-    def __climate(self, temp):
+    @property
+    def temperature(self):
+        # average temperature in K
+        return self._temperature
+
+    @temperature.setter
+    def temperature(self, value):
+        assert (value >= self.temperature_range.min and
+                value <= self.temperature_range.max), "value out of bounds"
+        self._temperature = value
+        self.__climate_f()
+
+    @property
+    def climate(self):
+        # climate implied by temperature match over World Climate Table
+        return self._climate
+
+    def __climate_f(self):
         d = {244: self.Climate.FROZEN,
              255: self.Climate.VERY_COLD,
              266: self.Climate.COLD,
@@ -106,14 +133,14 @@ class World(object):
              322: self.Climate.TROPICAL,
              333: self.Climate.HOT,
              344: self.Climate.VERY_HOT}
-        k = list(filter(lambda x: x >= temp, sorted(d.keys())))
-        return d[k[0]] if len(k) > 0 else self.Climate.INFERNAL
+        k = list(filter(lambda x: x >= self.temperature, sorted(d.keys())))
+        self._climate = d[k[0]] if len(k) > 0 else self.Climate.INFERNAL
 
     # blackbody temperature B = T / C where C = A * [1 + (M * G)]
     # with A the absorption factor, M the relative atmospheric mass and G the
     # greenhouse factor (A and G given in the Temperature Factors Table)
-    def __blackbody_temperature(self, absorption, greenhouse, atm, temp):
-        return temp / (absorption * floor(1 + atm * greenhouse))
+    def __blackbody_temperature(self, absorption, greenhouse, atm, temperature):
+        return temperature / (absorption * floor(1 + atm * greenhouse))
 
     # roll of 2d-2 in range [Dmin, Dmax]
     def __diameter(self, size, bb_temp, density):
@@ -144,13 +171,7 @@ class World(object):
                              loc=10.5, scale=2.958040).rvs() / 10
         return .0
 
-    # sum of a 3d-3 roll times step value add minimum
-    def __temp(self, temp):
-        tmin = temp[0]
-        tmax = temp[1]
-        roll = truncnorm((0 - 7.5) / 2.958040, (15 - 7.5) / 2.958040,
-                         loc=7.5, scale=2.958040).rvs()
-        return tmin + roll / 15 * (tmax - tmin)
+
 
     # match atmospheric pressure to Atmospheric Pressure Categories Table
     def __atm_category(self, pressure):
@@ -167,7 +188,7 @@ class World(object):
         return '{self.__class__.__name__} (ocean coverage= {self.oceans:.2f}, \
 atmosphere composition= {self.atm}, \
 atmosphere pressure= {self.atm_pressure:.2f} atm⊕ ({self.atm_p_category}), \
-average surface temperature= {self.temp:.2f} K, \
+average surface temperature= {self.temperature:.2f} K, \
 climate = {self.climate}, \
 size= {self.size}, \
 blackbody temperature= {self.bb_temp:.2f} K, \
@@ -179,38 +200,48 @@ mass= {self.mass:.2f} M⊕)'.format(self=self)
 
 
 class TinySulfur(World):
+    temperature_range = Range(80, 140)
+
     def __init__(self):
-        super(TinySulfur, self).__init__(temp=(80, 140), absorption=.77,
+        super(TinySulfur, self).__init__(absorption=.77,
                                          size=self.Size.TINY,
                                          core=self.Core.ICY_CORE)
 
 
 class TinyIce(World):
+    temperature_range = Range(80, 140)
+
     def __init__(self):
-        super(TinyIce, self).__init__(temp=(80, 140), absorption=.86,
+        super(TinyIce, self).__init__(absorption=.86,
                                       size=self.Size.TINY,
                                       core=self.Core.ICY_CORE)
 
 
 class TinyRock(World):
+    temperature_range = Range(140, 500)
+
     def __init__(self):
-        super(TinyRock, self).__init__(temp=(140, 500), absorption=.97,
+        super(TinyRock, self).__init__(absorption=.97,
                                        size=self.Size.TINY,
                                        core=self.Core.SMALL_IRON_CORE)
 
 
 class SmallHadean(World):
+    temperature_range = Range(50, 80)
+
     def __init__(self):
-        super(SmallHadean, self).__init__(temp=(50, 80), absorption=.67,
+        super(SmallHadean, self).__init__(absorption=.67,
                                           size=self.Size.SMALL,
                                           core=self.Core.ICY_CORE)
 
 
 class SmallIce(World):
+    temperature_range = Range(80, 140)
+
     def __init__(self):
         # roll of 1d+2 divided by 10
         oceans = random.uniform(.3, .8)
-        super(SmallIce, self).__init__(temp=(80, 140), absorption=.93,
+        super(SmallIce, self).__init__(absorption=.93,
                                        size=self.Size.SMALL,
                                        core=self.Core.ICY_CORE,
                                        atm=['N2', 'CH4'],
@@ -220,24 +251,28 @@ class SmallIce(World):
 
 
 class SmallRock(World):
+    temperature_range = Range(140, 500)
+
     def __init__(self):
-        super(SmallRock, self).__init__(temp=(140, 500), absorption=.96,
+        super(SmallRock, self).__init__(absorption=.96,
                                         size=self.Size.SMALL,
                                         core=self.Core.SMALL_IRON_CORE)
 
 
 class StandardChthonian(World):
+    temperature_range = Range(500, 950)
+
     def __init__(self):
-        super(StandardChthonian, self).__init__(temp=(500, 950),
-                                                absorption=.97,
+        super(StandardChthonian, self).__init__(absorption=.97,
                                                 size=self.Size.STANDARD,
                                                 core=self.Core.LARGE_IRON_CORE)
 
 
 class StandardGreenhouse(World):
+    temperature_range = Range(500, 950)
+
     def __init__(self):
-        super(StandardGreenhouse, self).__init__(temp=(500, 950),
-                                                 absorption=.77,
+        super(StandardGreenhouse, self).__init__(absorption=.77,
                                                  size=self.Size.STANDARD,
                                                  core=self.Core.LARGE_IRON_CORE,
                                                  atm=['CO2'], pressure=100,
@@ -245,10 +280,12 @@ class StandardGreenhouse(World):
 
 
 class StandardAmmonia(World):
+    temperature_range = Range(140, 215)
+
     def __init__(self):
         # roll of 2d maximum at 10 and divided by 10
         oceans = min(np.random.triangular(0.2, .7, 1.2), 1)
-        super(StandardAmmonia, self).__init__(temp=(140, 215), absorption=.84,
+        super(StandardAmmonia, self).__init__(absorption=.84,
                                               size=self.Size.STANDARD,
                                               core=self.Core.ICY_CORE,
                                               atm=['N2', 'NH3', 'CH4'],
@@ -257,17 +294,21 @@ class StandardAmmonia(World):
 
 
 class StandardHadean(World):
+    temperature_range = Range(50, 80)
+
     def __init__(self):
-        super(StandardHadean, self).__init__(temp=(50, 80), absorption=.67,
+        super(StandardHadean, self).__init__(absorption=.67,
                                              size=self.Size.STANDARD,
                                              core=self.Core.ICY_CORE)
 
 
 class StandardIce(World):
+    temperature_range = Range(80, 230)
+
     def __init__(self):
         # roll of 2d-10 minimum at 0 and divided by 10
         oceans = max(np.random.triangular(-.8, -.3, .2), 0)
-        super(StandardIce, self).__init__(temp=(80, 230), absorption=.86,
+        super(StandardIce, self).__init__(absorption=.86,
                                           size=self.Size.STANDARD,
                                           core=self.Core.LARGE_IRON_CORE,
                                           atm=['CO2', 'N2'], pressure=1,
@@ -275,13 +316,15 @@ class StandardIce(World):
 
 
 class StandardOcean(World):
+    temperature_range = Range(250, 340)
+
     def __init__(self):
         # roll of 1d+4 divided by 10
         oceans = random.uniform(.5, 1.0)
         # match ocean coverage to Temperature Factors Table
         d = {.20: .95, .50: .92, .90: .88, 1: .84}
         a = d[list(filter(lambda x: x >= oceans, sorted(d.keys())))[0]]
-        super(StandardOcean, self).__init__(temp=(250, 340), absorption=a,
+        super(StandardOcean, self).__init__(absorption=a,
                                             size=self.Size.STANDARD,
                                             core=self.Core.LARGE_IRON_CORE,
                                             atm=['CO2', 'N2'], pressure=1,
@@ -289,13 +332,15 @@ class StandardOcean(World):
 
 
 class StandardGarden(World):
+    temperature_range = Range(250, 340)
+
     def __init__(self):
         # roll of 1d+4 divided by 10
         oceans = random.uniform(.5, 1.0)
         # match ocean coverage to Temperature Factors Table
         d = {.20: .95, .50: .92, .90: .88, 1: .84}
         a = d[list(filter(lambda x: x >= oceans, sorted(d.keys())))[0]]
-        super(StandardGarden, self).__init__(temp=(250, 340), absorption=a,
+        super(StandardGarden, self).__init__(absorption=a,
                                              size=self.Size.STANDARD,
                                              core=self.Core.LARGE_IRON_CORE,
                                              atm=['N2', 'O2'], pressure=1,
@@ -303,15 +348,19 @@ class StandardGarden(World):
 
 
 class LargeChthonian(World):
+    temperature_range = Range(500, 950)
+
     def __init__(self):
-        super(LargeChthonian, self).__init__(temp=(500, 950), absorption=.97,
+        super(LargeChthonian, self).__init__(absorption=.97,
                                              size=self.Size.LARGE,
                                              core=self.Core.LARGE_IRON_CORE)
 
 
 class LargeGreenhouse(World):
+    temperature_range = Range(500, 950)
+
     def __init__(self):
-        super(LargeGreenhouse, self).__init__(temp=(500, 950), absorption=.77,
+        super(LargeGreenhouse, self).__init__(absorption=.77,
                                               size=self.Size.LARGE,
                                               core=self.Core.LARGE_IRON_CORE,
                                               atm=['CO2'], pressure=500,
@@ -319,10 +368,12 @@ class LargeGreenhouse(World):
 
 
 class LargeAmmonia(World):
+    temperature_range = Range(140, 215)
+
     def __init__(self):
         # roll of 2d capped at 10 and divided by 10
         oceans = min(np.random.triangular(0.2, .7, 1.2), 1)
-        super(LargeAmmonia, self).__init__(temp=(140, 215), absorption=.84,
+        super(LargeAmmonia, self).__init__(absorption=.84,
                                            size=self.Size.LARGE,
                                            core=self.Core.ICY_CORE,
                                            atm=['He', 'NH3', 'CH4'],
@@ -331,10 +382,12 @@ class LargeAmmonia(World):
 
 
 class LargeIce(World):
+    temperature_range = Range(80, 230)
+
     def __init__(self):
         # roll of 2d-10 minimum at 0 and divided by 10
         oceans = max(np.random.triangular(-.8, -.3, .2), 0)
-        super(LargeIce, self).__init__(temp=(80, 230), absorption=.86,
+        super(LargeIce, self).__init__(absorption=.86,
                                        size=self.Size.LARGE,
                                        core=self.Core.LARGE_IRON_CORE,
                                        atm=['He', 'N2'], pressure=5,
@@ -342,13 +395,15 @@ class LargeIce(World):
 
 
 class LargeOcean(World):
+    temperature_range = Range(250, 340)
+
     def __init__(self):
         # roll of 1d+6 maxed at 10 divided by 10
         oceans = min(random.uniform(.7, 1.2), 1)
         # match ocean coverage to Temperature Factors Table
         d = {.20: .95, .50: .92, .90: .88, 1: .84}
         a = d[list(filter(lambda x: x >= oceans, sorted(d.keys())))[0]]
-        super(LargeOcean, self).__init__(temp=(250, 340), absorption=a,
+        super(LargeOcean, self).__init__(absorption=a,
                                          core=self.Core.LARGE_IRON_CORE,
                                          size=self.Size.LARGE,
                                          atm=['He', 'N2'], pressure=5,
@@ -356,13 +411,15 @@ class LargeOcean(World):
 
 
 class LargeGarden(World):
+    temperature_range = Range(250, 340)
+
     def __init__(self):
         # roll of 1d+6 maxed at 10 divided by 10
         oceans = min(random.uniform(.7, 1.2), 1)
         # match ocean coverage to Temperature Factors Table
         d = {.20: .95, .50: .92, .90: .88, 1: .84}
         a = d[list(filter(lambda x: x >= oceans, sorted(d.keys())))[0]]
-        super(LargeGarden, self).__init__(temp=(250, 340), absorption=a,
+        super(LargeGarden, self).__init__(absorption=a,
                                           size=self.Size.LARGE,
                                           core=self.Core.LARGE_IRON_CORE,
                                           atm=['N2', 'O2', 'He', 'Ne', 'Ar',
@@ -371,5 +428,7 @@ class LargeGarden(World):
 
 
 class AsteroidBelt(World):
+    temperature_range = Range(140, 500)
+
     def __init__(self):
-        super(AsteroidBelt, self).__init__(temp=(140, 500), absorption=.97)
+        super(AsteroidBelt, self).__init__(absorption=.97)
