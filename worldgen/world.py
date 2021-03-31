@@ -23,13 +23,37 @@ class World(object):
         STANDARD = 'Standard'
         LARGE = 'Large'
 
+    # internal Climate Enum from World Climate Table
+    class Climate(str, Enum):
+        FROZEN = 'Frozen'
+        VERY_COLD = 'Very cold'
+        COLD = 'Cold'
+        CHILLY = 'Chilly'
+        COOL = 'Cool'
+        NORMAL = 'Normal'
+        WARM = 'Warm'
+        TROPICAL = 'Tropical'
+        HOT = 'Hot'
+        VERY_HOT = 'Very hot'
+        INFERNAL = 'Infernal'
+
+    # internal Atmosphere Enum from Atmospheric Pressure Categories Table
+    class Atmosphere(str, Enum):
+        TRACE = 'Trace'
+        VERY_THIN = 'Very thin'
+        THIN = 'Thin'
+        STANDARD = 'Standard'
+        DENSE = 'Dense'
+        VERY_DENSE = 'Very dense'
+        SUPER_DENSE = 'Super dense'
+
     # internal Atmosphere class
-    class Atmosphere(NamedTuple):
-        composition: list = None
-        pressure_factor: float = .0
-        relative_mass: float = .0
-        pressure: float = .0
-        category: str = ''
+    # class Atmosphere(NamedTuple):
+    #     composition: list = None
+    #     pressure_factor: float = .0
+    #     relative_mass: float = .0
+    #     pressure: float = .0
+    #     category: str = ''
 
     def __init__(self, temp, absorption, size=None, core=None,
                  atm=[], pressure=.0, greenhouse=.0, oceans=.0):
@@ -72,11 +96,18 @@ class World(object):
 
     # match surface temperature to World Climate Table
     def __climate(self, temp):
-        d = {244: 'Frozen', 255: 'Very Cold', 266: 'Cold', 278: 'Chilly',
-             289: 'Cool', 300: 'Normal', 311: 'Warm', 322: 'Tropical',
-             333: 'Hot', 344: 'Very Hot'}
+        d = {244: self.Climate.FROZEN,
+             255: self.Climate.VERY_COLD,
+             266: self.Climate.COLD,
+             278: self.Climate.CHILLY,
+             289: self.Climate.COOL,
+             300: self.Climate.NORMAL,
+             311: self.Climate.WARM,
+             322: self.Climate.TROPICAL,
+             333: self.Climate.HOT,
+             344: self.Climate.VERY_HOT}
         k = list(filter(lambda x: x >= temp, sorted(d.keys())))
-        return d[k[0]] if len(k) > 0 else 'Infernal'
+        return d[k[0]] if len(k) > 0 else self.Climate.INFERNAL
 
     # blackbody temperature B = T / C where C = A * [1 + (M * G)]
     # with A the absorption factor, M the relative atmospheric mass and G the
@@ -123,16 +154,21 @@ class World(object):
 
     # match atmospheric pressure to Atmospheric Pressure Categories Table
     def __atm_category(self, pressure):
-        d = {.01: 'Trace', .51: 'Very Thin', .81: 'Thin', 1.21: 'Standard',
-             1.51: 'Dense', 10: 'Very Dense'}
+        d = {.01: self.Atmosphere.TRACE,
+             .51: self.Atmosphere.VERY_THIN,
+             .81: self.Atmosphere.THIN,
+             1.21: self.Atmosphere.STANDARD,
+             1.51: self.Atmosphere.DENSE,
+             10: self.Atmosphere.VERY_DENSE}
         k = list(filter(lambda x: x >= pressure, sorted(d.keys())))
-        return d[k[0]] if len(k) > 0 else 'Superdense'
+        return d[k[0]] if len(k) > 0 else self.Atmosphere.SUPER_DENSE
 
     def __str__(self):
         return '{self.__class__.__name__} (ocean coverage= {self.oceans:.2f}, \
 atmosphere composition= {self.atm}, \
 atmosphere pressure= {self.atm_pressure:.2f} atm⊕ ({self.atm_p_category}), \
-average surface temperature= {self.temp:.2f} K ({self.climate}), \
+average surface temperature= {self.temp:.2f} K, \
+climate = {self.climate}, \
 size= {self.size}, \
 blackbody temperature= {self.bb_temp:.2f} K, \
 density= {self.density:.2f} d⊕, \
