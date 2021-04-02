@@ -1,6 +1,6 @@
 import numpy as np
 
-from world import (TinySulfur, TinyIce, TinyRock, SmallHadean, SmallIce,
+from .world import (TinySulfur, TinyIce, TinyRock, SmallHadean, SmallIce,
 SmallRock, StandardChthonian, StandardGreenhouse, StandardAmmonia,
 StandardHadean, StandardIce, StandardOcean, StandardGarden, LargeChthonian,
 LargeGreenhouse, LargeAmmonia, LargeIce, LargeOcean, LargeGarden, AsteroidBelt)

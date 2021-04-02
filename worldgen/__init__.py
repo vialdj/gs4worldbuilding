@@ -1,1 +1,1 @@
-from world_generator import WorldGenerator
+from . import world_generator

@@ -1,4 +1,4 @@
-from world_generator import WorldGenerator
+from .world_generator import WorldGenerator
 
 def main():
     wgen = WorldGenerator()
