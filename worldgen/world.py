@@ -50,15 +50,15 @@ class World(object):
         SUPER_DENSE = 'Super dense'
 
     # temperature range static member
-    temperature_range = None
+    _temperature_range = None
     # size static member
-    size = None
+    _size = None
 
     @classmethod
     def random_temperature(cls):
         # sum of a 3d-3 roll times step value add minimum
-        tmin = cls.temperature_range.min
-        tmax = cls.temperature_range.max
+        tmin = cls._temperature_range.min
+        tmax = cls._temperature_range.max
         roll = truncnorm((0 - 7.5) / 2.958040, (15 - 7.5) / 2.958040,
                          loc=7.5, scale=2.958040).rvs()
         return tmin + roll / 15 * (tmax - tmin)
@@ -73,8 +73,6 @@ class World(object):
 
     def __init__(self, absorption, core=None, atm=[], pressure=.0,
                  greenhouse=.0, oceans=.0):
-        # size value
-        self.size = type(self).size
         # the ocean coverage proportion
         self.oceans = oceans
         # key elements in the atmosphere
@@ -82,7 +80,6 @@ class World(object):
         # relative supply of gaseous elements to other worlds of the same type
         atm_mass = self.__atm_mass(atm)
         self.atm_mass = atm_mass
-        # average surface temperature in K
         self.temperature = type(self).random_temperature()
         # blackbody temperature in K
         bb_temp = self.__blackbody_temperature(absorption, greenhouse,
@@ -106,6 +103,16 @@ class World(object):
         self.atm_pressure = atm_pressure
         # atmosphere category
         self.atm_p_category = self.__atm_category(atm_pressure)
+
+    @property
+    def temperature_range(self):
+        # world type temperature range static member
+        return type(self)._temperature_range
+
+    @property
+    def size(self):
+        # world type size static value
+        return type(self)._size
 
     @property
     def temperature(self):
@@ -202,40 +209,40 @@ mass= {self.mass:.2f} M⊕)'.format(self=self)
 
 
 class TinySulfur(World):
-    temperature_range = Range(80, 140)
-    size = Size.TINY
+    _temperature_range = Range(80, 140)
+    _size = Size.TINY
 
     def __init__(self):
         super(TinySulfur, self).__init__(absorption=.77, core=Core.ICY_CORE)
 
 
 class TinyIce(World):
-    temperature_range = Range(80, 140)
-    size = Size.TINY
+    _temperature_range = Range(80, 140)
+    _size = Size.TINY
 
     def __init__(self):
         super(TinyIce, self).__init__(absorption=.86, core=Core.ICY_CORE)
 
 
 class TinyRock(World):
-    temperature_range = Range(140, 500)
-    size = Size.TINY
+    _temperature_range = Range(140, 500)
+    _size = Size.TINY
 
     def __init__(self):
         super(TinyRock, self).__init__(absorption=.97, core=Core.SMALL_IRON_CORE)
 
 
 class SmallHadean(World):
-    temperature_range = Range(50, 80)
-    size = Size.SMALL
+    _temperature_range = Range(50, 80)
+    _size = Size.SMALL
 
     def __init__(self):
         super(SmallHadean, self).__init__(absorption=.67, core=Core.ICY_CORE)
 
 
 class SmallIce(World):
-    temperature_range = Range(80, 140)
-    size = Size.SMALL
+    _temperature_range = Range(80, 140)
+    _size = Size.SMALL
 
     def __init__(self):
         # roll of 1d+2 divided by 10
@@ -246,16 +253,16 @@ class SmallIce(World):
 
 
 class SmallRock(World):
-    temperature_range = Range(140, 500)
-    size = Size.SMALL
+    _temperature_range = Range(140, 500)
+    _size = Size.SMALL
 
     def __init__(self):
         super(SmallRock, self).__init__(absorption=.96, core=Core.SMALL_IRON_CORE)
 
 
 class StandardChthonian(World):
-    temperature_range = Range(500, 950)
-    size = Size.STANDARD
+    _temperature_range = Range(500, 950)
+    _size = Size.STANDARD
 
     def __init__(self):
         super(StandardChthonian, self).__init__(absorption=.97,
@@ -263,8 +270,8 @@ class StandardChthonian(World):
 
 
 class StandardGreenhouse(World):
-    temperature_range = Range(500, 950)
-    size = Size.STANDARD
+    _temperature_range = Range(500, 950)
+    _size = Size.STANDARD
 
     def __init__(self):
         super(StandardGreenhouse, self).__init__(absorption=.77,
@@ -274,8 +281,8 @@ class StandardGreenhouse(World):
 
 
 class StandardAmmonia(World):
-    temperature_range = Range(140, 215)
-    size = Size.STANDARD
+    _temperature_range = Range(140, 215)
+    _size = Size.STANDARD
 
     def __init__(self):
         # roll of 2d maximum at 10 and divided by 10
@@ -288,8 +295,8 @@ class StandardAmmonia(World):
 
 
 class StandardHadean(World):
-    temperature_range = Range(50, 80)
-    size = Size.STANDARD
+    _temperature_range = Range(50, 80)
+    _size = Size.STANDARD
 
     def __init__(self):
         super(StandardHadean, self).__init__(absorption=.67,
@@ -297,8 +304,8 @@ class StandardHadean(World):
 
 
 class StandardIce(World):
-    temperature_range = Range(80, 230)
-    size = Size.STANDARD
+    _temperature_range = Range(80, 230)
+    _size = Size.STANDARD
 
     def __init__(self):
         # roll of 2d-10 minimum at 0 and divided by 10
@@ -310,8 +317,8 @@ class StandardIce(World):
 
 
 class StandardOcean(World):
-    temperature_range = Range(250, 340)
-    size = Size.STANDARD
+    _temperature_range = Range(250, 340)
+    _size = Size.STANDARD
 
     def __init__(self):
         # roll of 1d+4 divided by 10
@@ -325,8 +332,8 @@ class StandardOcean(World):
 
 
 class StandardGarden(World):
-    temperature_range = Range(250, 340)
-    size = Size.STANDARD
+    _temperature_range = Range(250, 340)
+    _size = Size.STANDARD
 
     def __init__(self):
         # roll of 1d+4 divided by 10
@@ -340,8 +347,8 @@ class StandardGarden(World):
 
 
 class LargeChthonian(World):
-    temperature_range = Range(500, 950)
-    size = Size.LARGE
+    _temperature_range = Range(500, 950)
+    _size = Size.LARGE
 
     def __init__(self):
         super(LargeChthonian, self).__init__(absorption=.97,
@@ -349,8 +356,8 @@ class LargeChthonian(World):
 
 
 class LargeGreenhouse(World):
-    temperature_range = Range(500, 950)
-    size = Size.LARGE
+    _temperature_range = Range(500, 950)
+    _size = Size.LARGE
 
     def __init__(self):
         super(LargeGreenhouse, self).__init__(absorption=.77,
@@ -360,8 +367,8 @@ class LargeGreenhouse(World):
 
 
 class LargeAmmonia(World):
-    temperature_range = Range(140, 215)
-    size = Size.LARGE
+    _temperature_range = Range(140, 215)
+    _size = Size.LARGE
 
     def __init__(self):
         # roll of 2d capped at 10 and divided by 10
@@ -374,8 +381,8 @@ class LargeAmmonia(World):
 
 
 class LargeIce(World):
-    temperature_range = Range(80, 230)
-    size = Size.LARGE
+    _temperature_range = Range(80, 230)
+    _size = Size.LARGE
 
     def __init__(self):
         # roll of 2d-10 minimum at 0 and divided by 10
@@ -387,8 +394,8 @@ class LargeIce(World):
 
 
 class LargeOcean(World):
-    temperature_range = Range(250, 340)
-    size = Size.LARGE
+    _temperature_range = Range(250, 340)
+    _size = Size.LARGE
 
     def __init__(self):
         # roll of 1d+6 maxed at 10 divided by 10
@@ -403,8 +410,8 @@ class LargeOcean(World):
 
 
 class LargeGarden(World):
-    temperature_range = Range(250, 340)
-    size = Size.LARGE
+    _temperature_range: Range(250, 340)
+    _size = Size.LARGE
 
     def __init__(self):
         # roll of 1d+6 maxed at 10 divided by 10
@@ -420,7 +427,7 @@ class LargeGarden(World):
 
 
 class AsteroidBelt(World):
-    temperature_range = Range(140, 500)
+    _temperature_range: Range(140, 500)
 
     def __init__(self):
         super(AsteroidBelt, self).__init__(absorption=.97)
