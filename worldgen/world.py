@@ -41,14 +41,14 @@ class World(object):
         INFERNAL = 344
 
     # internal Atmosphere Enum from Atmospheric Pressure Categories Table
-    class Atmosphere(str, Enum):
-        TRACE = 'Trace'
-        VERY_THIN = 'Very thin'
-        THIN = 'Thin'
-        STANDARD = 'Standard'
-        DENSE = 'Dense'
-        VERY_DENSE = 'Very dense'
-        SUPER_DENSE = 'Super dense'
+    class Atmosphere(float, Enum):
+        TRACE = .0
+        VERY_THIN = .01
+        THIN = .51
+        STANDARD = .81
+        DENSE = 1.21
+        VERY_DENSE = 1.51
+        SUPER_DENSE = 10
 
     # temperature range static member
     _temperature_range = None
@@ -65,14 +65,6 @@ class World(object):
         roll = truncnorm((0 - 7.5) / 2.958040, (15 - 7.5) / 2.958040,
                          loc=7.5, scale=2.958040).rvs()
         return tmin + roll / 15 * (tmax - tmin)
-
-    # internal Atmosphere class
-    # class Atmosphere(NamedTuple):
-    #     composition: list = None
-    #     pressure_factor: float = .0
-    #     relative_mass: float = .0
-    #     pressure: float = .0
-    #     category: str = ''
 
     def __init__(self, absorption, core=None, atm=[], pressure=.0,
                  greenhouse=.0, oceans=.0):
@@ -177,19 +169,12 @@ class World(object):
 
     # match atmospheric pressure to Atmospheric Pressure Categories Table
     def __atm_category(self, pressure):
-        d = {.01: self.Atmosphere.TRACE,
-             .51: self.Atmosphere.VERY_THIN,
-             .81: self.Atmosphere.THIN,
-             1.21: self.Atmosphere.STANDARD,
-             1.51: self.Atmosphere.DENSE,
-             10: self.Atmosphere.VERY_DENSE}
-        k = list(filter(lambda x: x >= pressure, sorted(d.keys())))
-        return d[k[0]] if len(k) > 0 else self.Atmosphere.SUPER_DENSE
+        return list(filter(lambda x: pressure >= x.value, self.Atmosphere))[-1]
 
     def __str__(self):
         return '{self.__class__.__name__} (ocean coverage= {self.oceans:.2f}, \
 atmosphere composition= {self.atm}, \
-atmosphere pressure= {self.atm_pressure:.2f} atm⊕ ({self.atm_p_category}), \
+atmosphere pressure= {self.atm_pressure:.2f} atm⊕ ({self.atm_p_category.name}), \
 average surface temperature= {self.temperature:.2f} K, \
 climate = {self.climate.name}, \
 size= {self.size}, \
