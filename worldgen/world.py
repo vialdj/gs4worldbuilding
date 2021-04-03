@@ -27,18 +27,18 @@ class World(object):
         LARGE_IRON_CORE = 'Large iron core'
 
     # internal Climate Enum from World Climate Table
-    class Climate(str, Enum):
-        FROZEN = 'Frozen'
-        VERY_COLD = 'Very cold'
-        COLD = 'Cold'
-        CHILLY = 'Chilly'
-        COOL = 'Cool'
-        NORMAL = 'Normal'
-        WARM = 'Warm'
-        TROPICAL = 'Tropical'
-        HOT = 'Hot'
-        VERY_HOT = 'Very hot'
-        INFERNAL = 'Infernal'
+    class Climate(int, Enum):
+        FROZEN = 0
+        VERY_COLD = 244
+        COLD = 255
+        CHILLY = 266
+        COOL = 278
+        NORMAL = 289
+        WARM = 300
+        TROPICAL = 311
+        HOT = 322
+        VERY_HOT = 333
+        INFERNAL = 344
 
     # internal Atmosphere Enum from Atmospheric Pressure Categories Table
     class Atmosphere(str, Enum):
@@ -130,26 +130,15 @@ class World(object):
         assert (value >= self.temperature_range.min and
                 value <= self.temperature_range.max), "value out of bounds"
         self._temperature = value
-        self.__climate_f()
+        self.__update_climate()
 
     @property
     def climate(self):
         # climate implied by temperature match over World Climate Table
         return self._climate
 
-    def __climate_f(self):
-        d = {244: self.Climate.FROZEN,
-             255: self.Climate.VERY_COLD,
-             266: self.Climate.COLD,
-             278: self.Climate.CHILLY,
-             289: self.Climate.COOL,
-             300: self.Climate.NORMAL,
-             311: self.Climate.WARM,
-             322: self.Climate.TROPICAL,
-             333: self.Climate.HOT,
-             344: self.Climate.VERY_HOT}
-        k = list(filter(lambda x: x >= self.temperature, sorted(d.keys())))
-        self._climate = d[k[0]] if len(k) > 0 else self.Climate.INFERNAL
+    def __update_climate(self):
+        self._climate = list(filter(lambda x: self.temperature >= x.value, self.Climate))[-1]
 
     # blackbody temperature B = T / C where C = A * [1 + (M * G)]
     # with A the absorption factor, M the relative atmospheric mass and G the
@@ -186,8 +175,6 @@ class World(object):
                              loc=10.5, scale=2.958040).rvs() / 10
         return .0
 
-
-
     # match atmospheric pressure to Atmospheric Pressure Categories Table
     def __atm_category(self, pressure):
         d = {.01: self.Atmosphere.TRACE,
@@ -204,7 +191,7 @@ class World(object):
 atmosphere composition= {self.atm}, \
 atmosphere pressure= {self.atm_pressure:.2f} atm⊕ ({self.atm_p_category}), \
 average surface temperature= {self.temperature:.2f} K, \
-climate = {self.climate}, \
+climate = {self.climate.name}, \
 size= {self.size}, \
 blackbody temperature= {self.bb_temp:.2f} K, \
 density= {self.density:.2f} d⊕, \
