@@ -14,11 +14,11 @@ class World(object):
     Range = namedtuple('Range', ['min', 'max'])
 
     # Size Enum from Size Constraints Table
-    class Size(str, Enum):
-        TINY = 'Tiny'
-        SMALL = 'Small'
-        STANDARD = 'Standard'
-        LARGE = 'Large'
+    class Size(Range, Enum):
+        TINY = (0.004, 0.024)
+        SMALL = (0.024, 0.030)
+        STANDARD = (0.030, 0.065)
+        LARGE = (0.065, 0.091)
 
     # Core Enum from World Density Table
     class Core(str, Enum):
@@ -90,10 +90,8 @@ class World(object):
         # mass in M⊕
         self.mass = density * diameter**3
         # atmospheric pressure in atm⊕
-        atm_pressure = atm_mass * self.pressure_factor * gravity
-        self.atm_pressure = atm_pressure
-        # atmosphere category
-        self.__update_pressure_category(atm_pressure)
+        pressure = atm_mass * self.pressure_factor * gravity
+        self.pressure = pressure
 
     @property
     def temperature_range(self):
@@ -130,23 +128,16 @@ class World(object):
         assert (value >= self.temperature_range.min and
                 value <= self.temperature_range.max), "value out of bounds"
         self._temperature = value
-        self.__update_climate()
 
     @property
     def climate(self):
         # climate implied by temperature match over World Climate Table
-        return self._climate
-
-    def __update_climate(self):
-        self._climate = list(filter(lambda x: self.temperature >= x.value, self.Climate))[-1]
+        return list(filter(lambda x: self.temperature >= x.value, self.Climate))[-1]
 
     @property
     def pressure_category(self):
         # atmospheric pressure implied by pressure match over Atmospheric Pressure Categories Table
-        return self._pressure_category
-
-    def __update_pressure_category(self, pressure):
-        self._pressure_category = list(filter(lambda x: pressure >= x.value, self.Atmosphere))[-1]
+        return list(filter(lambda x: self.pressure >= x.value, self.Atmosphere))[-1]
     
     # blackbody temperature B = T / C where C = A * [1 + (M * G)]
     # with A the absorption factor, M the relative atmospheric mass and G the
@@ -157,12 +148,8 @@ class World(object):
     # roll of 2d-2 in range [Dmin, Dmax]
     def __diameter(self, size, bb_temp, density):
         if size is not None:
-            d = {self.Size.TINY: (0.004, 0.024),
-                 self.Size.SMALL: (0.024, 0.030),
-                 self.Size.STANDARD: (0.030, 0.065),
-                 self.Size.LARGE: (0.065, 0.091)}
-            dmin = sqrt(bb_temp / density) * d[size][0]
-            dmax = sqrt(bb_temp / density) * d[size][1]
+            dmin = sqrt(bb_temp / density) * size.value.min
+            dmax = sqrt(bb_temp / density) * size.value.max
             return dmin + np.random.triangular(0, .5, 1) * (dmax - dmin)
         return .0
 
@@ -186,10 +173,10 @@ class World(object):
     def __str__(self):
         return '{self.__class__.__name__} (ocean coverage= {self.oceans:.2f}, \
 atmosphere composition= {self.atm}, \
-atmosphere pressure= {self.atm_pressure:.2f} atm⊕ ({self.pressure_category.name}), \
+atmosphere pressure= {self.pressure:.2f} atm⊕ ({self.pressure_category.name}), \
 average surface temperature= {self.temperature:.2f} K, \
 climate = {self.climate.name}, \
-size= {self.size}, \
+size= {self.size.name}, \
 blackbody temperature= {self.bb_temp:.2f} K, \
 density= {self.density:.2f} d⊕, \
 core= {self.core}, \
