@@ -26,7 +26,7 @@ class World(object):
         SMALL_IRON_CORE = (.6, 1.0)
         LARGE_IRON_CORE = (.8, 1.2)
 
-    # internal Climate Enum from World Climate Table
+    # Climate Enum from World Climate Table
     class Climate(int, Enum):
         FROZEN = 0
         VERY_COLD = 244
@@ -64,6 +64,15 @@ class World(object):
         roll = truncnorm((0 - 7.5) / 2.958040, (15 - 7.5) / 2.958040,
                          loc=7.5, scale=2.958040).rvs()
         return tmin + roll / 15 * (tmax - tmin)
+    
+    @classmethod
+    def random_density(cls):
+        # sum of a 3d roll over World Density Table
+        if cls._core is not None:
+            return (cls._core.min + (cls._core.max - cls._core.min) *
+                    truncnorm((0 - 0.376) / 0.2, (1 - 0.376) / 0.2,
+                    loc=0.376, scale=0.2).rvs())
+        return .0
 
     def __init__(self, absorption, atm=[], oceans=.0):
         # the ocean coverage proportion
@@ -78,44 +87,42 @@ class World(object):
         bb_temp = self.__blackbody_temperature(absorption, self.greenhouse,
                                                atm_mass, self.temperature)
         self.bb_temp = bb_temp
-        # density in d⊕
-        density = self.__density(self.core)
-        self.density = density
+        self.density = type(self).random_density()
         # diameter in D⊕
-        diameter = self.__diameter(self.size, bb_temp, density)
+        diameter = self.__diameter(self.size, bb_temp, self.density)
         self.diameter = diameter
         # surface gravity in G⊕
-        gravity = density * diameter
+        gravity = self.density * diameter
         self.gravity = gravity
         # mass in M⊕
-        self.mass = density * diameter**3
+        self.mass = self.density * diameter**3
         # atmospheric pressure in atm⊕
         pressure = atm_mass * self.pressure_factor * gravity
         self.pressure = pressure
 
     @property
     def temperature_range(self):
-        # world type temperature range static member
+        # world type temperature range class value
         return type(self)._temperature_range
 
     @property
     def size(self):
-        # world type size static value
+        # world type size class value
         return type(self)._size
 
     @property
     def core(self):
-        # world type core static value
+        # world type core class value
         return type(self)._core
 
     @property
     def pressure_factor(self):
-        # world type pressure factor static value
+        # world type pressure factor class value
         return type(self)._pressure_factor
 
     @property
     def greenhouse(self):
-        # world type greenhouse static value
+        # world type greenhouse class value
         return type(self)._greenhouse
 
     @property
@@ -125,9 +132,21 @@ class World(object):
 
     @temperature.setter
     def temperature(self, value):
-        assert (value >= self.temperature_range.min and
-                value <= self.temperature_range.max), "value out of bounds"
+        assert (value >= type(self)._temperature_range.min and
+                value <= type(self)._temperature_range.max), "value out of bounds"
         self._temperature = value
+
+    @property
+    def density(self):
+        # density in d⊕
+        return self._density
+
+    @density.setter
+    def density(self, value):
+        assert type(self)._core, "unapplicable attribute for {0}".format(type(self).__name__)
+        assert (value >= type(self)._core.min and
+                value <= type(self)._core.max), "value out of bounds"
+        self._density = value
 
     @property
     def climate(self):
@@ -138,7 +157,7 @@ class World(object):
     def pressure_category(self):
         # atmospheric pressure implied by pressure match over Atmospheric Pressure Categories Table
         return list(filter(lambda x: self.pressure >= x.value, self.Atmosphere))[-1]
-    
+
     # blackbody temperature B = T / C where C = A * [1 + (M * G)]
     # with A the absorption factor, M the relative atmospheric mass and G the
     # greenhouse factor (A and G given in the Temperature Factors Table)
@@ -151,13 +170,6 @@ class World(object):
             dmin = sqrt(bb_temp / density) * size.value.min
             dmax = sqrt(bb_temp / density) * size.value.max
             return dmin + np.random.triangular(0, .5, 1) * (dmax - dmin)
-        return .0
-
-    # discrete p from sum of a 3d roll over World Density Table to dist
-    def __density(self, core):
-        if core is not None:
-            return truncnorm((0 - 0.376) / 0.2, (1 - 0.376) / 0.2,
-                             loc=0.376, scale=0.2).rvs() * (core.max - core.min) + core.min
         return .0
 
     # sum of a 3d roll divided by 10
@@ -400,7 +412,7 @@ class LargeOcean(World):
 
 
 class LargeGarden(World):
-    _temperature_range: World.Range(250, 340)
+    _temperature_range = World.Range(250, 340)
     _size = World.Size.LARGE
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 5
@@ -418,7 +430,7 @@ class LargeGarden(World):
 
 
 class AsteroidBelt(World):
-    _temperature_range: World.Range(140, 500)
+    _temperature_range = World.Range(140, 500)
 
     def __init__(self):
         super(AsteroidBelt, self).__init__(absorption=.97)
