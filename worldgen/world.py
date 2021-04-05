@@ -15,16 +15,16 @@ class World(object):
 
     # Size Enum from Size Constraints Table
     class Size(Range, Enum):
-        TINY = (0.004, 0.024)
-        SMALL = (0.024, 0.030)
-        STANDARD = (0.030, 0.065)
-        LARGE = (0.065, 0.091)
+        TINY = (.004, .024)
+        SMALL = (.024, .030)
+        STANDARD = (.030, .065)
+        LARGE = (.065, .091)
 
     # Core Enum from World Density Table
-    class Core(str, Enum):
-        ICY_CORE = 'Icy core'
-        SMALL_IRON_CORE = 'Small iron core'
-        LARGE_IRON_CORE = 'Large iron core'
+    class Core(Range, Enum):
+        ICY_CORE = (.3, .7)
+        SMALL_IRON_CORE = (.6, 1.0)
+        LARGE_IRON_CORE = (.8, 1.2)
 
     # internal Climate Enum from World Climate Table
     class Climate(int, Enum):
@@ -153,14 +153,11 @@ class World(object):
             return dmin + np.random.triangular(0, .5, 1) * (dmax - dmin)
         return .0
 
-    # sum of a 3d roll over World Density Table
+    # discrete p from sum of a 3d roll over World Density Table to dist
     def __density(self, core):
         if core is not None:
-            densities = {self.Core.ICY_CORE: [0.3, 0.4, 0.5, 0.6, 0.7],
-                         self.Core.SMALL_IRON_CORE: [0.6, 0.7, 0.8, 0.9, 1.0],
-                         self.Core.LARGE_IRON_CORE: [0.8, 0.9, 1.0, 1.1, 1.2]}
-            return np.random.choice(densities[core], p=[0.0926, 0.4074, 0.4074,
-                                                        0.08797, 0.00463])
+            return truncnorm((0 - 0.376) / 0.2, (1 - 0.376) / 0.2,
+                             loc=0.376, scale=0.2).rvs() * (core.max - core.min) + core.min
         return .0
 
     # sum of a 3d roll divided by 10
@@ -179,7 +176,7 @@ climate = {self.climate.name}, \
 size= {self.size.name}, \
 blackbody temperature= {self.bb_temp:.2f} K, \
 density= {self.density:.2f} d⊕, \
-core= {self.core}, \
+core= {self.core.name}, \
 diameter= {self.diameter:.2f} D⊕, \
 gravity= {self.gravity:.2f} G⊕, \
 mass= {self.mass:.2f} M⊕)'.format(self=self)
