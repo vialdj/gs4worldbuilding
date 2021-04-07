@@ -57,7 +57,7 @@ class World(object):
     _size = Size.NA
     _core = Core.NA
     _pressure_factor = 0
-    _greenhouse = .0
+    _greenhouse_factor = np.nan
     _atmosphere = []
 
     @classmethod
@@ -85,6 +85,13 @@ class World(object):
                     (self.diameter_range.max - self.diameter_range.min))
         return np.nan
 
+    def random_volatile_mass(self):
+        # sum of a 3d roll divided by 10
+        if self.atmosphere:
+            return truncnorm((3 - 10.5) / 2.958040, (18 - 10.5) / 2.958040,
+                             loc=10.5, scale=2.958040).rvs() / 10
+        return np.nan
+
     @classmethod
     def random_hydrosphere(cls):
         return np.nan
@@ -110,9 +117,9 @@ class World(object):
         return type(self)._pressure_factor
 
     @property
-    def greenhouse(self):
-        # greenhouse class var
-        return type(self)._greenhouse
+    def greenhouse_factor(self):
+        # greenhouse_factor class var
+        return type(self)._greenhouse_factor
 
     @property
     def hydrosphere_range(self):
@@ -128,6 +135,24 @@ class World(object):
     def atmosphere(self):
         # key elements in the atmosphere
         return type(self)._atmosphere
+
+    @property
+    def volatile_mass_range(self):
+        if (self.atmosphere):
+            return self.Range(.3, 1.8)
+        return None
+
+    @property
+    def volatile_mass(self):
+        # relative supply of gaseous elements to other worlds of the same type
+        return self._volatile_mass
+
+    @volatile_mass.setter
+    def volatile_mass(self, value):
+        assert(self.volatile_mass_range), "attribute is not applicable"
+        assert (value >= self.volatile_mass_range.min and
+                value <= self.volatile_mass_range.max), "value out of bounds"
+        self._temperature = value
 
     @property
     def temperature(self):
@@ -166,11 +191,10 @@ class World(object):
 
     @property
     def diameter_range(self):
-        # diameter range in D⊕
         if (~np.isnan(self.density) and self.size != self.Size.NA):
-            return self.Range(sqrt(self.bb_temp / self.density) *
+            return self.Range(sqrt(self.blackbody_temperature / self.density) *
                               self.size.value.min,
-                              sqrt(self.bb_temp / self.density) *
+                              sqrt(self.blackbody_temperature / self.density) *
                               self.size.value.max)
         return None
 
@@ -185,6 +209,15 @@ class World(object):
         assert (value >= self.diameter_range.min and
                 value <= self.diameter_range.max), "value out of bounds"
         self._diameter = value
+
+    @property
+    def blackbody_temperature(self):
+        # blackbody temperature in K
+        return (self.temperature / self.absorption
+                if np.isnan([self.volatile_mass, self.greenhouse_factor]).any()
+                else self.temperature / (self.absorption *
+                                         floor(1 + self.volatile_mass
+                                               * self.greenhouse_factor)))
 
     @property
     def gravity(self):
@@ -203,6 +236,11 @@ class World(object):
                            self.Climate))[-1]
 
     @property
+    def pressure(self):
+        # atmospheric pressure in atm⊕
+        return self.volatile_mass * self.pressure_factor * self.gravity
+
+    @property
     def pressure_category(self):
         # atmospheric pressure implied by pressure match over
         # Atmospheric Pressure Categories Table
@@ -211,34 +249,12 @@ class World(object):
                            self.Atmosphere))[-1]
 
     def __init__(self):
-        # relative supply of gaseous elements to other worlds of the same type
-        atm_mass = self.__atm_mass(self.atmosphere)
-        self.atm_mass = atm_mass
+        # randomize applicable values
         self.temperature = type(self).random_temperature()
-        self._hydrosphere = self.random_hydrosphere()
-        # blackbody temperature in K
-        bb_temp = self.__blackbody_temperature(self.absorption, self.greenhouse,
-                                               atm_mass, self.temperature)
-        self.bb_temp = bb_temp
         self._density = type(self).random_density()
+        self._volatile_mass = self.random_volatile_mass()
+        self._hydrosphere = self.random_hydrosphere()
         self._diameter = self.random_diameter()
-
-        # atmospheric pressure in atm⊕
-        pressure = atm_mass * self.pressure_factor * self.gravity
-        self.pressure = pressure
-
-    # blackbody temperature B = T / C where C = A * [1 + (M * G)]
-    # with A the absorption factor, M the relative atmospheric mass and G the
-    # greenhouse factor (A and G given in the Temperature Factors Table)
-    def __blackbody_temperature(self, absorption, greenhouse, atm, temperature):
-        return temperature / (absorption * floor(1 + atm * greenhouse))
-
-    # sum of a 3d roll divided by 10
-    def __atm_mass(self, atm):
-        if len(atm) > 0:
-            return truncnorm((3 - 10.5) / 2.958040, (18 - 10.5) / 2.958040,
-                             loc=10.5, scale=2.958040).rvs() / 10
-        return .0
 
     def __str__(self):
         return '{self.__class__.__name__} (hydrosphere={self.hydrosphere:.2f}, \
@@ -246,7 +262,7 @@ atmosphere={self.atmosphere}, \
 pressure={self.pressure:.2f}({self.pressure_category.name}) atm⊕, \
 average surface temperature={self.temperature:.2f}({self.climate.name}) K, \
 size={self.size.name}, \
-blackbody temperature={self.bb_temp:.2f} K, \
+blackbody temperature={self.blackbody_temperature:.2f} K, \
 density={self.density:.2f} d⊕, \
 core={self.core.name}, \
 diameter={self.diameter:.2f} D⊕, \
@@ -299,7 +315,7 @@ class SmallIce(World):
     _size = World.Size.SMALL
     _core = World.Core.ICY_CORE
     _pressure_factor = 10
-    _greenhouse = .1
+    _greenhouse_factor = .1
     _hydrosphere_range = World.Range(.3, .8)
     _absorption = .93
     _atmosphere = ['N2', 'CH4']
@@ -337,7 +353,7 @@ class StandardGreenhouse(World):
     _size = World.Size.STANDARD
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 100
-    _greenhouse = 2.0
+    _greenhouse_factor = 2.0
     _absorption = .77
     _atmosphere = ['CO2']
 
@@ -350,7 +366,7 @@ class StandardAmmonia(World):
     _size = World.Size.STANDARD
     _core = World.Core.ICY_CORE
     _pressure_factor = 1
-    _greenhouse = .2
+    _greenhouse_factor = .2
     _hydrosphere_range = World.Range(.2, 1)
     _absorption = .84
     _atmosphere = ['N2', 'NH3', 'CH4']
@@ -379,7 +395,7 @@ class StandardIce(World):
     _size = World.Size.STANDARD
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 1
-    _greenhouse = .2
+    _greenhouse_factor = .2
     _hydrosphere_range = World.Range(0, .2)
     _absorption = .86
     _atmosphere = ['CO2', 'N2']
@@ -398,7 +414,7 @@ class StandardOcean(World):
     _size = World.Size.STANDARD
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 1
-    _greenhouse = .16
+    _greenhouse_factor = .16
     _hydrosphere_range = World.Range(.5, 1)
     _atmosphere = ['CO2', 'N2']
 
@@ -423,7 +439,7 @@ class StandardGarden(World):
     _size = World.Size.STANDARD
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 1
-    _greenhouse = .16
+    _greenhouse_factor = .16
     _hydrosphere_range = World.Range(.5, 1)
     _atmosphere = ['N2', 'O2']
 
@@ -458,7 +474,7 @@ class LargeGreenhouse(World):
     _size = World.Size.LARGE
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 500
-    _greenhouse = 2.0
+    _greenhouse_factor = 2.0
     _absorption = .77
     _atmosphere = ['CO2']
 
@@ -471,7 +487,7 @@ class LargeAmmonia(World):
     _size = World.Size.LARGE
     _core = World.Core.ICY_CORE
     _pressure_factor = 5
-    _greenhouse = .2
+    _greenhouse_factor = .2
     _hydrosphere_range = World.Range(.2, 1)
     _absorption = .84
     _atmosphere = ['He', 'NH3', 'CH4']
@@ -490,7 +506,7 @@ class LargeIce(World):
     _size = World.Size.LARGE
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 5
-    _greenhouse = .2
+    _greenhouse_factor = .2
     _hydrosphere_range = World.Range(0, .2)
     _absorption = .86
     _atmosphere = ['He', 'N2']
@@ -509,7 +525,7 @@ class LargeOcean(World):
     _size = World.Size.LARGE
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 5
-    _greenhouse = .16
+    _greenhouse_factor = .16
     _hydrosphere_range = World.Range(.7, 1)
     _atmosphere = ['He', 'N2']
 
@@ -534,7 +550,7 @@ class LargeGarden(World):
     _size = World.Size.LARGE
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 5
-    _greenhouse = .16
+    _greenhouse_factor = .16
     _hydrosphere_range = World.Range(.7, 1)
     _atmosphere = ['N2', 'O2', 'He', 'Ne', 'Ar', 'Kr', 'Xe']
 
