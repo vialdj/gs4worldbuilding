@@ -252,8 +252,8 @@ class World(object):
         # randomize applicable values
         self.temperature = type(self).random_temperature()
         self._density = type(self).random_density()
-        self._volatile_mass = self.random_volatile_mass()
         self._hydrosphere = self.random_hydrosphere()
+        self._volatile_mass = self.random_volatile_mass()
         self._diameter = self.random_diameter()
 
     def __str__(self):
@@ -356,12 +356,15 @@ class StandardGreenhouse(World):
     _greenhouse_factor = 2.0
     _hydrosphere_range = World.Range(0, .5)
     _absorption = .77
-    _atmosphere = ['CO2']
 
     @classmethod
     def random_hydrosphere(cls):
         # roll of 2d-7 minimum at 0 and divided by 10
         return max(np.random.triangular(-.5, 0, .5), 0)
+    
+    @property
+    def atmosphere(self):
+        return ['CO2'] if self.hydrosphere < .1 else ['N2', 'H2O', 'O2']
 
     def __init__(self):
         super(StandardGreenhouse, self).__init__()
@@ -489,6 +492,10 @@ class LargeGreenhouse(World):
     def random_hydrosphere(cls):
         # roll of 2d-7 minimum at 0 and divided by 10
         return max(np.random.triangular(-.5, 0, .5), 0)
+
+    @property
+    def atmosphere(self):
+        return ['CO2'] if self.hydrosphere < .1 else ['N2', 'H2O', 'O2']
 
     def __init__(self):
         super(LargeGreenhouse, self).__init__()
