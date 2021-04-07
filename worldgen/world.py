@@ -25,7 +25,7 @@ class World(object):
     class Core(Range, Enum):
         NA = (np.nan, np.nan)
         ICY_CORE = (.3, .7)
-        SMALL_IRON_CORE = (.6, 1.0)
+        SMALL_IRON_CORE = (.6, 1)
         LARGE_IRON_CORE = (.8, 1.2)
 
     # class Climate Enum from World Climate Table
@@ -58,6 +58,7 @@ class World(object):
     _core = Core.NA
     _pressure_factor = 0
     _greenhouse = .0
+    _atmosphere = []
 
     @classmethod
     def random_temperature(cls):
@@ -84,50 +85,49 @@ class World(object):
                     (self.diameter_range.max - self.diameter_range.min))
         return np.nan
 
-    def __init__(self, absorption, atm=[], oceans=.0):
-        # the ocean coverage proportion
-        self.oceans = oceans
-        # key elements in the atmosphere
-        self.atm = atm
-        # relative supply of gaseous elements to other worlds of the same type
-        atm_mass = self.__atm_mass(atm)
-        self.atm_mass = atm_mass
-        self.temperature = type(self).random_temperature()
-        # blackbody temperature in K
-        bb_temp = self.__blackbody_temperature(absorption, self.greenhouse,
-                                               atm_mass, self.temperature)
-        self.bb_temp = bb_temp
-        self._density = type(self).random_density()
-        self._diameter = self.random_diameter()
-
-        # atmospheric pressure in atm⊕
-        pressure = atm_mass * self.pressure_factor * self.gravity
-        self.pressure = pressure
+    @classmethod
+    def random_hydrosphere(cls):
+        return np.nan
 
     @property
     def temperature_range(self):
-        # world type temperature range class value
+        # temperature range class var
         return type(self)._temperature_range
 
     @property
     def size(self):
-        # world type size class value
+        # size class var
         return type(self)._size
 
     @property
     def core(self):
-        # world type core class value
+        # core class var
         return type(self)._core
 
     @property
     def pressure_factor(self):
-        # world type pressure factor class value
+        # pressure factor class var
         return type(self)._pressure_factor
 
     @property
     def greenhouse(self):
-        # world type greenhouse class value
+        # greenhouse class var
         return type(self)._greenhouse
+
+    @property
+    def hydrosphere_range(self):
+        # hydrosphere range class var
+        return type(self)._hydrosphere_range
+
+    @property
+    def absorption(self):
+        # absorption
+        return type(self)._absorption
+
+    @property
+    def atmosphere(self):
+        # key elements in the atmosphere
+        return type(self)._atmosphere
 
     @property
     def temperature(self):
@@ -147,10 +147,22 @@ class World(object):
 
     @density.setter
     def density(self, value):
-        assert self.core != Core.NA, "parent attribute is not applicable"
+        assert self.core != Core.NA, "attribute is not applicable"
         assert (value >= type(self)._core.min and
                 value <= type(self)._core.max), "value out of bounds"
         self._density = value
+
+    @property
+    def hydrosphere(self):
+        # proportion of surface covered by liquid elements
+        return self._hydrosphere
+
+    @hydrosphere.setter
+    def hydrosphere(self, value):
+        assert(self.hydrosphere_range), "attribute is not applicable"
+        assert (value >= self.hydrosphere_range.min and
+                value <= self.hydrosphere_range.max), "value out of bounds"
+        self._hydrosphere = value
 
     @property
     def diameter_range(self):
@@ -169,7 +181,7 @@ class World(object):
 
     @diameter.setter
     def diameter(self, value):
-        assert(self.diameter_range), "parent attribute is not available"
+        assert(self.diameter_range), "attribute is not applicable"
         assert (value >= self.diameter_range.min and
                 value <= self.diameter_range.max), "value out of bounds"
         self._diameter = value
@@ -198,6 +210,23 @@ class World(object):
                            np.isnan([self.pressure, x.value]).all(),
                            self.Atmosphere))[-1]
 
+    def __init__(self):
+        # relative supply of gaseous elements to other worlds of the same type
+        atm_mass = self.__atm_mass(self.atmosphere)
+        self.atm_mass = atm_mass
+        self.temperature = type(self).random_temperature()
+        self._hydrosphere = self.random_hydrosphere()
+        # blackbody temperature in K
+        bb_temp = self.__blackbody_temperature(self.absorption, self.greenhouse,
+                                               atm_mass, self.temperature)
+        self.bb_temp = bb_temp
+        self._density = type(self).random_density()
+        self._diameter = self.random_diameter()
+
+        # atmospheric pressure in atm⊕
+        pressure = atm_mass * self.pressure_factor * self.gravity
+        self.pressure = pressure
+
     # blackbody temperature B = T / C where C = A * [1 + (M * G)]
     # with A the absorption factor, M the relative atmospheric mass and G the
     # greenhouse factor (A and G given in the Temperature Factors Table)
@@ -212,9 +241,9 @@ class World(object):
         return .0
 
     def __str__(self):
-        return '{self.__class__.__name__} (ocean coverage={self.oceans:.2f}, \
-atmosphere composition={self.atm}, \
-atmosphere pressure={self.pressure:.2f}({self.pressure_category.name}) atm⊕, \
+        return '{self.__class__.__name__} (hydrosphere={self.hydrosphere:.2f}, \
+atmosphere={self.atmosphere}, \
+pressure={self.pressure:.2f}({self.pressure_category.name}) atm⊕, \
 average surface temperature={self.temperature:.2f}({self.climate.name}) K, \
 size={self.size.name}, \
 blackbody temperature={self.bb_temp:.2f} K, \
@@ -229,36 +258,40 @@ class TinySulfur(World):
     _temperature_range = World.Range(80, 140)
     _size = World.Size.TINY
     _core = World.Core.ICY_CORE
+    _absorption = .77
 
     def __init__(self):
-        super(TinySulfur, self).__init__(absorption=.77)
+        super(TinySulfur, self).__init__()
 
 
 class TinyIce(World):
     _temperature_range = World.Range(80, 140)
     _size = World.Size.TINY
     _core = World.Core.ICY_CORE
+    _absorption = .86
 
     def __init__(self):
-        super(TinyIce, self).__init__(absorption=.86)
+        super(TinyIce, self).__init__()
 
 
 class TinyRock(World):
     _temperature_range = World.Range(140, 500)
     _size = World.Size.TINY
     _core = World.Core.SMALL_IRON_CORE
+    _absorption = .97
 
     def __init__(self):
-        super(TinyRock, self).__init__(absorption=.97)
+        super(TinyRock, self).__init__()
 
 
 class SmallHadean(World):
     _temperature_range = World.Range(50, 80)
     _size = World.Size.SMALL
     _core = World.Core.ICY_CORE
+    _absorption = .67
 
     def __init__(self):
-        super(SmallHadean, self).__init__(absorption=.67)
+        super(SmallHadean, self).__init__()
 
 
 class SmallIce(World):
@@ -267,30 +300,36 @@ class SmallIce(World):
     _core = World.Core.ICY_CORE
     _pressure_factor = 10
     _greenhouse = .1
+    _hydrosphere_range = World.Range(.3, .8)
+    _absorption = .93
+    _atmosphere = ['N2', 'CH4']
+
+    def random_hydrosphere(cls):
+        # roll of 1d+2 divided by 10
+        return random.uniform(.3, .8)
 
     def __init__(self):
-        # roll of 1d+2 divided by 10
-        oceans = random.uniform(.3, .8)
-        super(SmallIce, self).__init__(absorption=.93, atm=['N2', 'CH4'],
-                                       oceans=oceans)
+        super(SmallIce, self).__init__()
 
 
 class SmallRock(World):
     _temperature_range = World.Range(140, 500)
     _size = World.Size.SMALL
     _core = World.Core.SMALL_IRON_CORE
+    _absorption = .96
 
     def __init__(self):
-        super(SmallRock, self).__init__(absorption=.96)
+        super(SmallRock, self).__init__()
 
 
 class StandardChthonian(World):
     _temperature_range = World.Range(500, 950)
     _size = World.Size.STANDARD
     _core = World.Core.LARGE_IRON_CORE
+    _absorption = .97
 
     def __init__(self):
-        super(StandardChthonian, self).__init__(absorption=.97)
+        super(StandardChthonian, self).__init__()
 
 
 class StandardGreenhouse(World):
@@ -299,9 +338,11 @@ class StandardGreenhouse(World):
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 100
     _greenhouse = 2.0
+    _absorption = .77
+    _atmosphere = ['CO2']
 
     def __init__(self):
-        super(StandardGreenhouse, self).__init__(absorption=.77, atm=['CO2'])
+        super(StandardGreenhouse, self).__init__()
 
 
 class StandardAmmonia(World):
@@ -310,22 +351,27 @@ class StandardAmmonia(World):
     _core = World.Core.ICY_CORE
     _pressure_factor = 1
     _greenhouse = .2
+    _hydrosphere_range = World.Range(.2, 1)
+    _absorption = .84
+    _atmosphere = ['N2', 'NH3', 'CH4']
+
+    @classmethod
+    def random_hydrosphere(cls):
+        # roll of 2d maximum at 10 and divided by 10
+        return min(np.random.triangular(0.2, .7, 1.2), 1)
 
     def __init__(self):
-        # roll of 2d maximum at 10 and divided by 10
-        oceans = min(np.random.triangular(0.2, .7, 1.2), 1)
-        super(StandardAmmonia, self).__init__(absorption=.84,
-                                              atm=['N2', 'NH3', 'CH4'],
-                                              oceans=oceans)
+        super(StandardAmmonia, self).__init__()
 
 
 class StandardHadean(World):
     _temperature_range = World.Range(50, 80)
     _size = World.Size.STANDARD
     _core = World.Core.ICY_CORE
+    _absorption = .67
 
     def __init__(self):
-        super(StandardHadean, self).__init__(absorption=.67)
+        super(StandardHadean, self).__init__()
 
 
 class StandardIce(World):
@@ -334,13 +380,17 @@ class StandardIce(World):
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 1
     _greenhouse = .2
+    _hydrosphere_range = World.Range(0, .2)
+    _absorption = .86
+    _atmosphere = ['CO2', 'N2']
+
+    @classmethod
+    def random_hydrosphere(cls):
+        # roll of 2d-10 minimum at 0 and divided by 10
+        return max(np.random.triangular(-.8, -.3, .2), 0)
 
     def __init__(self):
-        # roll of 2d-10 minimum at 0 and divided by 10
-        oceans = max(np.random.triangular(-.8, -.3, .2), 0)
-        super(StandardIce, self).__init__(absorption=.86,
-                                          atm=['CO2', 'N2'],
-                                          oceans=oceans)
+        super(StandardIce, self).__init__()
 
 
 class StandardOcean(World):
@@ -349,15 +399,23 @@ class StandardOcean(World):
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 1
     _greenhouse = .16
+    _hydrosphere_range = World.Range(.5, 1)
+    _atmosphere = ['CO2', 'N2']
+
+    @classmethod
+    def random_hydrosphere(cls):
+        # roll of 1d+4 divided by 10
+        return random.uniform(.5, 1)
+
+    @property
+    def absorption(self):
+        # match hydrosphere to Temperature Factors Table
+        assert(self.hydrosphere), "attribute is not applicable"
+        d = {.20: .95, .50: .92, .90: .88, 1: .84}
+        return d[list(filter(lambda x: x >= self.hydrosphere, sorted(d.keys())))[0]]
 
     def __init__(self):
-        # roll of 1d+4 divided by 10
-        oceans = random.uniform(.5, 1.0)
-        # match ocean coverage to Temperature Factors Table
-        d = {.20: .95, .50: .92, .90: .88, 1: .84}
-        a = d[list(filter(lambda x: x >= oceans, sorted(d.keys())))[0]]
-        super(StandardOcean, self).__init__(absorption=a, atm=['CO2', 'N2'],
-                                            oceans=oceans)
+        super(StandardOcean, self).__init__()
 
 
 class StandardGarden(World):
@@ -366,24 +424,33 @@ class StandardGarden(World):
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 1
     _greenhouse = .16
+    _hydrosphere_range = World.Range(.5, 1)
+    _atmosphere = ['N2', 'O2']
+
+    @classmethod
+    def random_hydrosphere(cls):
+        # roll of 1d+4 divided by 10
+        return random.uniform(.5, 1)
+
+    @property
+    def absorption(self):
+        # match hydrosphere to Temperature Factors Table
+        assert(self.hydrosphere), "attribute is not applicable"
+        d = {.20: .95, .50: .92, .90: .88, 1: .84}
+        return d[list(filter(lambda x: x >= self.hydrosphere, sorted(d.keys())))[0]]
 
     def __init__(self):
-        # roll of 1d+4 divided by 10
-        oceans = random.uniform(.5, 1.0)
-        # match ocean coverage to Temperature Factors Table
-        d = {.20: .95, .50: .92, .90: .88, 1: .84}
-        a = d[list(filter(lambda x: x >= oceans, sorted(d.keys())))[0]]
-        super(StandardGarden, self).__init__(absorption=a, atm=['N2', 'O2'],
-                                             oceans=oceans)
+        super(StandardGarden, self).__init__()
 
 
 class LargeChthonian(World):
     _temperature_range = World.Range(500, 950)
     _size = World.Size.LARGE
     _core = World.Core.LARGE_IRON_CORE
+    _absorption = .97
 
     def __init__(self):
-        super(LargeChthonian, self).__init__(absorption=.97)
+        super(LargeChthonian, self).__init__()
 
 
 class LargeGreenhouse(World):
@@ -392,9 +459,11 @@ class LargeGreenhouse(World):
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 500
     _greenhouse = 2.0
+    _absorption = .77
+    _atmosphere = ['CO2']
 
     def __init__(self):
-        super(LargeGreenhouse, self).__init__(absorption=.77, atm=['CO2'])
+        super(LargeGreenhouse, self).__init__()
 
 
 class LargeAmmonia(World):
@@ -403,12 +472,17 @@ class LargeAmmonia(World):
     _core = World.Core.ICY_CORE
     _pressure_factor = 5
     _greenhouse = .2
+    _hydrosphere_range = World.Range(.2, 1)
+    _absorption = .84
+    _atmosphere = ['He', 'NH3', 'CH4']
+
+    @classmethod
+    def random_hydrosphere(cls):
+        # roll of 2d capped at 10 and divided by 10
+        return min(np.random.triangular(0.2, .7, 1.2), 1)
 
     def __init__(self):
-        # roll of 2d capped at 10 and divided by 10
-        oceans = min(np.random.triangular(0.2, .7, 1.2), 1)
-        super(LargeAmmonia, self).__init__(absorption=.84,
-                                           atm=['He', 'NH3', 'CH4'], oceans=oceans)
+        super(LargeAmmonia, self).__init__()
 
 
 class LargeIce(World):
@@ -417,12 +491,17 @@ class LargeIce(World):
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 5
     _greenhouse = .2
+    _hydrosphere_range = World.Range(0, .2)
+    _absorption = .86
+    _atmosphere = ['He', 'N2']
+
+    @classmethod
+    def random_hydrosphere(cls):
+        # roll of 2d-10 minimum at 0 and divided by 10
+        return max(np.random.triangular(-.8, -.3, .2), 0)
 
     def __init__(self):
-        # roll of 2d-10 minimum at 0 and divided by 10
-        oceans = max(np.random.triangular(-.8, -.3, .2), 0)
-        super(LargeIce, self).__init__(absorption=.86,
-                                       atm=['He', 'N2'], oceans=oceans)
+        super(LargeIce, self).__init__()
 
 
 class LargeOcean(World):
@@ -431,15 +510,23 @@ class LargeOcean(World):
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 5
     _greenhouse = .16
+    _hydrosphere_range = World.Range(.7, 1)
+    _atmosphere = ['He', 'N2']
+
+    @classmethod
+    def random_hydrosphere(cls):
+        # roll of 1d+6 maxed at 10 divided by 10
+        return min(random.uniform(.7, 1.2), 1)
+
+    @property
+    def absorption(self):
+        # match hydrosphere to Temperature Factors Table
+        assert(self.hydrosphere), "attribute is not applicable"
+        d = {.20: .95, .50: .92, .90: .88, 1: .84}
+        return d[list(filter(lambda x: x >= self.hydrosphere, sorted(d.keys())))[0]]
 
     def __init__(self):
-        # roll of 1d+6 maxed at 10 divided by 10
-        oceans = min(random.uniform(.7, 1.2), 1)
-        # match ocean coverage to Temperature Factors Table
-        d = {.20: .95, .50: .92, .90: .88, 1: .84}
-        a = d[list(filter(lambda x: x >= oceans, sorted(d.keys())))[0]]
-        super(LargeOcean, self).__init__(absorption=a,
-                                         atm=['He', 'N2'], oceans=oceans)
+        super(LargeOcean, self).__init__()
 
 
 class LargeGarden(World):
@@ -448,20 +535,28 @@ class LargeGarden(World):
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 5
     _greenhouse = .16
+    _hydrosphere_range = World.Range(.7, 1)
+    _atmosphere = ['N2', 'O2', 'He', 'Ne', 'Ar', 'Kr', 'Xe']
+
+    @classmethod
+    def random_hydrosphere(cls):
+        # roll of 1d+6 maxed at 10 divided by 10
+        return min(random.uniform(.7, 1.2), 1)
+
+    @property
+    def absorption(self):
+        # match hydrosphere to Temperature Factors Table
+        assert(self.hydrosphere), "attribute is not applicable"
+        d = {.20: .95, .50: .92, .90: .88, 1: .84}
+        return d[list(filter(lambda x: x >= self.hydrosphere, sorted(d.keys())))[0]]
 
     def __init__(self):
-        # roll of 1d+6 maxed at 10 divided by 10
-        oceans = min(random.uniform(.7, 1.2), 1)
-        # match ocean coverage to Temperature Factors Table
-        d = {.20: .95, .50: .92, .90: .88, 1: .84}
-        a = d[list(filter(lambda x: x >= oceans, sorted(d.keys())))[0]]
-        super(LargeGarden, self).__init__(absorption=a,
-                                          atm=['N2', 'O2', 'He', 'Ne', 'Ar',
-                                               'Kr', 'Xe'], oceans=oceans)
+        super(LargeGarden, self).__init__()
 
 
 class AsteroidBelt(World):
     _temperature_range = World.Range(140, 500)
+    _absorption = .97
 
     def __init__(self):
-        super(AsteroidBelt, self).__init__(absorption=.97)
+        super(AsteroidBelt, self).__init__()
