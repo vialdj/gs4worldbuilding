@@ -13,20 +13,22 @@ class World(object):
 
     Range = namedtuple('Range', ['min', 'max'])
 
-    # Size Enum from Size Constraints Table
+    # class Size Enum from Size Constraints Table
     class Size(Range, Enum):
+        NA = (np.nan, np.nan)
         TINY = (.004, .024)
         SMALL = (.024, .030)
         STANDARD = (.030, .065)
         LARGE = (.065, .091)
 
-    # Core Enum from World Density Table
+    # class Core Enum from World Density Table
     class Core(Range, Enum):
+        NA = (np.nan, np.nan)
         ICY_CORE = (.3, .7)
         SMALL_IRON_CORE = (.6, 1.0)
         LARGE_IRON_CORE = (.8, 1.2)
 
-    # Climate Enum from World Climate Table
+    # class Climate Enum from World Climate Table
     class Climate(int, Enum):
         FROZEN = 0
         VERY_COLD = 244
@@ -40,8 +42,9 @@ class World(object):
         VERY_HOT = 333
         INFERNAL = 344
 
-    # internal Atmosphere Enum from Atmospheric Pressure Categories Table
+    # class Atmosphere Enum from Atmospheric Pressure Categories Table
     class Atmosphere(float, Enum):
+        NA = np.nan
         TRACE = .0
         VERY_THIN = .01
         THIN = .51
@@ -50,9 +53,9 @@ class World(object):
         VERY_DENSE = 1.51
         SUPER_DENSE = 10
 
-    _temperature_range = None
-    _size = None
-    _core = None
+    # class vars
+    _size = Size.NA
+    _core = Core.NA
     _pressure_factor = 0
     _greenhouse = .0
 
@@ -68,14 +71,18 @@ class World(object):
     @classmethod
     def random_density(cls):
         # sum of a 3d roll over World Density Table
-        return (cls._core.min + (cls._core.max - cls._core.min) *
-                truncnorm((0 - 0.376) / 0.2, (1 - 0.376) / 0.2,
-                loc=0.376, scale=0.2).rvs())
+        if cls._core != cls.Core.NA:
+            return (cls._core.min + (cls._core.max - cls._core.min) *
+                    truncnorm((0 - 0.376) / 0.2, (1 - 0.376) / 0.2,
+                    loc=0.376, scale=0.2).rvs())
+        return np.nan
 
     def random_diameter(self):
         # roll of 2d-2 in range [Dmin, Dmax]
-        return (self.diameter_range.min + np.random.triangular(0, .5, 1) *
-                (self.diameter_range.max - self.diameter_range.min))
+        if self.diameter_range:
+            return (self.diameter_range.min + np.random.triangular(0, .5, 1) *
+                    (self.diameter_range.max - self.diameter_range.min))
+        return np.nan
 
     def __init__(self, absorption, atm=[], oceans=.0):
         # the ocean coverage proportion
@@ -90,10 +97,9 @@ class World(object):
         bb_temp = self.__blackbody_temperature(absorption, self.greenhouse,
                                                atm_mass, self.temperature)
         self.bb_temp = bb_temp
-        self.density = type(self).random_density()
-        self.diameter = self.random_diameter()
-        # mass in M⊕
-        self.mass = self.density * self.diameter**3
+        self._density = type(self).random_density()
+        self._diameter = self.random_diameter()
+
         # atmospheric pressure in atm⊕
         pressure = atm_mass * self.pressure_factor * self.gravity
         self.pressure = pressure
@@ -141,7 +147,7 @@ class World(object):
 
     @density.setter
     def density(self, value):
-        assert self.core, "parent attribute is not available"
+        assert self.core != Core.NA, "parent attribute is not applicable"
         assert (value >= type(self)._core.min and
                 value <= type(self)._core.max), "value out of bounds"
         self._density = value
@@ -149,9 +155,12 @@ class World(object):
     @property
     def diameter_range(self):
         # diameter range in D⊕
-        assert self.density and self.bb_temp and self.size, "parent attribute is not available"
-        return self.Range(sqrt(self.bb_temp / self.density) * self.size.value.min,
-                          sqrt(self.bb_temp / self.density) * self.size.value.max)
+        if (~np.isnan(self.density) and self.size != self.Size.NA):
+            return self.Range(sqrt(self.bb_temp / self.density) *
+                              self.size.value.min,
+                              sqrt(self.bb_temp / self.density) *
+                              self.size.value.max)
+        return None
 
     @property
     def diameter(self):
@@ -160,6 +169,7 @@ class World(object):
 
     @diameter.setter
     def diameter(self, value):
+        assert(self.diameter_range), "parent attribute is not available"
         assert (value >= self.diameter_range.min and
                 value <= self.diameter_range.max), "value out of bounds"
         self._diameter = value
@@ -170,14 +180,23 @@ class World(object):
         return self.density * self.diameter
 
     @property
+    def mass(self):
+        # mass in M⊕
+        return self.density * self.diameter**3
+
+    @property
     def climate(self):
         # climate implied by temperature match over World Climate Table
-        return list(filter(lambda x: self.temperature >= x.value, self.Climate))[-1]
+        return list(filter(lambda x: self.temperature >= x.value,
+                           self.Climate))[-1]
 
     @property
     def pressure_category(self):
-        # atmospheric pressure implied by pressure match over Atmospheric Pressure Categories Table
-        return list(filter(lambda x: self.pressure >= x.value, self.Atmosphere))[-1]
+        # atmospheric pressure implied by pressure match over
+        # Atmospheric Pressure Categories Table
+        return list(filter(lambda x: self.pressure >= x.value or
+                           np.isnan([self.pressure, x.value]).all(),
+                           self.Atmosphere))[-1]
 
     # blackbody temperature B = T / C where C = A * [1 + (M * G)]
     # with A the absorption factor, M the relative atmospheric mass and G the
@@ -193,18 +212,17 @@ class World(object):
         return .0
 
     def __str__(self):
-        return '{self.__class__.__name__} (ocean coverage= {self.oceans:.2f}, \
-atmosphere composition= {self.atm}, \
-atmosphere pressure= {self.pressure:.2f} atm⊕ ({self.pressure_category.name}), \
-average surface temperature= {self.temperature:.2f} K, \
-climate = {self.climate.name}, \
-size= {self.size.name}, \
-blackbody temperature= {self.bb_temp:.2f} K, \
-density= {self.density:.2f} d⊕, \
-core= {self.core.name}, \
-diameter= {self.diameter:.2f} D⊕, \
-gravity= {self.gravity:.2f} G⊕, \
-mass= {self.mass:.2f} M⊕)'.format(self=self)
+        return '{self.__class__.__name__} (ocean coverage={self.oceans:.2f}, \
+atmosphere composition={self.atm}, \
+atmosphere pressure={self.pressure:.2f}({self.pressure_category.name}) atm⊕, \
+average surface temperature={self.temperature:.2f}({self.climate.name}) K, \
+size={self.size.name}, \
+blackbody temperature={self.bb_temp:.2f} K, \
+density={self.density:.2f} d⊕, \
+core={self.core.name}, \
+diameter={self.diameter:.2f} D⊕, \
+gravity={self.gravity:.2f} G⊕, \
+mass={self.mass:.2f} M⊕)'.format(self=self)
 
 
 class TinySulfur(World):
