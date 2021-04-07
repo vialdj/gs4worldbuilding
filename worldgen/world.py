@@ -64,15 +64,18 @@ class World(object):
         roll = truncnorm((0 - 7.5) / 2.958040, (15 - 7.5) / 2.958040,
                          loc=7.5, scale=2.958040).rvs()
         return tmin + roll / 15 * (tmax - tmin)
-    
+
     @classmethod
     def random_density(cls):
         # sum of a 3d roll over World Density Table
-        if cls._core is not None:
-            return (cls._core.min + (cls._core.max - cls._core.min) *
-                    truncnorm((0 - 0.376) / 0.2, (1 - 0.376) / 0.2,
-                    loc=0.376, scale=0.2).rvs())
-        return .0
+        return (cls._core.min + (cls._core.max - cls._core.min) *
+                truncnorm((0 - 0.376) / 0.2, (1 - 0.376) / 0.2,
+                loc=0.376, scale=0.2).rvs())
+
+    def random_diameter(self):
+        # roll of 2d-2 in range [Dmin, Dmax]
+        return (self.diameter_range.min + np.random.triangular(0, .5, 1) *
+                (self.diameter_range.max - self.diameter_range.min))
 
     def __init__(self, absorption, atm=[], oceans=.0):
         # the ocean coverage proportion
@@ -88,14 +91,12 @@ class World(object):
                                                atm_mass, self.temperature)
         self.bb_temp = bb_temp
         self.density = type(self).random_density()
-        # diameter in D⊕
-        diameter = self.__diameter(self.size, bb_temp, self.density)
-        self.diameter = diameter
+        self.diameter = self.random_diameter()
         # surface gravity in G⊕
-        gravity = self.density * diameter
+        gravity = self.density * self.diameter
         self.gravity = gravity
         # mass in M⊕
-        self.mass = self.density * diameter**3
+        self.mass = self.density * self.diameter**3
         # atmospheric pressure in atm⊕
         pressure = atm_mass * self.pressure_factor * gravity
         self.pressure = pressure
@@ -132,8 +133,8 @@ class World(object):
 
     @temperature.setter
     def temperature(self, value):
-        assert (value >= type(self)._temperature_range.min and
-                value <= type(self)._temperature_range.max), "value out of bounds"
+        assert (value >= self.temperature_range.min and
+                value <= self.temperature_range.max), "value out of bounds"
         self._temperature = value
 
     @property
@@ -143,10 +144,28 @@ class World(object):
 
     @density.setter
     def density(self, value):
-        assert type(self)._core, "unapplicable attribute for {0}".format(type(self).__name__)
+        assert self.core, "parent attribute is not available"
         assert (value >= type(self)._core.min and
                 value <= type(self)._core.max), "value out of bounds"
         self._density = value
+
+    @property
+    def diameter_range(self):
+        # diameter range in D⊕
+        assert self.density and self.bb_temp and self.size, "parent attribute is not available"
+        return self.Range(sqrt(self.bb_temp / self.density) * self.size.value.min,
+                          sqrt(self.bb_temp / self.density) * self.size.value.max)
+
+    @property
+    def diameter(self):
+        # diameter in D⊕
+        return self._diameter
+    
+    @diameter.setter
+    def diameter(self, value):
+        assert (value >= self.diameter_range.min and
+                value <= self.diameter_range.max), "value out of bounds"
+        self._diameter = value
 
     @property
     def climate(self):
@@ -163,14 +182,6 @@ class World(object):
     # greenhouse factor (A and G given in the Temperature Factors Table)
     def __blackbody_temperature(self, absorption, greenhouse, atm, temperature):
         return temperature / (absorption * floor(1 + atm * greenhouse))
-
-    # roll of 2d-2 in range [Dmin, Dmax]
-    def __diameter(self, size, bb_temp, density):
-        if size is not None:
-            dmin = sqrt(bb_temp / density) * size.value.min
-            dmax = sqrt(bb_temp / density) * size.value.max
-            return dmin + np.random.triangular(0, .5, 1) * (dmax - dmin)
-        return .0
 
     # sum of a 3d roll divided by 10
     def __atm_mass(self, atm):
