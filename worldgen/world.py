@@ -354,8 +354,14 @@ class StandardGreenhouse(World):
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 100
     _greenhouse_factor = 2.0
+    _hydrosphere_range = World.Range(0, .5)
     _absorption = .77
     _atmosphere = ['CO2']
+
+    @classmethod
+    def random_hydrosphere(cls):
+        # roll of 2d-7 minimum at 0 and divided by 10
+        return max(np.random.triangular(-.5, 0, .5), 0)
 
     def __init__(self):
         super(StandardGreenhouse, self).__init__()
@@ -475,8 +481,14 @@ class LargeGreenhouse(World):
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 500
     _greenhouse_factor = 2.0
+    _hydrosphere_range = World.Range(0, .5)
     _absorption = .77
     _atmosphere = ['CO2']
+
+    @classmethod
+    def random_hydrosphere(cls):
+        # roll of 2d-7 minimum at 0 and divided by 10
+        return max(np.random.triangular(-.5, 0, .5), 0)
 
     def __init__(self):
         super(LargeGreenhouse, self).__init__()

@@ -32,7 +32,7 @@ class WorldGenerator():
 
         world_type = np.random.choice(list(world_types_distribution.keys()),
                                       p=list(world_types_distribution.values()))
-        self.world = world_type()
+        self.world = LargeGreenhouse()
 
     def __str__(self):
         return str(self.world)
