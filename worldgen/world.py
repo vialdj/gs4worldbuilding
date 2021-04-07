@@ -92,13 +92,10 @@ class World(object):
         self.bb_temp = bb_temp
         self.density = type(self).random_density()
         self.diameter = self.random_diameter()
-        # surface gravity in G⊕
-        gravity = self.density * self.diameter
-        self.gravity = gravity
         # mass in M⊕
         self.mass = self.density * self.diameter**3
         # atmospheric pressure in atm⊕
-        pressure = atm_mass * self.pressure_factor * gravity
+        pressure = atm_mass * self.pressure_factor * self.gravity
         self.pressure = pressure
 
     @property
@@ -160,12 +157,17 @@ class World(object):
     def diameter(self):
         # diameter in D⊕
         return self._diameter
-    
+
     @diameter.setter
     def diameter(self, value):
         assert (value >= self.diameter_range.min and
                 value <= self.diameter_range.max), "value out of bounds"
         self._diameter = value
+
+    @property
+    def gravity(self):
+        # surface gravity in G⊕
+        return self.density * self.diameter
 
     @property
     def climate(self):
