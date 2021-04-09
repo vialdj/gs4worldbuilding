@@ -1,6 +1,5 @@
-worldgen/__pycache__/__init__.cpython-39.pyc
-worldgen/__pycache__/__main__.cpython-39.pyc
-worldgen/__pycache__/world_generator.cpython-39.pyc
-worldgen/__pycache__/world.cpython-39.pyc
+worldgen/__pycache__/*
+worldgen/world/__pycache__/*
 .vscode/settings.json
 .vscode/launch.json
+htmlcov/*

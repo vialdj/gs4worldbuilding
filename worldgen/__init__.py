@@ -1,1 +1,2 @@
-from . import world_generator
+from .world import *
+from .world_generator import WorldGenerator
