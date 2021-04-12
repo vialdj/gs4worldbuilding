@@ -1,12 +1,12 @@
 import numpy as np
 
 from worldgen.world import (TinySulfur, TinyIce, TinyRock, SmallHadean,
-                   SmallIce, SmallRock, StandardChthonian,
-                   StandardGreenhouse, StandardAmmonia,
-                   StandardHadean, StandardIce, StandardOcean,
-                   StandardGarden, LargeChthonian, LargeGreenhouse,
-                   LargeAmmonia, LargeIce, LargeOcean, LargeGarden,
-                   AsteroidBelt)
+                            SmallIce, SmallRock, StandardChthonian,
+                            StandardGreenhouse, StandardAmmonia,
+                            StandardHadean, StandardIce, StandardOcean,
+                            StandardGarden, LargeChthonian, LargeGreenhouse,
+                            LargeAmmonia, LargeIce, LargeOcean, LargeGarden,
+                            AsteroidBelt)
 
 
 class WorldGenerator():

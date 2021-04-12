@@ -10,25 +10,38 @@ import numpy as np
 class World(object):
     # the World Model
 
+    # value range named tuple
     Range = namedtuple('Range', ['min', 'max'])
 
-    # class Size Enum from Size Constraints Table
+    class RangeError(Exception):
+        # raised to signal an error on Range attributes access or mutations
+        pass
+
+    def __set_ranged_property(self, property, value):
+        range = getattr(self, '{}_range'.format(property))
+        if not range:
+            raise RangeError('no value range available for {} on {}'
+                             .format(property, self.__class__.__name__))
+        if value < range.min or value > range.max:
+            raise RangeError('value out of range for {} on {}'
+                             .format(property, self.__class__.__name__))
+        setattr(self, '_{}'.format(property), value)
+
     class Size(Range, Enum):
-        NA = (np.nan, np.nan)
+        # class Size Enum from Size Constraints Table
         TINY = (.004, .024)
         SMALL = (.024, .030)
         STANDARD = (.030, .065)
         LARGE = (.065, .091)
 
-    # class Core Enum from World Density Table
     class Core(Range, Enum):
-        NA = (np.nan, np.nan)
+        # class Core Enum from World Density Table
         ICY_CORE = (.3, .7)
         SMALL_IRON_CORE = (.6, 1)
         LARGE_IRON_CORE = (.8, 1.2)
 
-    # class Climate Enum from World Climate Table
     class Climate(int, Enum):
+        # class Climate Enum from World Climate Table
         FROZEN = 0
         VERY_COLD = 244
         COLD = 255
@@ -41,8 +54,8 @@ class World(object):
         VERY_HOT = 333
         INFERNAL = 344
 
-    # class Atmosphere Enum from Atmospheric Pressure Categories Table
     class Atmosphere(float, Enum):
+        # class Atmosphere Enum from Atmospheric Pressure Categories Table
         NA = np.nan
         TRACE = .0
         VERY_THIN = .01
@@ -53,8 +66,6 @@ class World(object):
         SUPER_DENSE = 10
 
     # class vars
-    _size = Size.NA
-    _core = Core.NA
     _pressure_factor = 0
     _greenhouse_factor = np.nan
     _atmosphere = []
@@ -71,7 +82,7 @@ class World(object):
     @classmethod
     def random_density(cls):
         # sum of a 3d roll over World Density Table
-        if cls._core != cls.Core.NA:
+        if hasattr(cls, '_core'):
             return (cls._core.min + (cls._core.max - cls._core.min) *
                     truncnorm((0 - 0.376) / 0.2, (1 - 0.376) / 0.2,
                     loc=0.376, scale=0.2).rvs())
@@ -96,19 +107,14 @@ class World(object):
         return np.nan
 
     @property
-    def temperature_range(self):
-        # temperature range class var
-        return type(self)._temperature_range
-
-    @property
     def size(self):
-        # size class var
-        return type(self)._size
+        # size class variable
+        return type(self)._size if hasattr(type(self), '_size') else None
 
     @property
     def core(self):
-        # core class var
-        return type(self)._core
+        # core class variable
+        return type(self)._core if hasattr(type(self), '_core') else None
 
     @property
     def pressure_factor(self):
@@ -121,11 +127,6 @@ class World(object):
         return type(self)._greenhouse_factor
 
     @property
-    def hydrosphere_range(self):
-        # hydrosphere range class var
-        return type(self)._hydrosphere_range
-
-    @property
     def absorption(self):
         # absorption
         return type(self)._absorption
@@ -136,78 +137,82 @@ class World(object):
         return type(self)._atmosphere
 
     @property
-    def volatile_mass_range(self):
-        if (self.atmosphere):
-            return self.Range(.3, 1.8)
-        return None
-
-    @property
     def volatile_mass(self):
         # relative supply of gaseous elements to other worlds of the same type
         return self._volatile_mass
 
+    @property
+    def volatile_mass_range(self):
+        # computed value range for volatile mass
+        if (self.atmosphere):
+            return self.Range(.3, 1.8)
+        return None
+
     @volatile_mass.setter
     def volatile_mass(self, value):
-        assert(self.volatile_mass_range), "attribute is not applicable"
-        assert (value >= self.volatile_mass_range.min and
-                value <= self.volatile_mass_range.max), "value out of bounds"
-        self._temperature = value
+        self.__set_ranged_property('volatile_mass', value)
 
     @property
     def temperature(self):
         # average temperature in K
         return self._temperature
 
+    @property
+    def temperature_range(self):
+        # temperature range class variable
+        return type(self)._temperature_range
+
     @temperature.setter
     def temperature(self, value):
-        assert (value >= self.temperature_range.min and
-                value <= self.temperature_range.max), "value out of bounds"
-        self._temperature = value
+        self.__set_ranged_property('temperature', value)
 
     @property
     def density(self):
         # density in d⊕
         return self._density
 
+    @property
+    def density_range(self):
+        # computed value range for density
+        return type(self)._core.value if hasattr(type(self), '_core') else None
+
     @density.setter
     def density(self, value):
-        assert self.core != Core.NA, "attribute is not applicable"
-        assert (value >= type(self)._core.min and
-                value <= type(self)._core.max), "value out of bounds"
-        self._density = value
+        self.__set_ranged_property('density', value)
 
     @property
     def hydrosphere(self):
         # proportion of surface covered by liquid elements
         return self._hydrosphere
 
+    @property
+    def hydrosphere_range(self):
+        # hydrosphere range class variable
+        return (type(self)._hydrosphere_range
+                if hasattr(type(self), '_hydrosphere_range') else None)
+
     @hydrosphere.setter
     def hydrosphere(self, value):
-        assert(self.hydrosphere_range), "attribute is not applicable"
-        assert (value >= self.hydrosphere_range.min and
-                value <= self.hydrosphere_range.max), "value out of bounds"
-        self._hydrosphere = value
-
-    @property
-    def diameter_range(self):
-        if (~np.isnan(self.density) and self.size != self.Size.NA):
-            return self.Range(sqrt(self.blackbody_temperature / self.density) *
-                              self.size.value.min,
-                              sqrt(self.blackbody_temperature / self.density) *
-                              self.size.value.max)
-        return None
+        self.__set_ranged_property('hydrosphere', value)
 
     @property
     def diameter(self):
         # diameter in D⊕
         return self._diameter
 
+    @property
+    def diameter_range(self):
+        # computed value range for diameter
+        if (not np.isnan(self.density) and self.size):
+            return self.Range(sqrt(self.blackbody_temperature / self.density) *
+                              self.size.min,
+                              sqrt(self.blackbody_temperature / self.density) *
+                              self.size.max)
+        return None
+
     @diameter.setter
     def diameter(self, value):
-        assert(self.diameter_range), "attribute is not applicable"
-        assert (value >= self.diameter_range.min and
-                value <= self.diameter_range.max), "value out of bounds"
-        self._diameter = value
+        self.__set_ranged_property('diameter', value)
 
     @property
     def blackbody_temperature(self):
@@ -255,15 +260,23 @@ class World(object):
         self._volatile_mass = self.random_volatile_mass()
         self._diameter = self.random_diameter()
 
+    def __iter__(self):
+        attributes = dir(self)
+        for attr in attributes:
+            if (hasattr(type(self), attr) and
+                isinstance(getattr(type(self), attr), property)):
+                yield attr
+
     def __str__(self):
-        return '{self.__class__.__name__} (hydrosphere={self.hydrosphere:.2f}, \
-atmosphere={self.atmosphere}, \
-pressure={self.pressure:.2f}({self.pressure_category.name}) atm⊕, \
-average surface temperature={self.temperature:.2f}({self.climate.name}) K, \
-size={self.size.name}, \
-blackbody temperature={self.blackbody_temperature:.2f} K, \
-density={self.density:.2f} d⊕, \
-core={self.core.name}, \
-diameter={self.diameter:.2f} D⊕, \
-gravity={self.gravity:.2f} G⊕, \
-mass={self.mass:.2f} M⊕)'.format(self=self)
+        s = '{} ('.format(self.__class__.__name__)
+        for attr in self:
+            value = getattr(self, attr)
+            s += '{}='.format(attr)
+            if isinstance(value, float):
+                s += '{:.2f}, '.format(value)
+            elif isinstance(value, Enum):
+                s += '{}, '.format(value.name)
+            else:
+                s += '{}, '.format(value)
+        s += ')'
+        return s
