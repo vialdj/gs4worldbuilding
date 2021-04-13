@@ -57,7 +57,6 @@ class World(object):
 
     class Atmosphere(float, Enum):
         # class Atmosphere Enum from Atmospheric Pressure Categories Table
-        NA = np.nan
         TRACE = .0
         VERY_THIN = .01
         THIN = .51
@@ -65,11 +64,6 @@ class World(object):
         DENSE = 1.21
         VERY_DENSE = 1.51
         SUPER_DENSE = 10
-
-    # class vars
-    _pressure_factor = 0
-    _greenhouse_factor = np.nan
-    _atmosphere = []
 
     @classmethod
     def random_temperature(cls):
@@ -120,12 +114,12 @@ class World(object):
     @property
     def pressure_factor(self):
         # pressure factor class var
-        return type(self)._pressure_factor
+        return type(self)._pressure_factor if hasattr(type(self), '_pressure_factor') else np.nan
 
     @property
     def greenhouse_factor(self):
         # greenhouse_factor class var
-        return type(self)._greenhouse_factor
+        return type(self)._greenhouse_factor if hasattr(type(self), '_greenhouse_factor') else np.nan
 
     @property
     def absorption(self):
@@ -135,7 +129,7 @@ class World(object):
     @property
     def atmosphere(self):
         # key elements in the atmosphere
-        return type(self)._atmosphere
+        return type(self)._atmosphere if hasattr(type(self), '_atmosphere') else None
 
     @property
     def volatile_mass(self):
@@ -249,9 +243,9 @@ class World(object):
     def pressure_category(self):
         # atmospheric pressure implied by pressure match over
         # Atmospheric Pressure Categories Table
-        return list(filter(lambda x: self.pressure >= x.value or
-                           np.isnan([self.pressure, x.value]).all(),
-                           self.Atmosphere))[-1]
+        return (list(filter(lambda x: self.pressure >= x.value,
+                            self.Atmosphere))[-1]
+                if not np.isnan(self.pressure) else np.nan)
 
     def __init__(self):
         # randomize applicable values
@@ -270,5 +264,6 @@ class World(object):
                 yield attr, getattr(self, attr)
 
     def __str__(self):
-        return ('{}'.format(', '.join(['{} = {!s}'.format(attr, value)
-                                       for attr, value in self])))
+        return ('{}: {{{}}}'.format(self.__class__.__name__,
+                                    ', '.join(['{}: {!s}'.format(attr, value)
+                                              for attr, value in self])))
