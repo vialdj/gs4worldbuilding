@@ -3,6 +3,7 @@
 from enum import Enum
 from collections import namedtuple
 from math import sqrt, floor
+
 from scipy.stats import truncnorm
 import numpy as np
 
@@ -263,20 +264,11 @@ class World(object):
     def __iter__(self):
         attributes = dir(self)
         for attr in attributes:
-            if (hasattr(type(self), attr) and
-                isinstance(getattr(type(self), attr), property)):
-                yield attr
+            if (hasattr(type(self), attr) and isinstance(getattr(type(self),
+                                                                 attr),
+                                                         property)):
+                yield attr, getattr(self, attr)
 
     def __str__(self):
-        s = '{} ('.format(self.__class__.__name__)
-        for attr in self:
-            value = getattr(self, attr)
-            s += '{}='.format(attr)
-            if isinstance(value, float):
-                s += '{:.2f}, '.format(value)
-            elif isinstance(value, Enum):
-                s += '{}, '.format(value.name)
-            else:
-                s += '{}, '.format(value)
-        s += ')'
-        return s
+        return ('{}'.format(', '.join(['{} = {!s}'.format(attr, value)
+                                       for attr, value in self])))
