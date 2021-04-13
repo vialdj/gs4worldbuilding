@@ -3,6 +3,7 @@
 from enum import Enum
 from collections import namedtuple
 from math import sqrt, floor
+from inspect import ismethod
 
 from scipy.stats import truncnorm
 import numpy as np
@@ -19,13 +20,14 @@ class World(object):
         pass
 
     def __set_ranged_property(self, property, value):
+        # centralised setter for ranged value properties
         range = getattr(self, '{}_range'.format(property))
         if not range:
-            raise RangeError('no value range available for {} on {}'
-                             .format(property, self.__class__.__name__))
+            raise self.RangeError('no value range available for {} on {}'
+                                  .format(property, self.__class__.__name__))
         if value < range.min or value > range.max:
-            raise RangeError('value out of range for {} on {}'
-                             .format(property, self.__class__.__name__))
+            raise self.RangeError('value out of range for {} on {}'
+                                  .format(property, self.__class__.__name__))
         setattr(self, '_{}'.format(property), value)
 
     class Size(Range, Enum):
@@ -65,41 +67,30 @@ class World(object):
         VERY_DENSE = 1.51
         SUPER_DENSE = 10
 
-    @classmethod
-    def random_temperature(cls):
+    def random_temperature(self):
         # sum of a 3d-3 roll times step value add minimum
-        tmin = cls._temperature_range.min
-        tmax = cls._temperature_range.max
+        tmin = self.temperature_range.min
+        tmax = self.temperature_range.max
         roll = truncnorm((0 - 7.5) / 2.958040, (15 - 7.5) / 2.958040,
                          loc=7.5, scale=2.958040).rvs()
         return tmin + roll / 15 * (tmax - tmin)
 
-    @classmethod
-    def random_density(cls):
+    def random_density(self):
         # sum of a 3d roll over World Density Table
-        if hasattr(cls, '_core'):
-            return (cls._core.min + (cls._core.max - cls._core.min) *
-                    truncnorm((0 - 0.376) / 0.2, (1 - 0.376) / 0.2,
-                    loc=0.376, scale=0.2).rvs())
-        return np.nan
+        return (self.density_range.min + (self.density_range.max -
+                                          self.density_range.min) *
+                truncnorm((0 - 0.376) / 0.2, (1 - 0.376) / 0.2,
+                loc=0.376, scale=0.2).rvs())
 
     def random_diameter(self):
         # roll of 2d-2 in range [Dmin, Dmax]
-        if self.diameter_range:
-            return (self.diameter_range.min + np.random.triangular(0, .5, 1) *
-                    (self.diameter_range.max - self.diameter_range.min))
-        return np.nan
+        return (self.diameter_range.min + np.random.triangular(0, .5, 1) *
+                (self.diameter_range.max - self.diameter_range.min))
 
     def random_volatile_mass(self):
         # sum of a 3d roll divided by 10
-        if self.atmosphere:
-            return truncnorm((3 - 10.5) / 2.958040, (18 - 10.5) / 2.958040,
-                             loc=10.5, scale=2.958040).rvs() / 10
-        return np.nan
-
-    @classmethod
-    def random_hydrosphere(cls):
-        return np.nan
+        return truncnorm((3 - 10.5) / 2.958040, (18 - 10.5) / 2.958040,
+                         loc=10.5, scale=2.958040).rvs() / 10
 
     @property
     def size(self):
@@ -114,12 +105,14 @@ class World(object):
     @property
     def pressure_factor(self):
         # pressure factor class var
-        return type(self)._pressure_factor if hasattr(type(self), '_pressure_factor') else np.nan
+        return (type(self)._pressure_factor
+                if hasattr(type(self), '_pressure_factor') else np.nan)
 
     @property
     def greenhouse_factor(self):
         # greenhouse_factor class var
-        return type(self)._greenhouse_factor if hasattr(type(self), '_greenhouse_factor') else np.nan
+        return (type(self)._greenhouse_factor
+                if hasattr(type(self), '_greenhouse_factor') else np.nan)
 
     @property
     def absorption(self):
@@ -129,19 +122,18 @@ class World(object):
     @property
     def atmosphere(self):
         # key elements in the atmosphere
-        return type(self)._atmosphere if hasattr(type(self), '_atmosphere') else None
+        return (type(self)._atmosphere
+                if hasattr(type(self), '_atmosphere') else None)
 
     @property
     def volatile_mass(self):
         # relative supply of gaseous elements to other worlds of the same type
-        return self._volatile_mass
+        return self._volatile_mass if hasattr(self, '_volatile_mass') else np.nan
 
     @property
     def volatile_mass_range(self):
         # computed value range for volatile mass
-        if (self.atmosphere):
-            return self.Range(.3, 1.8)
-        return None
+        return self.Range(.3, 1.8) if self.atmosphere else None
 
     @volatile_mass.setter
     def volatile_mass(self, value):
@@ -164,7 +156,7 @@ class World(object):
     @property
     def density(self):
         # density in d⊕
-        return self._density
+        return self._density if hasattr(self, '_density') else np.nan
 
     @property
     def density_range(self):
@@ -178,7 +170,7 @@ class World(object):
     @property
     def hydrosphere(self):
         # proportion of surface covered by liquid elements
-        return self._hydrosphere
+        return self._hydrosphere if hasattr(self, '_hydrosphere') else np.nan
 
     @property
     def hydrosphere_range(self):
@@ -193,17 +185,14 @@ class World(object):
     @property
     def diameter(self):
         # diameter in D⊕
-        return self._diameter
+        return self._diameter if hasattr(self, '_diameter') else np.nan
 
     @property
     def diameter_range(self):
         # computed value range for diameter
-        if (not np.isnan(self.density) and self.size):
-            return self.Range(sqrt(self.blackbody_temperature / self.density) *
-                              self.size.min,
-                              sqrt(self.blackbody_temperature / self.density) *
-                              self.size.max)
-        return None
+        return (self.Range(sqrt(self.blackbody_temperature / self.density) * self.size.min,
+                           sqrt(self.blackbody_temperature / self.density) * self.size.max)
+                if self.density and self.size else None)
 
     @diameter.setter
     def diameter(self, value):
@@ -247,23 +236,31 @@ class World(object):
                             self.Atmosphere))[-1]
                 if not np.isnan(self.pressure) else np.nan)
 
+    def __get_properties(self):
+        # return a list of property names
+        return list(filter(lambda x: hasattr(type(self), x)
+                           and isinstance(getattr(type(self), x), property),
+                           dir(self)))
+
+    def randomize(self):
+        # randomize applicable properties values with precedence constraints
+        props = list(filter(lambda x: hasattr(self, 'random_{}'.format(x)),
+                            ['hydrosphere', 'volatile_mass', 'temperature',
+                             'density', 'diameter']))
+        for prop in props:
+            f = getattr(type(self), 'random_{}'.format(prop))
+            if getattr(self, '{}_range'.format(prop)):
+                val = f() if ismethod(f) else f(self)
+                setattr(self, prop, val)
+
     def __init__(self):
-        # randomize applicable values
-        self.temperature = type(self).random_temperature()
-        self._density = type(self).random_density()
-        self._hydrosphere = self.random_hydrosphere()
-        self._volatile_mass = self.random_volatile_mass()
-        self._diameter = self.random_diameter()
+        self.randomize()
 
     def __iter__(self):
-        attributes = dir(self)
-        for attr in attributes:
-            if (hasattr(type(self), attr) and isinstance(getattr(type(self),
-                                                                 attr),
-                                                         property)):
-                yield attr, getattr(self, attr)
+        for prop in self.__get_properties():
+            yield prop, getattr(self, prop)
 
     def __str__(self):
         return ('{}: {{{}}}'.format(self.__class__.__name__,
-                                    ', '.join(['{}: {!s}'.format(attr, value)
-                                              for attr, value in self])))
+                                    ', '.join(['{}: {!s}'.format(prop, value)
+                                              for prop, value in self])))
