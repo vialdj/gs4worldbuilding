@@ -19,16 +19,16 @@ class World(object):
         """raised to signal an error on Range attributes access or mutations"""
         pass
 
-    def __set_ranged_property(self, property, value):
+    def __set_ranged_property(self, prop, value):
         """centralised setter for ranged value properties"""
-        range = getattr(self, '{}_range'.format(property))
-        if not range:
+        rng = getattr(self, '{}_range'.format(prop))
+        if not rng:
             raise self.RangeError('no value range available for {} on {}'
-                                  .format(property, self.__class__.__name__))
-        if value < range.min or value > range.max:
+                                  .format(prop, self.__class__.__name__))
+        if value < rng.min or value > rng.max:
             raise self.RangeError('value out of range for {} on {}'
-                                  .format(property, self.__class__.__name__))
-        setattr(self, '_{}'.format(property), value)
+                                  .format(prop, self.__class__.__name__))
+        setattr(self, '_{}'.format(prop), value)
 
     class Size(Range, Enum):
         """class Size Enum from Size Constraints Table"""
