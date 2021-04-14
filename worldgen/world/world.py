@@ -231,12 +231,6 @@ class World(object):
                             self.Atmosphere))[-1]
                 if not np.isnan(self.pressure) else None)
 
-    def __get_properties(self):
-        """return a list of property names"""
-        return list(filter(lambda x: hasattr(type(self), x)
-                           and isinstance(getattr(type(self), x), property),
-                           dir(self)))
-
     def randomize(self):
         """randomizes applicable properties values with precedence constraints"""
         props = list(filter(lambda x: hasattr(self, 'random_{}'.format(x)),
@@ -252,7 +246,10 @@ class World(object):
         self.randomize()
 
     def __iter__(self):
-        for prop in self.__get_properties():
+        """yield property names and values"""
+        for prop in list(filter(lambda x: hasattr(type(self), x)
+                         and isinstance(getattr(type(self), x), property),
+                         dir(self))):
             yield prop, getattr(self, prop)
 
     def __str__(self):
