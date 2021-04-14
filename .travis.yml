@@ -10,5 +10,5 @@ install:
 script:
   - pytest
 after_success:
-  - coverage run -m pytest
+  - coverage run --source=worldgen -m pytest
   - coveralls
