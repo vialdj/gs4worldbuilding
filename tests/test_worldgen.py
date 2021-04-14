@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 
 from .context import worldgen
-from worldgen.world import AsteroidBelt
+from worldgen.world import World, AsteroidBelt
 
 
 @pytest.fixture
@@ -74,6 +74,26 @@ def test_get_mass_is_nan(asteroid_belt):
 
 def test_get_pressure_is_nan(asteroid_belt):
     assert np.isnan(asteroid_belt.pressure)
+
+
+def test_get_temperature_is_valid(asteroid_belt):
+    assert (asteroid_belt.temperature >= AsteroidBelt._temperature_range.min and
+            asteroid_belt.temperature <= AsteroidBelt._temperature_range.max)
+
+
+def test_get_blackbody_temperature_is_valid(asteroid_belt):
+    assert (asteroid_belt.blackbody_temperature == asteroid_belt.temperature /
+            AsteroidBelt._absorption)
+
+
+def test_get_climate_is_valid(asteroid_belt):
+    lower = asteroid_belt.climate.value
+    upper = np.inf
+    for item in World.Climate:
+        if item.value > lower:
+            upper = item.value
+    assert (asteroid_belt.temperature >= lower and
+            asteroid_belt.temperature <= upper)
 
 
 def test_get_pressure_category_is_None(asteroid_belt):
