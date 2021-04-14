@@ -15,19 +15,15 @@ class World(object):
     # value range named tuple
     Range = namedtuple('Range', ['min', 'max'])
 
-    class RangeError(Exception):
-        """raised to signal an error on Range attributes access or mutations"""
-        pass
-
     def __set_ranged_property(self, prop, value):
         """centralised setter for ranged value properties"""
         rng = getattr(self, '{}_range'.format(prop))
         if not rng:
-            raise self.RangeError('no value range available for {} on {}'
-                                  .format(prop, self.__class__.__name__))
+            raise AttributeError('can\'t set attribute, no {}_range found'
+                                 .format(prop))
         if value < rng.min or value > rng.max:
-            raise self.RangeError('value out of range for {} on {}'
-                                  .format(prop, self.__class__.__name__))
+            raise ValueError('{} value out of range {}'
+                             .format(prop, rng))
         setattr(self, '_{}'.format(prop), value)
 
     class Size(Range, Enum):
@@ -233,7 +229,7 @@ class World(object):
         """atmospheric pressure implied by pressure match over Atmospheric Pressure Categories Table"""
         return (list(filter(lambda x: self.pressure >= x.value,
                             self.Atmosphere))[-1]
-                if not np.isnan(self.pressure) else np.nan)
+                if not np.isnan(self.pressure) else None)
 
     def __get_properties(self):
         """return a list of property names"""
