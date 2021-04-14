@@ -21,7 +21,9 @@ class World(object):
         if not rng:
             raise AttributeError('can\'t set attribute, no {}_range found'
                                  .format(prop))
-        if value < rng.min or value > rng.max:
+        if np.isnan(value):
+            raise ValueError('can\'t manually set {} value to nan'.format(prop))
+        elif value < rng.min or value > rng.max:
             raise ValueError('{} value out of range {}'
                              .format(prop, rng))
         setattr(self, '_{}'.format(prop), value)
