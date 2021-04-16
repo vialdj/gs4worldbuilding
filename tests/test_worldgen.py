@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 
 from .context import worldgen
-from worldgen.world import World, LargeAmmonia, AsteroidBelt
+from worldgen.world import World, LargeAmmonia, LargeGreenhouse, AsteroidBelt
 
 
 @pytest.fixture
@@ -16,28 +16,38 @@ def large_ammonia():
     # returns a LargeAmmonia instance
     return LargeAmmonia()
 
+@pytest.fixture
+def large_greenhouse():
+    # returns a LargeAmmonia instance
+    return LargeGreenhouse()
 
-def test_set_density_raises_exception_on_attribute_error(asteroid_belt):
+
+def test_set_density_raises_exception_on_no_range(asteroid_belt):
     with pytest.raises(AttributeError):
         asteroid_belt.density = np.nan
 
 
-def test_set_temperature_raises_exception_on_value_error(asteroid_belt):
+def test_set_temperature_raises_exception_on_nan(asteroid_belt):
     with pytest.raises(ValueError):
         asteroid_belt.temperature = np.nan
 
 
-def test_set_hydrosphere_raises_exception_on_attribute_error(asteroid_belt):
+def test_set_temperature_raises_exception_on_out_of_range(asteroid_belt):
+    with pytest.raises(ValueError):
+        asteroid_belt.temperature = 100
+
+
+def test_set_hydrosphere_raises_exception_on_no_range(asteroid_belt):
     with pytest.raises(AttributeError):
         asteroid_belt.hydrosphere = np.nan
 
 
-def test_set_volatile_mass_raises_exception_on_attribute_error(asteroid_belt):
+def test_set_volatile_mass_raises_exception_on_no_range(asteroid_belt):
     with pytest.raises(AttributeError):
         asteroid_belt.diameter = np.nan
 
 
-def test_set_diameter_raises_exception_on_attribute_error(asteroid_belt):
+def test_set_diameter_raises_exception_on_no_range(asteroid_belt):
     with pytest.raises(AttributeError):
         asteroid_belt.volatile_mass = np.nan
 
@@ -77,6 +87,11 @@ def test_get_atmosphere_is_None(asteroid_belt):
 
 def test_get_atmosphere_is_valid(large_ammonia):
     assert large_ammonia.atmosphere == ['He', 'NH3', 'CH4']
+
+
+def test_get_atmosphere_is_valid(large_greenhouse):
+    assert ((large_greenhouse.hydrosphere < .1 and large_greenhouse.atmosphere == ['CO2']) or
+            (large_greenhouse.hydrosphere >= .1 and large_greenhouse.atmosphere == ['N2', 'H2O', 'O2']))
 
 
 def test_get_pressure_factor_is_nan(asteroid_belt):
