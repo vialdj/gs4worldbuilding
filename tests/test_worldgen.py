@@ -2,7 +2,7 @@ import pytest
 import numpy as np
 
 from .context import worldgen
-from worldgen.world import World, LargeAmmonia, LargeGreenhouse, AsteroidBelt
+from worldgen.world import World, LargeAmmonia, LargeGarden, LargeGreenhouse, AsteroidBelt
 
 
 @pytest.fixture
@@ -18,8 +18,14 @@ def large_ammonia():
 
 @pytest.fixture
 def large_greenhouse():
-    # returns a LargeAmmonia instance
+    # returns a LargeGreenhouse instance
     return LargeGreenhouse()
+
+
+@pytest.fixture
+def large_garden():
+    # returns a LargeGarden instance
+    return LargeGarden()
 
 
 def test_set_density_raises_exception_on_no_range(asteroid_belt):
@@ -121,6 +127,13 @@ def test_get_volatile_mass_is_valid(large_ammonia):
 
 def test_get_absorption_is_valid(asteroid_belt):
     assert asteroid_belt.absorption == .97
+
+
+def test_get_absorption_is_valid(large_garden):
+    assert ((large_garden.hydrosphere < .2 and large_garden.absorption == .95) or
+            (large_garden.hydrosphere < .5 and large_garden.absorption == .92) or
+            (large_garden.hydrosphere < .90 and large_garden.absorption == .88) or
+            (large_garden.hydrosphere <= 1 and large_garden.absorption == .84))
 
 
 def test_get_gravity_is_nan(asteroid_belt):
