@@ -12,6 +12,7 @@ class LargeAmmonia(World):
     _hydrosphere_range = World.Range(.2, 1)
     _absorption = .84
     _atmosphere = ['He', 'NH3', 'CH4']
+    _toxicity = World.Toxicity.LETHAL
 
     @classmethod
     def random_hydrosphere(cls):

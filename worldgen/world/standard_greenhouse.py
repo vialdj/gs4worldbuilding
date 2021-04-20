@@ -2,6 +2,7 @@ from . import World
 
 import numpy as np
 
+
 class StandardGreenhouse(World):
     _temperature_range = World.Range(500, 950)
     _size = World.Size.STANDARD
@@ -10,6 +11,7 @@ class StandardGreenhouse(World):
     _greenhouse_factor = 2.0
     _hydrosphere_range = World.Range(0, .5)
     _absorption = .77
+    _toxicity = World.Toxicity.LETHAL
 
     @classmethod
     def random_hydrosphere(cls):

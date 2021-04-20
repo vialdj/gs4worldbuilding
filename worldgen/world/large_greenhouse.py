@@ -11,7 +11,7 @@ class LargeGreenhouse(World):
     _greenhouse_factor = 2.0
     _hydrosphere_range = World.Range(0, .5)
     _absorption = .77
-    _atmosphere = ['CO2']
+    _toxicity = World.Toxicity.LETHAL
 
     @classmethod
     def random_hydrosphere(cls):

@@ -2,7 +2,9 @@ import pytest
 import numpy as np
 
 from .context import worldgen
-from worldgen.world import World, LargeAmmonia, LargeGarden, LargeGreenhouse, AsteroidBelt
+from worldgen.world import (World, LargeAmmonia, LargeGarden, LargeGreenhouse,
+                            AsteroidBelt, LargeIce, LargeOcean,
+                            StandardGreenhouse, StandardAmmonia)
 
 
 @pytest.fixture
@@ -26,6 +28,36 @@ def large_greenhouse():
 def large_garden():
     # returns a LargeGarden instance
     return LargeGarden()
+
+
+@pytest.fixture
+def large_ice():
+    # returns a LargeIce instance
+    return LargeIce()
+
+
+@pytest.fixture
+def large_ocean():
+    # returns a LargeOcean instance
+    return LargeOcean()
+
+
+@pytest.fixture
+def large_ice():
+    # returns a LargeIce instance
+    return LargeIce()
+
+
+@pytest.fixture
+def standard_greenhouse():
+    # returns a StandardGreenhouse instance
+    return StandardGreenhouse()
+
+
+@pytest.fixture
+def standard_ammonia():
+    # returns a StandardAmmonia instance
+    return StandardAmmonia()
 
 
 def test_set_density_raises_exception_on_no_range(asteroid_belt):
@@ -100,6 +132,30 @@ def test_get_atmosphere_is_valid(large_greenhouse):
             (large_greenhouse.hydrosphere >= .1 and large_greenhouse.atmosphere == ['N2', 'H2O', 'O2']))
 
 
+def test_get_toxicity_is_valid(large_ammonia):
+    assert large_ammonia.toxicity == World.Toxicity.LETHAL
+
+
+def test_get_toxicity_is_valid(large_greenhouse):
+    assert large_greenhouse.toxicity == World.Toxicity.LETHAL
+
+
+def test_get_toxicity_is_valid(large_ice):
+    assert large_ice.toxicity == World.Toxicity.HIGH
+
+
+def test_get_toxicity_is_valid(large_ocean):
+    assert large_ocean.toxicity == World.Toxicity.HIGH
+
+
+def test_get_toxicity_is_valid(standard_greenhouse):
+    assert standard_greenhouse.toxicity == World.Toxicity.LETHAL
+
+
+def test_get_toxicity_is_valid(standard_ammonia):
+    assert standard_ammonia.toxicity == World.Toxicity.LETHAL
+
+
 def test_get_pressure_factor_is_nan(asteroid_belt):
     assert np.isnan(asteroid_belt.pressure_factor)
 
@@ -133,7 +189,7 @@ def test_get_absorption_is_valid(large_garden):
     assert ((large_garden.hydrosphere < .2 and large_garden.absorption == .95) or
             (large_garden.hydrosphere < .5 and large_garden.absorption == .92) or
             (large_garden.hydrosphere < .90 and large_garden.absorption == .88) or
-            (large_garden.hydrosphere <= 1 and large_garden.absorption == .84))
+            large_garden.absorption == .84)
 
 
 def test_get_gravity_is_nan(asteroid_belt):

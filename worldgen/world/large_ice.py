@@ -12,6 +12,7 @@ class LargeIce(World):
     _hydrosphere_range = World.Range(0, .2)
     _absorption = .86
     _atmosphere = ['He', 'N2']
+    _toxicity = World.Toxicity.HIGH
 
     @classmethod
     def random_hydrosphere(cls):

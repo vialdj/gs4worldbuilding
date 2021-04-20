@@ -65,6 +65,12 @@ class World(object):
         VERY_DENSE = 1.51
         SUPER_DENSE = 10
 
+    class Toxicity(Enum):
+        """class Toxicity Enum from Toxicity Rules categories"""
+        MILD = 0
+        HIGH = 1
+        LETHAL = 2
+
     def random_temperature(self):
         """sum of a 3d-3 roll times step value add minimum"""
         tmin = self.temperature_range.min
@@ -122,6 +128,12 @@ class World(object):
         """key elements in the atmosphere"""
         return (type(self)._atmosphere
                 if hasattr(type(self), '_atmosphere') else None)
+
+    @property
+    def toxicity(self):
+        """atmosphere toxicity level"""
+        return (type(self)._toxicity
+                if hasattr(type(self), '_toxicity') else None)
 
     @property
     def volatile_mass(self):
