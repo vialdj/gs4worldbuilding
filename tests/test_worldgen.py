@@ -124,36 +124,49 @@ def test_get_atmosphere_is_None(asteroid_belt):
 
 
 def test_get_atmosphere_is_valid(large_ammonia):
-    assert large_ammonia.atmosphere == ['He', 'NH3', 'CH4']
+    assert large_ammonia.atmosphere.composition == ['He', 'NH3', 'CH4']
+    assert large_ammonia.atmosphere.toxicity == World.Toxicity.LETHAL
+    assert large_ammonia.atmosphere.suffocating is True
+    assert large_ammonia.atmosphere.corrosive is True
 
 
 def test_get_atmosphere_is_valid(large_greenhouse):
-    assert ((large_greenhouse.hydrosphere < .1 and large_greenhouse.atmosphere == ['CO2']) or
-            (large_greenhouse.hydrosphere >= .1 and large_greenhouse.atmosphere == ['N2', 'H2O', 'O2']))
+    assert ((large_greenhouse.hydrosphere < .1 and
+             large_greenhouse.atmosphere.composition == ['CO2']) or
+            (large_greenhouse.hydrosphere >= .1 and
+             large_greenhouseatmosphere.composition == ['N2', 'H2O', 'O2']))
+    assert large_greenhouse.atmosphere.toxicity == World.Toxicity.LETHAL
+    assert large_greenhouse.atmosphere.suffocating is True
+    assert large_greenhouse.atmosphere.corrosive is True
 
 
-def test_get_toxicity_is_valid(large_ammonia):
-    assert large_ammonia.toxicity == World.Toxicity.LETHAL
+def test_get_atmosphere_is_valid(large_ice):
+    assert large_ice.atmosphere.composition == ['He', 'N2']
+    assert large_ice.atmosphere.toxicity == World.Toxicity.HIGH
+    assert large_ice.atmosphere.suffocating is True
 
 
-def test_get_toxicity_is_valid(large_greenhouse):
-    assert large_greenhouse.toxicity == World.Toxicity.LETHAL
+def test_get_atmosphere_is_valid(large_ocean):
+    assert large_ocean.atmosphere.composition == ['He', 'N2']
+    assert large_ocean.atmosphere.toxicity == World.Toxicity.HIGH
+    assert large_ocean.atmosphere.suffocating is True
 
 
-def test_get_toxicity_is_valid(large_ice):
-    assert large_ice.toxicity == World.Toxicity.HIGH
+def test_get_atmosphere_is_valid(standard_greenhouse):
+    assert ((standard_greenhouse.hydrosphere < .1 and
+             standard_greenhouse.atmosphere.composition == ['CO2']) or
+            (standard_greenhouse.hydrosphere >= .1 and
+             standard_greenhouseatmosphere.composition == ['N2', 'H2O', 'O2']))
+    assert standard_greenhouse.atmosphere.toxicity == World.Toxicity.LETHAL
+    assert standard_greenhouse.atmosphere.suffocating is True
+    assert standard_greenhouse.atmosphere.corrosive is True
 
 
-def test_get_toxicity_is_valid(large_ocean):
-    assert large_ocean.toxicity == World.Toxicity.HIGH
-
-
-def test_get_toxicity_is_valid(standard_greenhouse):
-    assert standard_greenhouse.toxicity == World.Toxicity.LETHAL
-
-
-def test_get_toxicity_is_valid(standard_ammonia):
-    assert standard_ammonia.toxicity == World.Toxicity.LETHAL
+def test_get_atmosphere_is_valid(standard_ammonia):
+    assert standard_ammonia.atmosphere.composition == ['N2', 'NH3', 'CH4']
+    assert standard_ammonia.atmosphere.toxicity == World.Toxicity.LETHAL
+    assert standard_ammonia.atmosphere.suffocating is True
+    assert standard_ammonia.atmosphere.corrosive is True
 
 
 def test_get_pressure_factor_is_nan(asteroid_belt):
@@ -231,7 +244,7 @@ def test_get_pressure_category_is_None(asteroid_belt):
 def test_get_pressure_category_is_valid(large_ammonia):
     lower = large_ammonia.pressure_category.value
     upper = np.inf
-    for item in World.Atmosphere:
+    for item in World.Pressure:
         if item.value > lower:
             upper = item.value
     assert (large_ammonia.pressure >= lower and

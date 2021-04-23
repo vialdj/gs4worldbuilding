@@ -11,7 +11,6 @@ class LargeGreenhouse(World):
     _greenhouse_factor = 2.0
     _hydrosphere_range = World.Range(0, .5)
     _absorption = .77
-    _toxicity = World.Toxicity.LETHAL
 
     @classmethod
     def random_hydrosphere(cls):
@@ -20,7 +19,9 @@ class LargeGreenhouse(World):
 
     @property
     def atmosphere(self):
-        return ['CO2'] if self.hydrosphere < .1 else ['N2', 'H2O', 'O2']
+        return World.Atmosphere(composition=['CO2'] if self.hydrosphere < .1 else ['N2', 'H2O', 'O2'],
+                                toxicity=World.Toxicity.LETHAL,
+                                suffocating=True)
 
     def __init__(self):
         super(LargeGreenhouse, self).__init__()

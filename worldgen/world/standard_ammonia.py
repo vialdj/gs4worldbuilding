@@ -11,8 +11,9 @@ class StandardAmmonia(World):
     _greenhouse_factor = .2
     _hydrosphere_range = World.Range(.2, 1)
     _absorption = .84
-    _atmosphere = ['N2', 'NH3', 'CH4']
-    _toxicity = World.Toxicity.LETHAL
+    _atmosphere = World.Atmosphere(composition=['N2', 'NH3', 'CH4'],
+                                   toxicity=World.Toxicity.LETHAL,
+                                   suffocating=True)
 
     @classmethod
     def random_hydrosphere(cls):

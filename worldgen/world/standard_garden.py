@@ -10,7 +10,7 @@ class StandardGarden(World):
     _pressure_factor = 1
     _greenhouse_factor = .16
     _hydrosphere_range = World.Range(.5, 1)
-    _atmosphere = ['N2', 'O2']
+    _atmosphere = World.Atmosphere(composition=['N2', 'O2'])
 
     @classmethod
     def random_hydrosphere(cls):

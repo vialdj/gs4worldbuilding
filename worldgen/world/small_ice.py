@@ -11,7 +11,7 @@ class SmallIce(World):
     _greenhouse_factor = .1
     _hydrosphere_range = World.Range(.3, .8)
     _absorption = .93
-    _atmosphere = ['N2', 'CH4']
+    _atmosphere = World.Atmosphere(composition=['N2', 'CH4'])
 
     def random_hydrosphere(cls):
         # roll of 1d+2 divided by 10

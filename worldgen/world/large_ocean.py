@@ -10,8 +10,9 @@ class LargeOcean(World):
     _pressure_factor = 5
     _greenhouse_factor = .16
     _hydrosphere_range = World.Range(.7, 1)
-    _atmosphere = ['He', 'N2']
-    _toxicity = World.Toxicity.HIGH
+    _atmosphere = World.Atmosphere(composition=['He', 'N2'],
+                                   toxicity=World.Toxicity.HIGH,
+                                   suffocating=True)
 
     @classmethod
     def random_hydrosphere(cls):

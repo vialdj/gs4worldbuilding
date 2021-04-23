@@ -11,7 +11,7 @@ class StandardIce(World):
     _greenhouse_factor = .2
     _hydrosphere_range = World.Range(0, .2)
     _absorption = .86
-    _atmosphere = ['CO2', 'N2']
+    _atmosphere = World.Atmosphere(composition=['CO2', 'N2'])
 
     @classmethod
     def random_hydrosphere(cls):

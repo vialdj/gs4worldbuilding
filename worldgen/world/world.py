@@ -4,6 +4,7 @@ from enum import Enum
 from collections import namedtuple
 from math import sqrt, floor
 from inspect import ismethod
+from dataclasses import dataclass
 
 from scipy.stats import truncnorm
 import numpy as np
@@ -11,35 +12,6 @@ import numpy as np
 
 class World(object):
     """the World Model"""
-
-    # value range named tuple
-    Range = namedtuple('Range', ['min', 'max'])
-
-    def __set_ranged_property(self, prop, value):
-        """centralised setter for ranged value properties"""
-        rng = getattr(self, '{}_range'.format(prop))
-        if not rng:
-            raise AttributeError('can\'t set attribute, no {}_range found'
-                                 .format(prop))
-        if np.isnan(value):
-            raise ValueError('can\'t manually set {} value to nan'.format(prop))
-        if value < rng.min or value > rng.max:
-            raise ValueError('{} value out of range {}'
-                             .format(prop, rng))
-        setattr(self, '_{}'.format(prop), value)
-
-    class Size(Range, Enum):
-        """class Size Enum from Size Constraints Table"""
-        TINY = (.004, .024)
-        SMALL = (.024, .030)
-        STANDARD = (.030, .065)
-        LARGE = (.065, .091)
-
-    class Core(Range, Enum):
-        """class Core Enum from World Density Table"""
-        ICY_CORE = (.3, .7)
-        SMALL_IRON_CORE = (.6, 1)
-        LARGE_IRON_CORE = (.8, 1.2)
 
     class Climate(int, Enum):
         """class Climate Enum from World Climate Table"""
@@ -55,8 +27,8 @@ class World(object):
         VERY_HOT = 333
         INFERNAL = 344
 
-    class Atmosphere(float, Enum):
-        """class Atmosphere Enum from Atmospheric Pressure Categories Table"""
+    class Pressure(float, Enum):
+        """class Pressure Enum from Atmospheric Pressure Categories Table"""
         TRACE = .0
         VERY_THIN = .01
         THIN = .51
@@ -70,6 +42,43 @@ class World(object):
         MILD = 0
         HIGH = 1
         LETHAL = 2
+
+    # value range named tuple
+    Range = namedtuple('Range', ['min', 'max'])
+
+    class Size(Range, Enum):
+        """class Size Enum from Size Constraints Table"""
+        TINY = (.004, .024)
+        SMALL = (.024, .030)
+        STANDARD = (.030, .065)
+        LARGE = (.065, .091)
+
+    class Core(Range, Enum):
+        """class Core Enum from World Density Table"""
+        ICY_CORE = (.3, .7)
+        SMALL_IRON_CORE = (.6, 1)
+        LARGE_IRON_CORE = (.8, 1.2)
+
+    @dataclass
+    class Atmosphere:
+        """ atmosphere composition dataclass """
+        composition: list
+        suffocating: bool = False
+        corrosive: bool = False
+        toxicity: Enum = None
+
+    def __set_ranged_property(self, prop, value):
+        """centralised setter for ranged value properties"""
+        rng = getattr(self, '{}_range'.format(prop))
+        if not rng:
+            raise AttributeError('can\'t set attribute, no {}_range found'
+                                 .format(prop))
+        if np.isnan(value):
+            raise ValueError('can\'t manually set {} value to nan'.format(prop))
+        if value < rng.min or value > rng.max:
+            raise ValueError('{} value out of range {}'
+                             .format(prop, rng))
+        setattr(self, '_{}'.format(prop), value)
 
     def random_temperature(self):
         """sum of a 3d-3 roll times step value add minimum"""
@@ -125,15 +134,9 @@ class World(object):
 
     @property
     def atmosphere(self):
-        """key elements in the atmosphere"""
+        """key properties of the atmosphere composition"""
         return (type(self)._atmosphere
                 if hasattr(type(self), '_atmosphere') else None)
-
-    @property
-    def toxicity(self):
-        """atmosphere toxicity level"""
-        return (type(self)._toxicity
-                if hasattr(type(self), '_toxicity') else None)
 
     @property
     def volatile_mass(self):
@@ -242,7 +245,7 @@ class World(object):
     def pressure_category(self):
         """atmospheric pressure implied by pressure match over Atmospheric Pressure Categories Table"""
         return (list(filter(lambda x: self.pressure >= x.value,
-                            self.Atmosphere))[-1]
+                            self.Pressure))[-1]
                 if not np.isnan(self.pressure) else None)
 
     def randomize(self):

@@ -10,7 +10,7 @@ class StandardOcean(World):
     _pressure_factor = 1
     _greenhouse_factor = .16
     _hydrosphere_range = World.Range(.5, 1)
-    _atmosphere = ['CO2', 'N2']
+    _atmosphere = World.Atmosphere(composition=['CO2', 'N2'])
 
     @classmethod
     def random_hydrosphere(cls):
