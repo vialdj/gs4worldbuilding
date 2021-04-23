@@ -1,5 +1,7 @@
 worldgen/__pycache__/*
 worldgen/world/__pycache__/*
-.vscode/settings.json
-.vscode/launch.json
+tests/__pycache__/*
+.vscode
 htmlcov/*
+.coverage
+worldgen/.coverage
