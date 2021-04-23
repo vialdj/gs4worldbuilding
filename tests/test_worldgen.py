@@ -134,7 +134,7 @@ def test_get_atmosphere_is_valid(large_greenhouse):
     assert ((large_greenhouse.hydrosphere < .1 and
              large_greenhouse.atmosphere.composition == ['CO2']) or
             (large_greenhouse.hydrosphere >= .1 and
-             large_greenhouseatmosphere.composition == ['N2', 'H2O', 'O2']))
+             large_greenhouse.atmosphere.composition == ['N2', 'H2O', 'O2']))
     assert large_greenhouse.atmosphere.toxicity == World.Toxicity.LETHAL
     assert large_greenhouse.atmosphere.suffocating is True
     assert large_greenhouse.atmosphere.corrosive is True
