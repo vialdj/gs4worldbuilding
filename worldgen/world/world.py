@@ -66,6 +66,7 @@ class World(object):
         suffocating: bool = False
         corrosive: bool = False
         toxicity: Enum = None
+        marginal: list = None
 
     def __set_ranged_property(self, prop, value):
         """centralised setter for ranged value properties"""

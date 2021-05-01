@@ -17,6 +17,12 @@ class StandardGarden(World):
         # roll of 1d+4 divided by 10
         return random.uniform(.5, 1)
 
+    @classmethod
+    def random_atm_seed(cls):
+        """sum of a 3d roll"""
+        return truncnorm((3 - 10.5) / 2.958040, (18 - 10.5) / 2.958040,
+                         loc=10.5, scale=2.958040).rvs()
+
     @property
     def absorption(self):
         # match hydrosphere to Temperature Factors Table
