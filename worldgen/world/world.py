@@ -59,6 +59,20 @@ class World(object):
         SMALL_IRON_CORE = (.6, 1)
         LARGE_IRON_CORE = (.8, 1.2)
 
+    class Ressource(int, Enum):
+        """class Ressource Enum from Ressource Value Table"""
+        WORTHLESS = -5
+        VERY_SCANT = -4
+        SCANT = -3
+        VERY_POOR = -2
+        POOR = -1
+        AVERAGE = 0
+        ABUNDANT = 1
+        VERY_ABUNDANT = 2
+        RICH = 3
+        VERY_RICH = 4
+        MOTHERLODE = 5
+
     @dataclass
     class Atmosphere:
         """ atmosphere composition dataclass """
@@ -66,7 +80,6 @@ class World(object):
         suffocating: bool = False
         corrosive: bool = False
         toxicity: Enum = None
-        marginal: list = None
 
     def __set_ranged_property(self, prop, value):
         """centralised setter for ranged value properties"""
