@@ -94,6 +94,16 @@ class World(object):
                              .format(prop, rng))
         setattr(self, '_{}'.format(prop), value)
 
+    def random_ressource(self):
+        """sum of a 3d roll times over Ressource Value Table"""
+        ressource_distribution = {self.Ressource.VERY_POOR: 0.01852,
+                                  self.Ressource.POOR: 0.14352,
+                                  self.Ressource.AVERAGE: 0.67592,
+                                  self.Ressource.ABUNDANT: 0.14352,
+                                  self.Ressource.VERY_ABUNDANT: 0.01852}
+        return np.random.choice(list(ressource_distribution.keys()),
+                                p=list(ressource_distribution.values()))
+
     def random_temperature(self):
         """sum of a 3d-3 roll times step value add minimum"""
         tmin = self.temperature_range.min
@@ -165,6 +175,23 @@ class World(object):
     @volatile_mass.setter
     def volatile_mass(self, value):
         self.__set_ranged_property('volatile_mass', value)
+
+    @property
+    def ressource(self):
+        """resource value on Resource Value Table"""
+        return self._ressource
+
+    @ressource.setter
+    def ressource(self, value):
+        if value not in self.Ressource._value2member_map_:
+            raise ValueError('{} value must be {}'.format('ressource', self.Ressource))
+        if value not in [self.Ressource.VERY_POOR,
+                         self.Ressource.POOR,
+                         self.Ressource.AVERAGE,
+                         self.Ressource.ABUNDANT,
+                         self.Ressource.VERY_ABUNDANT]:
+            raise ValueError('{} value must be in range {}'.format(prop, self.Ressource.VERY_POOR, self.Ressource.VERY_ABUNDANT))
+        self._ressource = value
 
     @property
     def temperature(self):
@@ -264,14 +291,20 @@ class World(object):
 
     def randomize(self):
         """randomizes applicable properties values with precedence constraints"""
-        props = list(filter(lambda x: hasattr(self, 'random_{}'.format(x)),
-                            ['hydrosphere', 'volatile_mass', 'temperature',
-                             'density', 'diameter']))
-        for prop in props:
+        # ranged properties
+        rng_props = list(filter(lambda x: hasattr(self, 'random_{}'.format(x)),
+                                ['hydrosphere', 'volatile_mass', 'temperature',
+                                'density', 'diameter']))
+        props = ['ressource']
+        for prop in rng_props:
             f = getattr(type(self), 'random_{}'.format(prop))
             if getattr(self, '{}_range'.format(prop)):
                 val = f() if ismethod(f) else f(self)
                 setattr(self, prop, val)
+        for prop in props:
+            f = getattr(type(self), 'random_{}'.format(prop))
+            val = f() if ismethod(f) else f(self)
+            setattr(self, prop, val)
 
     def __init__(self):
         self.randomize()
