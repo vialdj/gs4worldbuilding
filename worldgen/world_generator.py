@@ -1,3 +1,5 @@
+import random
+
 import numpy as np
 
 from worldgen.world import (TinySulfur, TinyIce, TinyRock, SmallHadean,
@@ -33,8 +35,8 @@ class WorldGenerator():
                                     LargeOcean: 0.00938964,
                                     AsteroidBelt: 0.16274024}
 
-        world_type = np.random.choice(list(world_types_distribution.keys()),
-                                      p=list(world_types_distribution.values()))
+        world_type = random.choices(list(world_types_distribution.keys()),
+                                    weights=list(world_types_distribution.values()))[0]
         self.world = world_type()
 
     def __str__(self):

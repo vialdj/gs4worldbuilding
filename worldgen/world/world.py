@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+import random
+
 from enum import Enum
 from collections import namedtuple
 from math import sqrt, floor
@@ -94,15 +96,13 @@ class World(object):
                              .format(prop, rng))
         setattr(self, '_{}'.format(prop), value)
 
-    def random_ressource(self):
-        """sum of a 3d roll times over Ressource Value Table"""
-        ressource_distribution = {self.Ressource.VERY_POOR: 0.01852,
-                                  self.Ressource.POOR: 0.14352,
-                                  self.Ressource.AVERAGE: 0.67592,
-                                  self.Ressource.ABUNDANT: 0.14352,
-                                  self.Ressource.VERY_ABUNDANT: 0.01852}
-        return np.random.choice(list(ressource_distribution.keys()),
-                                p=list(ressource_distribution.values()))
+    @classmethod
+    def random_ressource(cls):
+        """sum of a 3d roll times over default worlds Ressource Value Table"""
+        ressource_distribution = [0, 0, 0, .01852, .14352, .67592,
+                                  .14352, .01852, 0, 0, 0]
+        return random.choices(list(cls.Ressource),
+                              weights=ressource_distribution, k=1)[0]
 
     def random_temperature(self):
         """sum of a 3d-3 roll times step value add minimum"""
@@ -181,17 +181,14 @@ class World(object):
         """resource value on Resource Value Table"""
         return self._ressource
 
+    @property
+    def ressource_range(self):
+        """ressource range class variable"""
+        return type(self)._ressource_range if hasattr(type(self), '_ressource_range') else self.Range(self.Ressource.VERY_POOR, self.Ressource.VERY_ABUNDANT)
+
     @ressource.setter
     def ressource(self, value):
-        if value not in self.Ressource._value2member_map_:
-            raise ValueError('{} value must be {}'.format('ressource', self.Ressource))
-        if value not in [self.Ressource.VERY_POOR,
-                         self.Ressource.POOR,
-                         self.Ressource.AVERAGE,
-                         self.Ressource.ABUNDANT,
-                         self.Ressource.VERY_ABUNDANT]:
-            raise ValueError('{} value must be in range {}'.format(prop, self.Ressource.VERY_POOR, self.Ressource.VERY_ABUNDANT))
-        self._ressource = value
+        self.__set_ranged_property('ressource', value)
 
     @property
     def temperature(self):
@@ -214,7 +211,7 @@ class World(object):
 
     @property
     def density_range(self):
-        """computed value range for density"""
+        """value range for density"""
         return type(self)._core.value if hasattr(type(self), '_core') else None
 
     @density.setter
@@ -293,18 +290,17 @@ class World(object):
         """randomizes applicable properties values with precedence constraints"""
         # ranged properties
         rng_props = list(filter(lambda x: hasattr(self, 'random_{}'.format(x)),
-                                ['hydrosphere', 'volatile_mass', 'temperature',
-                                'density', 'diameter']))
-        props = ['ressource']
+                                ['ressource', 'hydrosphere', 'volatile_mass',
+                                 'temperature', 'density', 'diameter']))
         for prop in rng_props:
             f = getattr(type(self), 'random_{}'.format(prop))
             if getattr(self, '{}_range'.format(prop)):
                 val = f() if ismethod(f) else f(self)
                 setattr(self, prop, val)
-        for prop in props:
+        """for prop in props:
             f = getattr(type(self), 'random_{}'.format(prop))
             val = f() if ismethod(f) else f(self)
-            setattr(self, prop, val)
+            setattr(self, prop, val)"""
 
     def __init__(self):
         self.randomize()
