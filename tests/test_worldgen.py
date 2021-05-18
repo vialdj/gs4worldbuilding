@@ -238,14 +238,14 @@ def test_get_climate_is_valid(asteroid_belt):
 
 
 def test_get_pressure_category_is_None(asteroid_belt):
-    assert asteroid_belt.pressure_category is None
+    assert asteroid_belt.atmosphere.pressure_category is None
 
 
 def test_get_pressure_category_is_valid(large_ammonia):
-    lower = large_ammonia.pressure_category.value
+    lower = large_ammonia.atmosphere.pressure_category.value
     upper = np.inf
     for item in World.Pressure:
         if item.value > lower:
             upper = item.value
-    assert (large_ammonia.pressure >= lower and
-            large_ammonia.pressure <= upper)
+    assert (large_ammonia.atmosphere.pressure >= lower and
+            large_ammonia.atmosphere.pressure <= upper)

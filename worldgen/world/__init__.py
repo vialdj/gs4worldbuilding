@@ -1,3 +1,4 @@
+from .atmosphere import Atmosphere
 from .world import World
 from .asteroid_belt import AsteroidBelt
 from .large_garden import LargeGarden
