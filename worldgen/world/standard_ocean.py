@@ -3,6 +3,8 @@ from . import World
 
 import random
 
+from scipy.stats import truncnorm
+
 
 class StandardOcean(World):
     """the standard ocean world model"""
@@ -10,6 +12,13 @@ class StandardOcean(World):
     class StandardOceanAtmosphere(Atmosphere):
         """the standard ocean atmosphere model"""
         _composition = ['CO2', 'N2']
+        _suffocating = True
+
+        def randomize(self):
+            """sum of a 3d roll to define toxicity"""
+            if truncnorm((3 - 10.5) / 2.958040, (18 - 10.5) / 2.958040,
+                         loc=10.5, scale=2.958040).rvs() > 12:
+                self._toxicity = Atmosphere.Toxicity.MILD
 
     _temperature_range = World.Range(250, 340)
     _size = World.Size.STANDARD
@@ -23,12 +32,6 @@ class StandardOcean(World):
     def random_hydrosphere(cls):
         # roll of 1d+4 divided by 10
         return random.uniform(.5, 1)
-
-    @classmethod
-    def random_atm_seed(cls):
-        """sum of a 3d roll"""
-        return truncnorm((3 - 10.5) / 2.958040, (18 - 10.5) / 2.958040,
-                         loc=10.5, scale=2.958040).rvs()
 
     @property
     def absorption(self):

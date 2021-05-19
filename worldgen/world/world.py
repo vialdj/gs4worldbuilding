@@ -263,14 +263,12 @@ class World(object):
             if getattr(self, '{}_range'.format(prop)):
                 val = f() if ismethod(f) else f(self)
                 setattr(self, prop, val)
-        """for prop in props:
-            f = getattr(type(self), 'random_{}'.format(prop))
-            val = f() if ismethod(f) else f(self)
-            setattr(self, prop, val)"""
 
     def __init__(self):
-        self.randomize()
         self._atmosphere = self._atmosphere(self) if hasattr(type(self), '_atmosphere') else None
+        if hasattr(type(self._atmosphere), 'randomize') and callable(getattr(type(self._atmosphere), 'randomize')):
+            self._atmosphere.randomize()
+        self.randomize()
 
     def __iter__(self):
         """yield property names and values"""

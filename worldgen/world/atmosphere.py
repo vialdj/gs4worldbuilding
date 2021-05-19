@@ -31,8 +31,8 @@ class Atmosphere(object):
     @property
     def toxicity(self):
         """toxicity of the atmosphere"""
-        return (type(self)._toxicity
-                if hasattr(type(self), '_toxicity') else None)
+        return (self._toxicity
+                if hasattr(self, '_toxicity') else None)
 
     @property
     def suffocating(self):
