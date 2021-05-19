@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from . import Atmosphere
+
 import random
 
 from enum import Enum
@@ -28,22 +30,6 @@ class World(object):
         HOT = 322
         VERY_HOT = 333
         INFERNAL = 344
-
-    class Pressure(float, Enum):
-        """class Pressure Enum from Atmospheric Pressure Categories Table"""
-        TRACE = .0
-        VERY_THIN = .01
-        THIN = .51
-        STANDARD = .81
-        DENSE = 1.21
-        VERY_DENSE = 1.51
-        SUPER_DENSE = 10
-
-    class Toxicity(Enum):
-        """class Toxicity Enum from Toxicity Rules categories"""
-        MILD = 0
-        HIGH = 1
-        LETHAL = 2
 
     # value range named tuple
     Range = namedtuple('Range', ['min', 'max'])
@@ -74,14 +60,6 @@ class World(object):
         RICH = 3
         VERY_RICH = 4
         MOTHERLODE = 5
-
-    @dataclass
-    class Atmosphere:
-        """ atmosphere composition dataclass """
-        composition: list
-        suffocating: bool = False
-        corrosive: bool = False
-        toxicity: Enum = None
 
     def __set_ranged_property(self, prop, value):
         """centralised setter for ranged value properties"""
@@ -158,9 +136,9 @@ class World(object):
 
     @property
     def atmosphere(self):
-        """key properties of the atmosphere composition"""
-        return (type(self)._atmosphere
-                if hasattr(type(self), '_atmosphere') else None)
+        """key properties of the atmosphere"""
+        return (self._atmosphere
+                if hasattr(self, '_atmosphere') else None)
 
     @property
     def volatile_mass(self):
@@ -274,18 +252,6 @@ class World(object):
         return list(filter(lambda x: self.temperature >= x.value,
                            self.Climate))[-1]
 
-    @property
-    def pressure(self):
-        """atmospheric pressure in atm⊕"""
-        return self.volatile_mass * self.pressure_factor * self.gravity
-
-    @property
-    def pressure_category(self):
-        """atmospheric pressure implied by pressure match over Atmospheric Pressure Categories Table"""
-        return (list(filter(lambda x: self.pressure >= x.value,
-                            self.Pressure))[-1]
-                if not np.isnan(self.pressure) else None)
-
     def randomize(self):
         """randomizes applicable properties values with precedence constraints"""
         # ranged properties
@@ -304,6 +270,7 @@ class World(object):
 
     def __init__(self):
         self.randomize()
+        self._atmosphere = self._atmosphere(self) if hasattr(type(self), '_atmosphere') else None
 
     def __iter__(self):
         """yield property names and values"""
@@ -313,6 +280,6 @@ class World(object):
             yield prop, getattr(self, prop)
 
     def __str__(self):
-        return ('{}: {{{}}}'.format(self.__class__.__name__,
-                                    ', '.join(['{}: {!s}'.format(prop, value)
-                                              for prop, value in self])))
+        return ('{{class: {}, {}}}'.format(self.__class__.__name__,
+                                           ', '.join(['{}: {!s}'.format(prop, value)
+                                                     for prop, value in self])))

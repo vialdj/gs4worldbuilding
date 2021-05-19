@@ -1,9 +1,16 @@
+from . import Atmosphere
 from . import World
 
 import random
 
 
 class SmallIce(World):
+    """the small ice world model"""
+
+    class SmallIceAtmosphere(Atmosphere):
+        """the small ice atmosphere model"""
+        _composition = ['N2', 'CH4']
+
     _temperature_range = World.Range(80, 140)
     _size = World.Size.SMALL
     _core = World.Core.ICY_CORE
@@ -11,7 +18,7 @@ class SmallIce(World):
     _greenhouse_factor = .1
     _hydrosphere_range = World.Range(.3, .8)
     _absorption = .93
-    _atmosphere = World.Atmosphere(composition=['N2', 'CH4'])
+    _atmosphere = SmallIceAtmosphere
 
     @classmethod
     def random_hydrosphere(cls):

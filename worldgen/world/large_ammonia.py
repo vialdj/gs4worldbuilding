@@ -1,9 +1,19 @@
+from . import Atmosphere
 from . import World
 
 import numpy as np
 
 
 class LargeAmmonia(World):
+    """The large ammonia world model"""
+
+    class LargeAmmoniaAtmosphere(Atmosphere):
+        """The large ammonia atmosphere model"""
+        _composition = ['He', 'NH3', 'CH4'],
+        _toxicity = Atmosphere.Toxicity.LETHAL,
+        _suffocating = True,
+        _corrosive = True
+
     _temperature_range = World.Range(140, 215)
     _size = World.Size.LARGE
     _core = World.Core.ICY_CORE
@@ -11,9 +21,7 @@ class LargeAmmonia(World):
     _greenhouse_factor = .2
     _hydrosphere_range = World.Range(.2, 1)
     _absorption = .84
-    _atmosphere = World.Atmosphere(composition=['He', 'NH3', 'CH4'],
-                                   toxicity=World.Toxicity.LETHAL,
-                                   suffocating=True)
+    _atmosphere = LargeAmmoniaAtmosphere
 
     @classmethod
     def random_hydrosphere(cls):

@@ -29,6 +29,24 @@ class Atmosphere(object):
                 if hasattr(type(self), '_composition') else None)
 
     @property
+    def toxicity(self):
+        """toxicity of the atmosphere"""
+        return (type(self)._toxicity
+                if hasattr(type(self), '_toxicity') else None)
+
+    @property
+    def suffocating(self):
+        """is the atmosphere suffocating"""
+        return (type(self)._suffocating
+                if hasattr(type(self), '_suffocating') else False)
+    
+    @property
+    def corrosive(self):
+        """is the atmosphere corrosive"""
+        return (type(self)._corrosive
+                if hasattr(type(self), '_corrosive') else False)
+
+    @property
     def pressure(self):
         """atmospheric pressure in atm⊕"""
         return (self._world.volatile_mass * self._world.pressure_factor

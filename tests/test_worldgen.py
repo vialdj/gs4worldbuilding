@@ -2,9 +2,9 @@ import pytest
 import numpy as np
 
 from .context import worldgen
-from worldgen.world import (World, LargeAmmonia, LargeGarden, LargeGreenhouse,
-                            AsteroidBelt, LargeIce, LargeOcean,
-                            StandardGreenhouse, StandardAmmonia)
+from worldgen.world import (Atmosphere, World, LargeAmmonia, LargeGarden,
+                            LargeGreenhouse, AsteroidBelt, LargeIce,
+                            LargeOcean, StandardGreenhouse, StandardAmmonia)
 
 
 @pytest.fixture
@@ -164,7 +164,7 @@ def test_get_atmosphere_is_valid(standard_greenhouse):
 
 def test_get_atmosphere_is_valid(standard_ammonia):
     assert standard_ammonia.atmosphere.composition == ['N2', 'NH3', 'CH4']
-    assert standard_ammonia.atmosphere.toxicity == World.Toxicity.LETHAL
+    assert standard_ammonia.atmosphere.toxicity == Atmosphere.Toxicity.LETHAL
     assert standard_ammonia.atmosphere.suffocating is True
     assert standard_ammonia.atmosphere.corrosive is True
 
@@ -213,8 +213,8 @@ def test_get_mass_is_nan(asteroid_belt):
     assert np.isnan(asteroid_belt.mass)
 
 
-def test_get_pressure_is_nan(asteroid_belt):
-    assert np.isnan(asteroid_belt.pressure)
+def test_get_atmosphere_is_None(asteroid_belt):
+    assert asteroid_belt.atmosphere is None
 
 
 def test_get_temperature_is_valid(asteroid_belt):
@@ -236,15 +236,10 @@ def test_get_climate_is_valid(asteroid_belt):
     assert (asteroid_belt.temperature >= lower and
             asteroid_belt.temperature <= upper)
 
-
-def test_get_pressure_category_is_None(asteroid_belt):
-    assert asteroid_belt.atmosphere.pressure_category is None
-
-
 def test_get_pressure_category_is_valid(large_ammonia):
     lower = large_ammonia.atmosphere.pressure_category.value
     upper = np.inf
-    for item in World.Pressure:
+    for item in Atmosphere.Pressure:
         if item.value > lower:
             upper = item.value
     assert (large_ammonia.atmosphere.pressure >= lower and

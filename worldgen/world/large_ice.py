@@ -1,9 +1,18 @@
+from . import Atmosphere
 from . import World
 
 import numpy as np
 
 
 class LargeIce(World):
+    """the large ice world model"""
+
+    class LargeIceAtmosphere(Atmosphere):
+        """the large ice atmosphere model"""
+        _composition = ['He', 'N2']
+        _toxicity = Atmosphere.Toxicity.LETHAL
+        _suffocating = True
+
     _temperature_range = World.Range(80, 230)
     _size = World.Size.LARGE
     _core = World.Core.LARGE_IRON_CORE
@@ -11,9 +20,7 @@ class LargeIce(World):
     _greenhouse_factor = .2
     _hydrosphere_range = World.Range(0, .2)
     _absorption = .86
-    _atmosphere = World.Atmosphere(composition=['He', 'N2'],
-                                   toxicity=World.Toxicity.HIGH,
-                                   suffocating=True)
+    _atmosphere = LargeIceAtmosphere
 
     @classmethod
     def random_hydrosphere(cls):

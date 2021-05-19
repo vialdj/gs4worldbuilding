@@ -1,18 +1,25 @@
+from . import Atmosphere
 from . import World
 
 import random
 
 
 class LargeOcean(World):
+    """the large ocean world model"""
+
+    class LargeOceanAtmosphere(Atmosphere):
+        """the large ocean atmosphere model"""
+        _composition = ['He', 'N2']
+        _toxicity = Atmosphere.Toxicity.HIGH
+        _suffocating = True
+
     _temperature_range = World.Range(250, 340)
     _size = World.Size.LARGE
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 5
     _greenhouse_factor = .16
     _hydrosphere_range = World.Range(.7, 1)
-    _atmosphere = World.Atmosphere(composition=['He', 'N2'],
-                                   toxicity=World.Toxicity.HIGH,
-                                   suffocating=True)
+    _atmosphere = LargeOceanAtmosphere
 
     @classmethod
     def random_hydrosphere(cls):

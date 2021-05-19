@@ -1,17 +1,23 @@
+from . import Atmosphere
 from . import World
 
 import random
 
 
 class LargeGarden(World):
+    """The large garden world model"""
+
+    class LargeGardenAtmosphere(Atmosphere):
+        """The large garden atmosphere model"""
+        _composition = ['N2', 'O2', 'He', 'Ne', 'Ar', 'Kr', 'Xe']
+
     _temperature_range = World.Range(250, 340)
     _size = World.Size.LARGE
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 5
     _greenhouse_factor = .16
     _hydrosphere_range = World.Range(.7, 1)
-    _atmosphere = World.Atmosphere(composition=['N2', 'O2', 'He', 'Ne', 'Ar',
-                                                'Kr', 'Xe'])
+    _atmosphere = LargeGardenAtmosphere
 
     @classmethod
     def random_hydrosphere(cls):

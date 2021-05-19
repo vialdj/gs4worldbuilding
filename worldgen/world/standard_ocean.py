@@ -1,16 +1,23 @@
+from . import Atmosphere
 from . import World
 
 import random
 
 
 class StandardOcean(World):
+    """the standard ocean world model"""
+
+    class StandardOceanAtmosphere(Atmosphere):
+        """the standard ocean atmosphere model"""
+        _composition = ['CO2', 'N2']
+
     _temperature_range = World.Range(250, 340)
     _size = World.Size.STANDARD
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 1
     _greenhouse_factor = .16
     _hydrosphere_range = World.Range(.5, 1)
-    _atmosphere = World.Atmosphere(composition=['CO2', 'N2'])
+    _atmosphere = StandardOceanAtmosphere
 
     @classmethod
     def random_hydrosphere(cls):

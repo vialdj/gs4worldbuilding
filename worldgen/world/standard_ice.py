@@ -1,9 +1,16 @@
+from . import Atmosphere
 from . import World
 
 import numpy as np
 
 
 class StandardIce(World):
+    """the standard ice world model"""
+
+    class StandardIceAtmosphere(Atmosphere):
+        """the standard ice atmosphere model"""
+        _composition = ['CO2', 'N2']
+
     _temperature_range = World.Range(80, 230)
     _size = World.Size.STANDARD
     _core = World.Core.LARGE_IRON_CORE
@@ -11,7 +18,7 @@ class StandardIce(World):
     _greenhouse_factor = .2
     _hydrosphere_range = World.Range(0, .2)
     _absorption = .86
-    _atmosphere = World.Atmosphere(composition=['CO2', 'N2'])
+    _atmosphere = StandardIceAtmosphere
 
     @classmethod
     def random_hydrosphere(cls):
