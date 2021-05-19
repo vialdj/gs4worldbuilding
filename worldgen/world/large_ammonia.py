@@ -9,9 +9,9 @@ class LargeAmmonia(World):
 
     class LargeAmmoniaAtmosphere(Atmosphere):
         """The large ammonia atmosphere model"""
-        _composition = ['He', 'NH3', 'CH4'],
-        _toxicity = Atmosphere.Toxicity.LETHAL,
-        _suffocating = True,
+        _composition = ['He', 'NH3', 'CH4']
+        _toxicity = Atmosphere.Toxicity.LETHAL
+        _suffocating = True
         _corrosive = True
 
     _temperature_range = World.Range(140, 215)

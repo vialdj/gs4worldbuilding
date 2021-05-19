@@ -9,13 +9,14 @@ class StandardGreenhouse(World):
 
     class StandardGreenhouseAtmosphere(Atmosphere):
         """the standard greenhouse atmosphere model"""
-        _toxicity = Atmosphere.Toxicity.LETHAL,
+        _toxicity = Atmosphere.Toxicity.LETHAL
         _suffocating = True
         _corrosive = True
 
         @property
         def composition(self):
-            ['CO2'] if self._world.hydrosphere < .1 else ['N2', 'H2O', 'O2']
+            return ['CO2'] if self._world.hydrosphere < .1 else ['N2', 'H2O',
+                                                                 'O2']
 
     _temperature_range = World.Range(500, 950)
     _size = World.Size.STANDARD
