@@ -3,8 +3,56 @@ from enum import Enum
 import numpy as np
 
 
+# marginal atmpsheres decorators
+def chlorine_or_fluorine(cls):
+    cls._marginal = 'chlorine_or_fluorine'
+
+
+def high_carbon_dioxide(cls):
+    pass
+
+
+def high_oxygen(cls):
+    pass
+
+
+def inert_gases(cls):
+    pass
+
+
+def low_oxygen(cls):
+    pass
+
+
+def nitrogen_compounds(cls):
+    pass
+
+
+def sulfur_compounds(cls):
+    pass
+
+
+def organic_toxins(cls):
+    pass
+
+
+def pollutants(cls):
+    pass
+
+
 class Atmosphere(object):
     """the Atmosphere Model"""
+
+    marginal_distribution = {chlorine_or_fluorine: 0.01852,
+                             high_carbon_dioxide: 0.07408,
+                             high_oxygen: 0.06944,
+                             inert_gases: 0.21296,
+                             low_oxygen: 0.25,
+                             nitrogen_compounds: 0.21296,
+                             sulfur_compounds: 0.06944,
+                             organic_toxins: 0.07408,
+                             pollutants: 0.01852
+                            }
 
     class Pressure(float, Enum):
         """class Pressure Enum from Atmospheric Pressure Categories Table"""
@@ -29,6 +77,12 @@ class Atmosphere(object):
                 if hasattr(type(self), '_composition') else None)
 
     @property
+    def marginal(self):
+        """the marginal modifier"""
+        return (type(self)._marginal
+                if hasattr(type(self), '_marginal') else None)
+
+    @property
     def toxicity(self):
         """toxicity of the atmosphere"""
         return (self._toxicity
@@ -39,7 +93,7 @@ class Atmosphere(object):
         """is the atmosphere suffocating"""
         return (type(self)._suffocating
                 if hasattr(type(self), '_suffocating') else False)
-    
+
     @property
     def corrosive(self):
         """is the atmosphere corrosive"""
