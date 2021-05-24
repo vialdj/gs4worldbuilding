@@ -3,7 +3,7 @@ from enum import Enum
 import numpy as np
 
 
-# marginal atmpsheres decorators
+# marginal atmopsheres decorators
 def chlorine_or_fluorine(cls):
     cls._marginal = 'chlorine_or_fluorine'
 
