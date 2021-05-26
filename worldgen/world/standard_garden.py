@@ -1,5 +1,6 @@
 from . import Atmosphere
 from . import World
+from . import chlorine_or_fluorine
 
 import random
 
@@ -10,6 +11,9 @@ class StandardGarden(World):
     class StandardGardenAtmosphere(Atmosphere):
         """the standard garden atmosphere model"""
         _composition = ['N2', 'O2']
+
+        """def randomize(self):
+            self = marginal_atmosphere(self)"""
 
     _temperature_range = World.Range(250, 340)
     _size = World.Size.STANDARD
