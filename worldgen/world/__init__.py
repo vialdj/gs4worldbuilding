@@ -1,3 +1,4 @@
+from .utils import Range
 from .atmosphere import Atmosphere
 from .world import World
 from .asteroid_belt import AsteroidBelt

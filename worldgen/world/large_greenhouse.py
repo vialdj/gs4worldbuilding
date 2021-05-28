@@ -1,3 +1,4 @@
+from . import Range
 from . import Atmosphere
 from . import World
 
@@ -17,12 +18,12 @@ class LargeGreenhouse(World):
             return ['CO2'] if self._world.hydrosphere < .1 else ['N2', 'H2O'
                                                                  'O2']
 
-    _temperature_range = World.Range(500, 950)
+    _temperature_range = Range(500, 950)
     _size = World.Size.LARGE
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 500
     _greenhouse_factor = 2.0
-    _hydrosphere_range = World.Range(0, .5)
+    _hydrosphere_range = Range(0, .5)
     _absorption = .77
     _atmosphere = LargeGreenhouseAtmosphere
 

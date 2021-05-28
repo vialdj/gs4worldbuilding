@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
 
+from . import Range
 from . import Atmosphere
 
 import random
 
 from enum import Enum
-from collections import namedtuple
 from math import sqrt, floor
 from inspect import ismethod
 from dataclasses import dataclass
 
 from scipy.stats import truncnorm
 import numpy as np
-
 
 class World(object):
     """the World Model"""
@@ -30,9 +29,6 @@ class World(object):
         HOT = 322
         VERY_HOT = 333
         INFERNAL = 344
-
-    # value range named tuple
-    Range = namedtuple('Range', ['min', 'max'])
 
     class Size(Range, Enum):
         """class Size Enum from Size Constraints Table"""
@@ -148,7 +144,7 @@ class World(object):
     @property
     def volatile_mass_range(self):
         """computed value range for volatile mass"""
-        return self.Range(.3, 1.8) if self.atmosphere else None
+        return Range(.3, 1.8) if self.atmosphere else None
 
     @volatile_mass.setter
     def volatile_mass(self, value):
@@ -162,7 +158,7 @@ class World(object):
     @property
     def ressource_range(self):
         """ressource range class variable"""
-        return type(self)._ressource_range if hasattr(type(self), '_ressource_range') else self.Range(self.Ressource.VERY_POOR, self.Ressource.VERY_ABUNDANT)
+        return type(self)._ressource_range if hasattr(type(self), '_ressource_range') else Range(self.Ressource.VERY_POOR, self.Ressource.VERY_ABUNDANT)
 
     @ressource.setter
     def ressource(self, value):
@@ -219,8 +215,8 @@ class World(object):
     @property
     def diameter_range(self):
         """computed value range for diameter"""
-        return (self.Range(sqrt(self.blackbody_temperature / self.density) * self.size.min,
-                           sqrt(self.blackbody_temperature / self.density) * self.size.max)
+        return (Range(sqrt(self.blackbody_temperature / self.density) * self.size.min,
+                      sqrt(self.blackbody_temperature / self.density) * self.size.max)
                 if self.density and self.size else None)
 
     @diameter.setter

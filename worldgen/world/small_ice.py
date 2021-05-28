@@ -1,3 +1,4 @@
+from . import Range
 from . import Atmosphere
 from . import World
 
@@ -22,12 +23,12 @@ class SmallIce(World):
             else:
                 self._toxicity = Atmosphere.Toxicity.HIGH
 
-    _temperature_range = World.Range(80, 140)
+    _temperature_range = Range(80, 140)
     _size = World.Size.SMALL
     _core = World.Core.ICY_CORE
     _pressure_factor = 10
     _greenhouse_factor = .1
-    _hydrosphere_range = World.Range(.3, .8)
+    _hydrosphere_range = Range(.3, .8)
     _absorption = .93
     _atmosphere = SmallIceAtmosphere
 

@@ -1,3 +1,4 @@
+from . import Range
 from . import Atmosphere
 
 
@@ -12,15 +13,18 @@ class MarginalAtmosphere(Atmosphere):
 
 
 class ChlorineOrFluorine(MarginalAtmosphere):
-    _toxicity = Atmosphere.Toxicity.HIGH
+    _toxicity = Range(Atmosphere.Toxicity.HIGH, Atmosphere.Toxicity.LETHAL)
+    _corrosive = Range(False, True)
     _marginal = "ChlorineOrFluorine"
 
 
 class HighCarbonDioxide(MarginalAtmosphere):
+    _toxicity = Range(None, Atmosphere.Toxicity.MILD)
     _marginal = "HighCarbonDioxide"
 
 
 class HighOxygen(MarginalAtmosphere):
+    _toxicity = Range(None, Atmosphere.Toxicity.MILD)
     _marginal = "HighOxygen"
 
 
@@ -33,17 +37,17 @@ class LowOxygen(MarginalAtmosphere):
 
 
 class NitrogenCompounds(MarginalAtmosphere):
-    _toxicity = Atmosphere.Toxicity.MILD
+    _toxicity = Range(Atmosphere.Toxicity.MILD, Atmosphere.Toxicity.HIGH)
     _marginal = "NitrogenCompounds"
 
 
 class SulfurCompounds(MarginalAtmosphere):
-    _toxicity = Atmosphere.Toxicity.MILD
+    _toxicity = Range(Atmosphere.Toxicity.MILD, Atmosphere.Toxicity.HIGH)
     _marginal = "SulfurCompounds"
 
 
 class OrganicToxins(MarginalAtmosphere):
-    _toxicity = Atmosphere.Toxicity.MILD
+    _toxicity = Range(Atmosphere.Toxicity.MILD, Atmosphere.Toxicity.LETHAL)
     _marginal = "OrganicToxins"
 
 

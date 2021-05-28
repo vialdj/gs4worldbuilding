@@ -1,3 +1,4 @@
+from . import Range
 from . import Atmosphere
 from . import World
 
@@ -20,12 +21,12 @@ class StandardOcean(World):
                          loc=10.5, scale=2.958040).rvs() > 12:
                 self._toxicity = Atmosphere.Toxicity.MILD
 
-    _temperature_range = World.Range(250, 340)
+    _temperature_range = Range(250, 340)
     _size = World.Size.STANDARD
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 1
     _greenhouse_factor = .16
-    _hydrosphere_range = World.Range(.5, 1)
+    _hydrosphere_range = Range(.5, 1)
     _atmosphere = StandardOceanAtmosphere
 
     @classmethod

@@ -1,13 +1,14 @@
+from . import Range
 from . import World
 
 import random
 
 
 class AsteroidBelt(World):
-    _temperature_range = World.Range(140, 500)
+    _temperature_range = Range(140, 500)
     _absorption = .97
-    _ressource_range = World.Range(World.Ressource.WORTHLESS,
-                                   World.Ressource.MOTHERLODE)
+    _ressource_range = Range(World.Ressource.WORTHLESS,
+                             World.Ressource.MOTHERLODE)
 
     @classmethod
     def random_ressource(cls):
