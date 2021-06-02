@@ -1,4 +1,4 @@
-from . import Range
+from .utils import Range
 from . import Atmosphere
 from . import World
 

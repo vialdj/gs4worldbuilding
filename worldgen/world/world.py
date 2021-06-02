@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from . import Range
+from .utils import Range
 from . import Atmosphere
 
 import random
@@ -12,6 +12,7 @@ from dataclasses import dataclass
 
 from scipy.stats import truncnorm
 import numpy as np
+
 
 class World(object):
     """the World Model"""

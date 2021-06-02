@@ -1,7 +1,8 @@
-from . import Range
+from .utils import Range
 from . import Atmosphere
 from . import World
 
+from scipy.stats import truncnorm
 import random
 
 
@@ -12,8 +13,11 @@ class StandardGarden(World):
         """the standard garden atmosphere model"""
         _composition = ['N2', 'O2']
 
-        """def randomize(self):
-            self = marginal_atmosphere(self)"""
+        def randomize(self):
+            """sum of a 3d roll to apply marginal modifier"""
+            if truncnorm((3 - 10.5) / 2.958040, (18 - 10.5) / 2.958040,
+                         loc=10.5, scale=2.958040).rvs() > 11:
+                self._marginal = "TODO"
 
     _temperature_range = Range(250, 340)
     _size = World.Size.STANDARD

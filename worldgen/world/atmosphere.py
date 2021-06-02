@@ -1,3 +1,4 @@
+from .utils import Range
 from enum import Enum
 
 import numpy as np
@@ -60,6 +61,11 @@ class Atmosphere(object):
                             self.Pressure))[-1]
                 if not np.isnan(self.pressure) else None)
 
+    @property
+    def marginal(self):
+        """the marginal modifiers"""
+        return (self._marginal if hasattr(self, '_marginal') else None)
+
     def __init__(self, world):
         self._world = world
 
@@ -74,3 +80,70 @@ class Atmosphere(object):
         return ('{{class: {}, {}}}'.format(self.__class__.__name__,
                                            ', '.join(['{}: {!s}'.format(prop, value)
                                                      for prop, value in self])))
+
+
+class MarginalAtmosphere(Atmosphere):
+    def __init__(self, atmosphere):
+        self = atmosphere
+
+
+class ChlorineOrFluorine(MarginalAtmosphere):
+    _toxicity = Range(Atmosphere.Toxicity.HIGH, Atmosphere.Toxicity.LETHAL)
+    _corrosive = Range(False, True)
+
+
+class HighCarbonDioxide(MarginalAtmosphere):
+    _toxicity = Range(None, Atmosphere.Toxicity.MILD)
+    _pressure_category = Atmosphere.Pressure.VERY_DENSE
+
+
+class HighOxygen(MarginalAtmosphere):
+    _toxicity = Range(None, Atmosphere.Toxicity.MILD)
+
+    @property
+    def pressure_category(self):
+        idx = list(Atmosphere.Pressure).index(super().pressure_category())
+        idx = min(idx + 1, len(Atmosphere.Pressure) - 1)
+        return list(Atmosphere.Pressure)[idx]
+
+
+class InertGases(MarginalAtmosphere):
+    pass
+
+
+class LowOxygen(MarginalAtmosphere):
+
+    @property
+    def pressure_category(self):
+        idx = list(Atmosphere.Pressure).index(super().pressure_category())
+        pressure_id = max(idx - 1, 0)
+        return list(Atmosphere.Pressure)[idx]
+
+
+class NitrogenCompounds(MarginalAtmosphere):
+    _toxicity = Range(Atmosphere.Toxicity.MILD, Atmosphere.Toxicity.HIGH)
+
+
+class SulfurCompounds(MarginalAtmosphere):
+    _toxicity = Range(Atmosphere.Toxicity.MILD, Atmosphere.Toxicity.HIGH)
+
+
+class OrganicToxins(MarginalAtmosphere):
+    _toxicity = Range(Atmosphere.Toxicity.MILD, Atmosphere.Toxicity.LETHAL)
+
+
+class Pollutants(MarginalAtmosphere):
+    _toxicity = Atmosphere.Toxicity.MILD
+
+
+marginal_distribution = {
+    ChlorineOrFluorine: 0.01852,
+    HighCarbonDioxide: 0.07408,
+    HighOxygen: 0.06944,
+    InertGases: 0.21296,
+    LowOxygen: 0.25,
+    NitrogenCompounds: 0.21296,
+    SulfurCompounds: 0.06944,
+    OrganicToxins: 0.07408,
+    Pollutants: 0.01852
+}
