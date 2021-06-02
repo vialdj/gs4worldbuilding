@@ -2,6 +2,8 @@ from .utils import Range
 from enum import Enum
 
 import numpy as np
+import random
+import copy
 
 
 class Atmosphere(object):
@@ -61,11 +63,6 @@ class Atmosphere(object):
                             self.Pressure))[-1]
                 if not np.isnan(self.pressure) else None)
 
-    @property
-    def marginal(self):
-        """the marginal modifiers"""
-        return (self._marginal if hasattr(self, '_marginal') else None)
-
     def __init__(self, world):
         self._world = world
 
@@ -82,68 +79,133 @@ class Atmosphere(object):
                                                      for prop, value in self])))
 
 
-class MarginalAtmosphere(Atmosphere):
-    def __init__(self, atmosphere):
-        self = atmosphere
+def chlorine_or_fluorine(atmosphere):
+
+    class ChlorineOrFluorine(atmosphere):
+        _toxicity = Range(Atmosphere.Toxicity.HIGH, Atmosphere.Toxicity.LETHAL)
+        _corrosive = Range(False, True)
+
+        def __init__(self, atmosphere):
+            self = copy.deepcopy(atmosphere)
+
+    return ChlorineOrFluorine
 
 
-class ChlorineOrFluorine(MarginalAtmosphere):
-    _toxicity = Range(Atmosphere.Toxicity.HIGH, Atmosphere.Toxicity.LETHAL)
-    _corrosive = Range(False, True)
+def high_carbon_dioxide(atmosphere):
+
+    class HighCarbonDioxide(atmosphere):
+        _toxicity = Range(None, Atmosphere.Toxicity.MILD)
+        _pressure_category = Atmosphere.Pressure.VERY_DENSE
+
+        def __init__(self, atmosphere):
+            self = copy.deepcopy(atmosphere)
+
+    return HighCarbonDioxide
 
 
-class HighCarbonDioxide(MarginalAtmosphere):
-    _toxicity = Range(None, Atmosphere.Toxicity.MILD)
-    _pressure_category = Atmosphere.Pressure.VERY_DENSE
+def high_oxygen(atmosphere):
+
+    class HighOxygen(atmosphere):
+
+        @property
+        def pressure_category(self):
+            idx = list(Atmosphere.Pressure).index(super().pressure_category)
+            idx = min(idx + 1, len(Atmosphere.Pressure) - 1)
+            return list(Atmosphere.Pressure)[idx]
+
+        def __init__(self, world):
+            super(HighOxygen, self).__init__(world)
+
+    return HighOxygen
 
 
-class HighOxygen(MarginalAtmosphere):
-    _toxicity = Range(None, Atmosphere.Toxicity.MILD)
+def inert_gases(atmosphere):
 
-    @property
-    def pressure_category(self):
-        idx = list(Atmosphere.Pressure).index(super().pressure_category())
-        idx = min(idx + 1, len(Atmosphere.Pressure) - 1)
-        return list(Atmosphere.Pressure)[idx]
+    class InertGases(atmosphere):
 
+        def __init__(self, atmosphere):
+            self = copy.deepcopy(atmosphere)
 
-class InertGases(MarginalAtmosphere):
-    pass
+    return InertGases
 
 
-class LowOxygen(MarginalAtmosphere):
+def low_oxygen(atmosphere):
 
-    @property
-    def pressure_category(self):
-        idx = list(Atmosphere.Pressure).index(super().pressure_category())
-        pressure_id = max(idx - 1, 0)
-        return list(Atmosphere.Pressure)[idx]
+    class LowOxygen(atmosphere):
 
+        @property
+        def pressure_category(self):
+            idx = list(Atmosphere.Pressure).index(super().pressure_category)
+            pressure_id = max(idx - 1, 0)
+            return list(Atmosphere.Pressure)[idx]
 
-class NitrogenCompounds(MarginalAtmosphere):
-    _toxicity = Range(Atmosphere.Toxicity.MILD, Atmosphere.Toxicity.HIGH)
+        def __init__(self, atmosphere):
+            self = copy.deepcopy(atmosphere)
 
-
-class SulfurCompounds(MarginalAtmosphere):
-    _toxicity = Range(Atmosphere.Toxicity.MILD, Atmosphere.Toxicity.HIGH)
-
-
-class OrganicToxins(MarginalAtmosphere):
-    _toxicity = Range(Atmosphere.Toxicity.MILD, Atmosphere.Toxicity.LETHAL)
+    return LowOxygen
 
 
-class Pollutants(MarginalAtmosphere):
-    _toxicity = Atmosphere.Toxicity.MILD
+def nitrogen_compounds(atmosphere):
+
+    class NitrogenCompounds(atmosphere):
+        _toxicity = Range(Atmosphere.Toxicity.MILD, Atmosphere.Toxicity.HIGH)
+
+        def __init__(self, atmosphere):
+            self = copy.deepcopy(atmosphere)
+
+    return NitrogenCompounds
 
 
-marginal_distribution = {
-    ChlorineOrFluorine: 0.01852,
-    HighCarbonDioxide: 0.07408,
-    HighOxygen: 0.06944,
-    InertGases: 0.21296,
-    LowOxygen: 0.25,
-    NitrogenCompounds: 0.21296,
-    SulfurCompounds: 0.06944,
-    OrganicToxins: 0.07408,
-    Pollutants: 0.01852
-}
+def sulfur_compounds(atmosphere):
+
+    class SulfurCompounds(atmosphere):
+        _toxicity = Range(Atmosphere.Toxicity.MILD, Atmosphere.Toxicity.HIGH)
+
+        def __init__(self, atmosphere):
+            self = copy.deepcopy(atmosphere)
+
+    return SulfurCompounds
+
+
+def organic_toxins(atmosphere):
+
+    class OrganicToxins(atmosphere):
+        _toxicity = Range(Atmosphere.Toxicity.MILD, Atmosphere.Toxicity.LETHAL)
+
+        def __init__(self, atmosphere):
+            self = copy.deepcopy(atmosphere)
+
+    return OrganicToxins
+
+
+def pollutants(atmosphere):
+
+    class Pollutants(atmosphere):
+        _toxicity = Atmosphere.Toxicity.MILD
+
+        def __init__(self, atmosphere):
+            self = copy.deepcopy(atmosphere)
+
+    return Pollutants
+
+
+def make_marginal(atmosphere, marginal_type=None):
+    marginal_distribution = {
+        chlorine_or_fluorine: 0.01852,
+        high_carbon_dioxide: 0.07408,
+        high_oxygen: 0.06944,
+        inert_gases: 0.21296,
+        low_oxygen: 0.25,
+        nitrogen_compounds: 0.21296,
+        sulfur_compounds: 0.06944,
+        organic_toxins: 0.07408,
+        pollutants: 0.01852
+    }
+
+    if marginal_type is None:
+        marginal_type = random.choices(list(marginal_distribution.keys()),
+                                       weights=list(marginal_distribution
+                                                    .values()))[0]
+    marginal = atmosphere
+    marginal.__class__ = marginal_type(type(atmosphere))
+    return marginal
