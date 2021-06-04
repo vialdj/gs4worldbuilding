@@ -1,3 +1,4 @@
+from scipy.stats.stats import _parse_kstest_args
 from .utils import Range
 from enum import Enum
 
@@ -79,9 +80,13 @@ class Atmosphere(object):
                                                      for prop, value in self])))
 
 
+class Marginal(Atmosphere):
+    pass
+
+
 def chlorine_or_fluorine(atmosphere):
 
-    class ChlorineOrFluorine(atmosphere):
+    class ChlorineOrFluorine(atmosphere, Marginal):
         _toxicity = Range(Atmosphere.Toxicity.HIGH, Atmosphere.Toxicity.LETHAL)
         _corrosive = Range(False, True)
 
@@ -93,7 +98,7 @@ def chlorine_or_fluorine(atmosphere):
 
 def high_carbon_dioxide(atmosphere):
 
-    class HighCarbonDioxide(atmosphere):
+    class HighCarbonDioxide(atmosphere, Marginal):
         _toxicity = Range(None, Atmosphere.Toxicity.MILD)
         _pressure_category = Atmosphere.Pressure.VERY_DENSE
 
@@ -105,7 +110,7 @@ def high_carbon_dioxide(atmosphere):
 
 def high_oxygen(atmosphere):
 
-    class HighOxygen(atmosphere):
+    class HighOxygen(atmosphere, Marginal):
 
         @property
         def pressure_category(self):
@@ -121,7 +126,7 @@ def high_oxygen(atmosphere):
 
 def inert_gases(atmosphere):
 
-    class InertGases(atmosphere):
+    class InertGases(atmosphere, Marginal):
 
         def __init__(self, atmosphere):
             self = copy.deepcopy(atmosphere)
@@ -131,7 +136,7 @@ def inert_gases(atmosphere):
 
 def low_oxygen(atmosphere):
 
-    class LowOxygen(atmosphere):
+    class LowOxygen(atmosphere, Marginal):
 
         @property
         def pressure_category(self):
@@ -147,7 +152,7 @@ def low_oxygen(atmosphere):
 
 def nitrogen_compounds(atmosphere):
 
-    class NitrogenCompounds(atmosphere):
+    class NitrogenCompounds(atmosphere, Marginal):
         _toxicity = Range(Atmosphere.Toxicity.MILD, Atmosphere.Toxicity.HIGH)
 
         def __init__(self, atmosphere):
@@ -158,7 +163,7 @@ def nitrogen_compounds(atmosphere):
 
 def sulfur_compounds(atmosphere):
 
-    class SulfurCompounds(atmosphere):
+    class SulfurCompounds(atmosphere, Marginal):
         _toxicity = Range(Atmosphere.Toxicity.MILD, Atmosphere.Toxicity.HIGH)
 
         def __init__(self, atmosphere):
@@ -169,7 +174,7 @@ def sulfur_compounds(atmosphere):
 
 def organic_toxins(atmosphere):
 
-    class OrganicToxins(atmosphere):
+    class OrganicToxins(atmosphere, Marginal):
         _toxicity = Range(Atmosphere.Toxicity.MILD, Atmosphere.Toxicity.LETHAL)
 
         def __init__(self, atmosphere):
@@ -180,7 +185,7 @@ def organic_toxins(atmosphere):
 
 def pollutants(atmosphere):
 
-    class Pollutants(atmosphere):
+    class Pollutants(atmosphere, Marginal):
         _toxicity = Atmosphere.Toxicity.MILD
 
         def __init__(self, atmosphere):

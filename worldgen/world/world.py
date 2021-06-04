@@ -2,6 +2,7 @@
 
 from worldgen.world import atmosphere
 from .utils import Range
+from .atmosphere import Marginal
 from . import Atmosphere
 
 import random
@@ -253,24 +254,38 @@ class World(object):
     @property
     def habitability(self):
         """the habitability score"""
-        self.habitability.filters = [(lambda x: x.atmosphere.suffocating and
-                                      x.atmosphere.toxicity is not None and
-                                      x.atmosphere.corrosive, -2),
-                                     (lambda x: x.atmosphere.suffocating and
-                                      x.atmosphere.toxicity is not None, -1),
-                                     (lambda x: x.hydrosphere >= .1 and
-                                      x.hydrosphere < .6, 1),
-                                     (lambda x: x.hydrosphere >= .6 and
-                                      x.hydrosphere < .9, 2),
-                                     (lambda x: x.hydrosphere >= .9, 2),
-                                     (lambda x: x.climate == self.Climate
-                                      .COLD, 1),
-                                     (lambda x: x.climate >= self.Climate
-                                      .CHILLY and x.climate <= self.Climate
-                                      .TROPICAL, 2),
-                                     (lambda x: x.climate == self.Climate.HOT,
-                                      1)]
-        return 0
+        filters = [(self.atmosphere and self.atmosphere.suffocating and
+                    self.atmosphere.toxicity is not None and
+                    self.atmosphere.corrosive, -2),
+                   (self.atmosphere and self.atmosphere.suffocating and
+                    self.atmosphere.toxicity is not None and
+                    not self.atmosphere.corrosive, -1),
+                   (self.atmosphere and not self.atmosphere.suffocating and
+                    self.atmosphere.pressure_category ==
+                    Atmosphere.Pressure.VERY_THIN, 1),
+                   (self.atmosphere and not self.atmosphere.suffocating and
+                    self.atmosphere.pressure_category ==
+                    Atmosphere.Pressure.THIN, 2),
+                   (self.atmosphere and not self.atmosphere.suffocating and
+                    (self.atmosphere.pressure_category ==
+                     Atmosphere.Pressure.STANDARD or
+                     self.atmosphere.pressure_category ==
+                     Atmosphere.Pressure.DENSE), 3),
+                   (self.atmosphere and not self.atmosphere.suffocating and
+                    (self.atmosphere.pressure_category ==
+                     Atmosphere.Pressure.VERY_DENSE or
+                     self.atmosphere.pressure_category ==
+                     Atmosphere.Pressure.SUPER_DENSE), 1),
+                   (self.atmosphere and not self.atmosphere.suffocating and
+                    not issubclass(type(self.atmosphere), Marginal), 1),
+                   (self.hydrosphere >= .1 and self.hydrosphere < .6, 1),
+                   (self.hydrosphere >= .6 and self.hydrosphere < .9, 2),
+                   (self.hydrosphere >= .9, 2),
+                   (self.climate == self.Climate.COLD, 1),
+                   (self.climate >= self.Climate.CHILLY and
+                    self.climate <= self.Climate.TROPICAL, 2),
+                   (self.climate == self.Climate.HOT, 1)]
+        return sum(value if truth else 0 for truth, value in filters)
 
     def randomize(self):
         """randomizes applicable properties values with precedence constraints"""
