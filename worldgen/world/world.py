@@ -249,6 +249,11 @@ class World(object):
         return list(filter(lambda x: self.temperature >= x.value,
                            self.Climate))[-1]
 
+    @property
+    def habitability(self):
+        """the habitability score"""
+        return 0
+
     def randomize(self):
         """randomizes applicable properties values with precedence constraints"""
         # ranged properties
