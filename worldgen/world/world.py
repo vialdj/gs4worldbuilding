@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from worldgen.world import atmosphere
 from .utils import Range
 from . import Atmosphere
 
@@ -252,6 +253,23 @@ class World(object):
     @property
     def habitability(self):
         """the habitability score"""
+        self.habitability.filters = [(lambda x: x.atmosphere.suffocating and
+                                      x.atmosphere.toxicity is not None and
+                                      x.atmosphere.corrosive, -2),
+                                     (lambda x: x.atmosphere.suffocating and
+                                      x.atmosphere.toxicity is not None, -1),
+                                     (lambda x: x.hydrosphere >= .1 and
+                                      x.hydrosphere < .6, 1),
+                                     (lambda x: x.hydrosphere >= .6 and
+                                      x.hydrosphere < .9, 2),
+                                     (lambda x: x.hydrosphere >= .9, 2),
+                                     (lambda x: x.climate == self.Climate
+                                      .COLD, 1),
+                                     (lambda x: x.climate >= self.Climate
+                                      .CHILLY and x.climate <= self.Climate
+                                      .TROPICAL, 2),
+                                     (lambda x: x.climate == self.Climate.HOT,
+                                      1)]
         return 0
 
     def randomize(self):
