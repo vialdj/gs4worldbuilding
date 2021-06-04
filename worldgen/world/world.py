@@ -287,6 +287,11 @@ class World(object):
                    (self.climate == self.Climate.HOT, 1)]
         return sum(value if truth else 0 for truth, value in filters)
 
+    @property
+    def affinity(self):
+        """the affinity score"""
+        return self.ressource + self.habitability
+
     def randomize(self):
         """randomizes applicable properties values with precedence constraints"""
         # ranged properties
