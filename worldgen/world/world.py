@@ -254,37 +254,20 @@ class World(object):
     @property
     def habitability(self):
         """the habitability score"""
-        filters = [(self.atmosphere and self.atmosphere.suffocating and
-                    self.atmosphere.toxicity is not None and
-                    self.atmosphere.corrosive, -2),
-                   (self.atmosphere and self.atmosphere.suffocating and
-                    self.atmosphere.toxicity is not None and
-                    not self.atmosphere.corrosive, -1),
-                   (self.atmosphere and not self.atmosphere.suffocating and
-                    self.atmosphere.pressure_category ==
-                    Atmosphere.Pressure.VERY_THIN, 1),
-                   (self.atmosphere and not self.atmosphere.suffocating and
-                    self.atmosphere.pressure_category ==
-                    Atmosphere.Pressure.THIN, 2),
-                   (self.atmosphere and not self.atmosphere.suffocating and
-                    (self.atmosphere.pressure_category ==
-                     Atmosphere.Pressure.STANDARD or
-                     self.atmosphere.pressure_category ==
-                     Atmosphere.Pressure.DENSE), 3),
-                   (self.atmosphere and not self.atmosphere.suffocating and
-                    (self.atmosphere.pressure_category ==
-                     Atmosphere.Pressure.VERY_DENSE or
-                     self.atmosphere.pressure_category ==
-                     Atmosphere.Pressure.SUPER_DENSE), 1),
-                   (self.atmosphere and not self.atmosphere.suffocating and
-                    not issubclass(type(self.atmosphere), Marginal), 1),
+        atm = self.atmosphere
+        filters = [(atm and atm.suffocating and atm.toxicity is not None and atm.corrosive, -2),
+                   (atm and atm.suffocating and atm.toxicity is not None and not atm.corrosive, -1),
+                   (atm and atm.breathable and atm.pressure_category == Atmosphere.Pressure.VERY_THIN, 1),
+                   (atm and atm.breathable and atm.pressure_category == Atmosphere.Pressure.THIN, 2),
+                   (atm and atm.breathable and atm.pressure_category in [Atmosphere.Pressure.STANDARD, Atmosphere.Pressure.DENSE], 3),
+                   (atm and atm.breathable and atm.pressure_category in [Atmosphere.Pressure.VERY_DENSE, Atmosphere.Pressure.SUPER_DENSE], 1),
+                   (atm and atm.breathable and not issubclass(type(atm), Marginal), 1),
                    (self.hydrosphere >= .1 and self.hydrosphere < .6, 1),
                    (self.hydrosphere >= .6 and self.hydrosphere < .9, 2),
                    (self.hydrosphere >= .9, 2),
-                   (self.climate == self.Climate.COLD, 1),
-                   (self.climate >= self.Climate.CHILLY and
-                    self.climate <= self.Climate.TROPICAL, 2),
-                   (self.climate == self.Climate.HOT, 1)]
+                   (atm and atm.breathable and self.climate == self.Climate.COLD, 1),
+                   (atm and atm.breathable and self.climate >= self.Climate.CHILLY and self.climate <= self.Climate.TROPICAL, 2),
+                   (atm and atm.breathable and self.climate == self.Climate.HOT, 1)]
         return sum(value if truth else 0 for truth, value in filters)
 
     @property

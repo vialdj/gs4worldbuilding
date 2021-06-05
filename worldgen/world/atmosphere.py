@@ -64,6 +64,12 @@ class Atmosphere(object):
                             self.Pressure))[-1]
                 if not np.isnan(self.pressure) else None)
 
+    @property
+    def breathable(self):
+        """is the atmosphere breathable"""
+        return not (self.toxicity is not None or self.suffocating
+                    or self.corrosive)
+
     def __init__(self, world):
         self._world = world
 
