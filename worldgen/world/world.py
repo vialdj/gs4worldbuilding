@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from worldgen.world import atmosphere
 from .utils import Range
 from .atmosphere import Marginal
 from . import Atmosphere
@@ -10,7 +9,6 @@ import random
 from enum import Enum
 from math import sqrt, floor
 from inspect import ismethod
-from dataclasses import dataclass
 
 from scipy.stats import truncnorm
 import numpy as np
