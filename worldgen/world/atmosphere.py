@@ -86,8 +86,12 @@ class Atmosphere(object):
                                                      for prop, value in self])))
 
 
-class Marginal(Atmosphere):
-    pass
+class Marginal():
+
+    @property
+    def base(self):
+        """the base atmosphere"""
+        return (self._base if hasattr(self, '_base') else None)
 
 
 def chlorine_or_fluorine(atmosphere):
@@ -95,9 +99,6 @@ def chlorine_or_fluorine(atmosphere):
     class ChlorineOrFluorine(atmosphere, Marginal):
         _toxicity = Range(Atmosphere.Toxicity.HIGH, Atmosphere.Toxicity.LETHAL)
         _corrosive = Range(False, True)
-
-        def __init__(self, atmosphere):
-            self = copy.deepcopy(atmosphere)
 
     return ChlorineOrFluorine
 
@@ -107,9 +108,6 @@ def high_carbon_dioxide(atmosphere):
     class HighCarbonDioxide(atmosphere, Marginal):
         _toxicity = Range(None, Atmosphere.Toxicity.MILD)
         _pressure_category = Atmosphere.Pressure.VERY_DENSE
-
-        def __init__(self, atmosphere):
-            self = copy.deepcopy(atmosphere)
 
     return HighCarbonDioxide
 
@@ -124,18 +122,13 @@ def high_oxygen(atmosphere):
             idx = min(idx + 1, len(Atmosphere.Pressure) - 1)
             return list(Atmosphere.Pressure)[idx]
 
-        def __init__(self, world):
-            super(HighOxygen, self).__init__(world)
-
     return HighOxygen
 
 
 def inert_gases(atmosphere):
 
     class InertGases(atmosphere, Marginal):
-
-        def __init__(self, atmosphere):
-            self = copy.deepcopy(atmosphere)
+        pass
 
     return InertGases
 
@@ -150,9 +143,6 @@ def low_oxygen(atmosphere):
             pressure_id = max(idx - 1, 0)
             return list(Atmosphere.Pressure)[idx]
 
-        def __init__(self, atmosphere):
-            self = copy.deepcopy(atmosphere)
-
     return LowOxygen
 
 
@@ -160,9 +150,6 @@ def nitrogen_compounds(atmosphere):
 
     class NitrogenCompounds(atmosphere, Marginal):
         _toxicity = Range(Atmosphere.Toxicity.MILD, Atmosphere.Toxicity.HIGH)
-
-        def __init__(self, atmosphere):
-            self = copy.deepcopy(atmosphere)
 
     return NitrogenCompounds
 
@@ -172,9 +159,6 @@ def sulfur_compounds(atmosphere):
     class SulfurCompounds(atmosphere, Marginal):
         _toxicity = Range(Atmosphere.Toxicity.MILD, Atmosphere.Toxicity.HIGH)
 
-        def __init__(self, atmosphere):
-            self = copy.deepcopy(atmosphere)
-
     return SulfurCompounds
 
 
@@ -183,9 +167,6 @@ def organic_toxins(atmosphere):
     class OrganicToxins(atmosphere, Marginal):
         _toxicity = Range(Atmosphere.Toxicity.MILD, Atmosphere.Toxicity.LETHAL)
 
-        def __init__(self, atmosphere):
-            self = copy.deepcopy(atmosphere)
-
     return OrganicToxins
 
 
@@ -193,9 +174,6 @@ def pollutants(atmosphere):
 
     class Pollutants(atmosphere, Marginal):
         _toxicity = Atmosphere.Toxicity.MILD
-
-        def __init__(self, atmosphere):
-            self = copy.deepcopy(atmosphere)
 
     return Pollutants
 
@@ -217,6 +195,9 @@ def make_marginal(atmosphere, marginal_type=None):
         marginal_type = random.choices(list(marginal_distribution.keys()),
                                        weights=list(marginal_distribution
                                                     .values()))[0]
+    base = copy.copy(atmosphere)
     marginal = atmosphere
     marginal.__class__ = marginal_type(type(atmosphere))
+    marginal._base = base
+
     return marginal
