@@ -1,4 +1,3 @@
-from scipy.stats.stats import _parse_kstest_args
 from .utils import Range
 from enum import Enum
 
@@ -140,7 +139,7 @@ def low_oxygen(atmosphere):
         @property
         def pressure_category(self):
             idx = list(Atmosphere.Pressure).index(super().pressure_category)
-            pressure_id = max(idx - 1, 0)
+            idx = max(idx - 1, 0)
             return list(Atmosphere.Pressure)[idx]
 
     return LowOxygen
