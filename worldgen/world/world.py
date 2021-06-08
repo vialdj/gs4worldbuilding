@@ -254,20 +254,22 @@ class World(object):
     @property
     def habitability(self):
         """the habitability score"""
-        atm = self.atmosphere
-        filters = [(atm and atm.suffocating and atm.toxicity is not None and atm.corrosive, -2),
-                   (atm and atm.suffocating and atm.toxicity is not None and not atm.corrosive, -1),
-                   (atm and atm.breathable and atm.pressure_category == Atmosphere.Pressure.VERY_THIN, 1),
-                   (atm and atm.breathable and atm.pressure_category == Atmosphere.Pressure.THIN, 2),
-                   (atm and atm.breathable and atm.pressure_category in [Atmosphere.Pressure.STANDARD, Atmosphere.Pressure.DENSE], 3),
-                   (atm and atm.breathable and atm.pressure_category in [Atmosphere.Pressure.VERY_DENSE, Atmosphere.Pressure.SUPER_DENSE], 1),
-                   (atm and atm.breathable and not issubclass(type(atm), Marginal), 1),
-                   (self.hydrosphere >= .1 and self.hydrosphere < .6, 1),
+        filters = [(self.hydrosphere >= .1 and self.hydrosphere < .6, 1),
                    (self.hydrosphere >= .6 and self.hydrosphere < .9, 2),
-                   (self.hydrosphere >= .9, 2),
-                   (atm and atm.breathable and self.climate == self.Climate.COLD, 1),
-                   (atm and atm.breathable and self.climate >= self.Climate.CHILLY and self.climate <= self.Climate.TROPICAL, 2),
-                   (atm and atm.breathable and self.climate == self.Climate.HOT, 1)]
+                   (self.hydrosphere >= .9, 2)]
+        atm = self.atmosphere
+        if atm and atm.breathable:
+            filters.extend([(atm.pressure_category == Atmosphere.Pressure.VERY_THIN, 1),
+                            (atm.pressure_category == Atmosphere.Pressure.THIN, 2),
+                            (atm.pressure_category in [Atmosphere.Pressure.STANDARD, Atmosphere.Pressure.DENSE], 3),
+                            (atm.pressure_category in [Atmosphere.Pressure.VERY_DENSE, Atmosphere.Pressure.SUPER_DENSE], 1),
+                            (not issubclass(type(atm), Marginal), 1),
+                            (self.climate == self.Climate.COLD, 1),
+                            (self.climate >= self.Climate.CHILLY and self.climate <= self.Climate.TROPICAL, 2),
+                            (self.climate == self.Climate.HOT, 1)])
+        if atm and not atm.breathable:
+            filters.extend([(atm and not atm.breathable and atm.corrosive, -2),
+                            (atm and not atm.breathable and atm.corrosive, -1)])
         return sum(value if truth else 0 for truth, value in filters)
 
     @property
