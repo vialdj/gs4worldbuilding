@@ -200,3 +200,11 @@ def make_marginal(atmosphere, marginal_type=None):
     marginal._base = base
 
     return marginal
+
+
+def remove_marginal(marginal):
+    base_type = type(marginal.base)
+    atmosphere = marginal
+    atmosphere.__class__ = base_type
+
+    return atmosphere
