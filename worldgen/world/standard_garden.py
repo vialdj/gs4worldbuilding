@@ -1,5 +1,5 @@
 from .utils import Range
-from .atmosphere import make_marginal
+from .atmosphere import MarginalCandidate
 from . import Atmosphere
 from . import World
 
@@ -10,7 +10,7 @@ import random
 class StandardGarden(World):
     """the standard garden world model"""
 
-    class StandardGardenAtmosphere(Atmosphere):
+    class StandardGardenAtmosphere(Atmosphere, MarginalCandidate):
         """the standard garden atmosphere model"""
         _composition = ['N2', 'O2']
 
@@ -18,7 +18,7 @@ class StandardGarden(World):
             """sum of a 3d roll to apply marginal modifier"""
             if truncnorm((3 - 10.5) / 2.958040, (18 - 10.5) / 2.958040,
                          loc=10.5, scale=2.958040).rvs() > 11:
-                make_marginal(self)
+                self.make_marginal()
 
     _temperature_range = Range(250, 340)
     _size = World.Size.STANDARD

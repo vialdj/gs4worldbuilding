@@ -177,34 +177,35 @@ def pollutants(atmosphere):
     return Pollutants
 
 
-def make_marginal(atmosphere, marginal_type=None):
-    marginal_distribution = {
-        chlorine_or_fluorine: 0.01852,
-        high_carbon_dioxide: 0.07408,
-        high_oxygen: 0.06944,
-        inert_gases: 0.21296,
-        low_oxygen: 0.25,
-        nitrogen_compounds: 0.21296,
-        sulfur_compounds: 0.06944,
-        organic_toxins: 0.07408,
-        pollutants: 0.01852
-    }
+class MarginalCandidate:
 
-    if marginal_type is None:
-        marginal_type = random.choices(list(marginal_distribution.keys()),
-                                       weights=list(marginal_distribution
-                                                    .values()))[0]
-    base = copy.copy(atmosphere)
-    marginal = atmosphere
-    marginal.__class__ = marginal_type(type(atmosphere))
-    marginal._base = base
+    def make_marginal(self, marginal_type=None):
+        marginal_distribution = {
+            chlorine_or_fluorine: 0.01852,
+            high_carbon_dioxide: 0.07408,
+            high_oxygen: 0.06944,
+            inert_gases: 0.21296,
+            low_oxygen: 0.25,
+            nitrogen_compounds: 0.21296,
+            sulfur_compounds: 0.06944,
+            organic_toxins: 0.07408,
+            pollutants: 0.01852
+        }
 
-    return marginal
+        if marginal_type is None:
+            marginal_type = random.choices(list(marginal_distribution.keys()),
+                                           weights=list(marginal_distribution
+                                                        .values()))[0]
+        base = copy.copy(self)
+        marginal = self
+        marginal.__class__ = marginal_type(type(self))
+        marginal._base = base
 
+        return marginal
 
-def remove_marginal(marginal):
-    base_type = type(marginal.base)
-    atmosphere = marginal
-    atmosphere.__class__ = base_type
+    def remove_marginal(self):
+        base_type = type(self.base)
+        atmosphere = self
+        atmosphere.__class__ = base_type
 
-    return atmosphere
+        return atmosphere
