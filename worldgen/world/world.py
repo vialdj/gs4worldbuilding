@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from .utils import Range
-from .atmosphere import Marginal
+from .marginal_atmosphere import Marginal
 from . import Atmosphere
 
 import random

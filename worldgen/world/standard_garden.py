@@ -1,5 +1,5 @@
 from .utils import Range
-from .atmosphere import MarginalCandidate
+from .marginal_atmosphere import MarginalCandidate
 from . import Atmosphere
 from . import World
 
