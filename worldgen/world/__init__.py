@@ -1,4 +1,9 @@
+from .utils import Range
 from .atmosphere import Atmosphere
+from .marginal_atmosphere import (chlorine_or_fluorine, high_carbon_dioxide,
+                                  high_oxygen, inert_gases, low_oxygen,
+                                  nitrogen_compounds, sulfur_compounds,
+                                  organic_toxins, pollutants)
 from .world import World
 from .asteroid_belt import AsteroidBelt
 from .large_garden import LargeGarden
