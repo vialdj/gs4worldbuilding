@@ -100,6 +100,10 @@ def pollutants(atmosphere):
 class MarginalCandidate:
 
     def make_marginal(self, marginal_type=None):
+
+        if issubclass(type(self), Marginal):
+            self.remove_marginal()
+
         marginal_distribution = {
             chlorine_or_fluorine: 0.01852,
             high_carbon_dioxide: 0.07408,
@@ -116,16 +120,15 @@ class MarginalCandidate:
             marginal_type = random.choices(list(marginal_distribution.keys()),
                                            weights=list(marginal_distribution
                                                         .values()))[0]
+
         base = copy.copy(self)
         marginal = self
         marginal.__class__ = marginal_type(type(self))
         marginal._base = base
 
-        return marginal
-
     def remove_marginal(self):
-        base_type = type(self.base)
-        atmosphere = self
-        atmosphere.__class__ = base_type
 
-        return atmosphere
+        if issubclass(type(self), Marginal):
+            base_type = type(self.base)
+            atmosphere = self
+            atmosphere.__class__ = base_type
