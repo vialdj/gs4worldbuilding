@@ -1,11 +1,12 @@
 from .atmosphere import Atmosphere
-from .utils import Range
+from .. import Range
 
 import random
 import copy
 
 
 class Marginal():
+    """the Marginal class to be inherited by concrete marginal modifiers"""
 
     @property
     def base(self):
@@ -98,8 +99,12 @@ def pollutants(atmosphere):
 
 
 class MarginalCandidate:
+    """the MarginalCandidate class to be inherited by marginalizable
+specialized atmospheres"""
 
     def make_marginal(self, marginal_type=None):
+        """makes a marginal candidate atmosphere marginal using the
+provided marginal modifier or one at random"""
 
         if issubclass(type(self), Marginal):
             self.remove_marginal()

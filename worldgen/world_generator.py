@@ -35,7 +35,7 @@ class WorldGenerator():
 
         world_type = random.choices(list(world_types_distribution.keys()),
                                     weights=list(world_types_distribution.values()))[0]
-        self.world = world_type()
+        self.world = StandardGarden()
 
     def __str__(self):
         return str(self.world)

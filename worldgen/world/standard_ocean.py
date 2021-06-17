@@ -1,4 +1,4 @@
-from .utils import Range
+from .. import Range
 from . import Atmosphere
 from . import World
 
@@ -31,12 +31,12 @@ class StandardOcean(World):
 
     @classmethod
     def random_hydrosphere(cls):
-        # roll of 1d+4 divided by 10
+        """roll of 1d+4 divided by 10"""
         return random.uniform(.5, 1)
 
     @property
     def absorption(self):
-        # match hydrosphere to Temperature Factors Table
+        """match hydrosphere to Temperature Factors Table"""
         assert(self.hydrosphere), "attribute is not applicable"
         d = {.20: .95, .50: .92, .90: .88, 1: .84}
         return d[list(filter(lambda x: x >= self.hydrosphere, sorted(d.keys())))[0]]

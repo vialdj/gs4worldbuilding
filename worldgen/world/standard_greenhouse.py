@@ -1,4 +1,4 @@
-from .utils import Range
+from .. import Range
 from . import Atmosphere
 from . import World
 
@@ -30,7 +30,7 @@ class StandardGreenhouse(World):
 
     @classmethod
     def random_hydrosphere(cls):
-        # roll of 2d-7 minimum at 0 and divided by 10
+        """roll of 2d-7 minimum at 0 and divided by 10"""
         return max(np.random.triangular(-.5, 0, .5), 0)
 
     def __init__(self):

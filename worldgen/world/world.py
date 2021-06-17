@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .utils import Range
+from .. import Range
 from .marginal_atmosphere import Marginal
 from . import Atmosphere
 

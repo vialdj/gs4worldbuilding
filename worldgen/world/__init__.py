@@ -1,4 +1,3 @@
-from .utils import Range
 from .atmosphere import Atmosphere
 from .marginal_atmosphere import (chlorine_or_fluorine, high_carbon_dioxide,
                                   high_oxygen, inert_gases, low_oxygen,

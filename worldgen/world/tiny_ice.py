@@ -1,4 +1,4 @@
-from .utils import Range
+from .. import Range
 from . import World
 
 

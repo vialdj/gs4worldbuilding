@@ -1,8 +1,10 @@
-from .utils import Range
+from .. import Range
 from . import World
 
 
 class SmallHadean(World):
+    """The small hadean world model"""
+
     _temperature_range = Range(50, 80)
     _size = World.Size.SMALL
     _core = World.Core.ICY_CORE

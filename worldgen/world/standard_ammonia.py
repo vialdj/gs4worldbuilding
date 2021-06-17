@@ -1,4 +1,4 @@
-from .utils import Range
+from .. import Range
 from . import Atmosphere
 from . import World
 
@@ -26,7 +26,7 @@ class StandardAmmonia(World):
 
     @classmethod
     def random_hydrosphere(cls):
-        # roll of 2d maximum at 10 and divided by 10
+        """roll of 2d maximum at 10 and divided by 10"""
         return min(np.random.triangular(0.2, .7, 1.2), 1)
 
     def __init__(self):

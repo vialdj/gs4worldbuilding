@@ -1,4 +1,4 @@
-from .utils import Range
+from .. import Range
 from enum import Enum
 
 import numpy as np

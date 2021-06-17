@@ -1,4 +1,4 @@
-from .utils import Range
+from .. import Range
 from . import Atmosphere
 from . import World
 
@@ -34,7 +34,7 @@ class SmallIce(World):
 
     @classmethod
     def random_hydrosphere(cls):
-        # roll of 1d+2 divided by 10
+        """roll of 1d+2 divided by 10"""
         return random.uniform(.3, .8)
 
     def __init__(self):

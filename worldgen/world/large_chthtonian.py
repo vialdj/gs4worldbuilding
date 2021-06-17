@@ -1,8 +1,10 @@
-from .utils import Range
+from .. import Range
 from . import World
 
 
 class LargeChthonian(World):
+    """The large chthonian world model"""
+
     _temperature_range = Range(500, 950)
     _size = World.Size.LARGE
     _core = World.Core.LARGE_IRON_CORE
