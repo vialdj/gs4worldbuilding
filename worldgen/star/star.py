@@ -10,7 +10,7 @@ import numpy as np
 class Star(Model):
     """the star model"""
 
-    def __set_ranged_property(self, prop, value):
+    def _set_ranged_property(self, prop, value):
         """centralised setter for ranged value properties"""
         rng = getattr(self, '{}_range'.format(prop))
         if not rng:
@@ -37,7 +37,7 @@ class Star(Model):
 
     @mass.setter
     def mass(self, value):
-        self.__set_ranged_property('mass', value)
+        self._set_ranged_property('mass', value)
 
     def randomize(self):
         """randomizes applicable properties values"""

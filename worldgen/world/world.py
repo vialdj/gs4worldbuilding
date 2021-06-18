@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .. import Range
+from .. import Range, Model
 from .marginal_atmosphere import Marginal
 from . import Atmosphere
 
@@ -14,7 +14,7 @@ from scipy.stats import truncnorm
 import numpy as np
 
 
-class World(object):
+class World(Model):
     """the World Model"""
 
     class Climate(int, Enum):
@@ -57,19 +57,6 @@ class World(object):
         RICH = 3
         VERY_RICH = 4
         MOTHERLODE = 5
-
-    def __set_ranged_property(self, prop, value):
-        """centralised setter for ranged value properties"""
-        rng = getattr(self, '{}_range'.format(prop))
-        if not rng:
-            raise AttributeError('can\'t set attribute, no {}_range found'
-                                 .format(prop))
-        if np.isnan(value):
-            raise ValueError('can\'t manually set {} value to nan'.format(prop))
-        if value < rng.min or value > rng.max:
-            raise ValueError('{} value out of range {}'
-                             .format(prop, rng))
-        setattr(self, '_{}'.format(prop), value)
 
     @classmethod
     def random_ressource(cls):
@@ -149,7 +136,7 @@ class World(object):
 
     @volatile_mass.setter
     def volatile_mass(self, value):
-        self.__set_ranged_property('volatile_mass', value)
+        self._set_ranged_property('volatile_mass', value)
 
     @property
     def ressource(self):
@@ -163,7 +150,7 @@ class World(object):
 
     @ressource.setter
     def ressource(self, value):
-        self.__set_ranged_property('ressource', value)
+        self._set_ranged_property('ressource', value)
 
     @property
     def temperature(self):
@@ -177,7 +164,7 @@ class World(object):
 
     @temperature.setter
     def temperature(self, value):
-        self.__set_ranged_property('temperature', value)
+        self._set_ranged_property('temperature', value)
 
     @property
     def density(self):
@@ -191,7 +178,7 @@ class World(object):
 
     @density.setter
     def density(self, value):
-        self.__set_ranged_property('density', value)
+        self._set_ranged_property('density', value)
 
     @property
     def hydrosphere(self):
@@ -206,7 +193,7 @@ class World(object):
 
     @hydrosphere.setter
     def hydrosphere(self, value):
-        self.__set_ranged_property('hydrosphere', value)
+        self._set_ranged_property('hydrosphere', value)
 
     @property
     def diameter(self):
@@ -222,7 +209,7 @@ class World(object):
 
     @diameter.setter
     def diameter(self, value):
-        self.__set_ranged_property('diameter', value)
+        self._set_ranged_property('diameter', value)
 
     @property
     def blackbody_temperature(self):
@@ -292,15 +279,3 @@ class World(object):
         if hasattr(type(self._atmosphere), 'randomize') and callable(getattr(type(self._atmosphere), 'randomize')):
             self._atmosphere.randomize()
         self.randomize()
-
-    def __iter__(self):
-        """yield property names and values"""
-        for prop in list(filter(lambda x: hasattr(type(self), x)
-                         and isinstance(getattr(type(self), x), property),
-                         dir(self))):
-            yield prop, getattr(self, prop)
-
-    def __str__(self):
-        return ('{{class: {}, {}}}'.format(self.__class__.__name__,
-                                           ', '.join(['{}: {!s}'.format(prop, value)
-                                                     for prop, value in self])))
