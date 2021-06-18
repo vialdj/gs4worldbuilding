@@ -1,4 +1,5 @@
 from worldgen.world.marginal_atmosphere import Marginal
+from worldgen.utils import Range
 import pytest
 import numpy as np
 
