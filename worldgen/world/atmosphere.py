@@ -1,10 +1,12 @@
-from .. import Range
+# -*- coding: utf-8 -*-
+
+from .. import Model
 from enum import Enum
 
 import numpy as np
 
 
-class Atmosphere(object):
+class Atmosphere(Model):
     """the Atmosphere Model"""
 
     class Pressure(float, Enum):
@@ -69,15 +71,3 @@ class Atmosphere(object):
 
     def __init__(self, world):
         self._world = world
-
-    def __iter__(self):
-        """yield property names and values"""
-        for prop in list(filter(lambda x: hasattr(type(self), x)
-                         and isinstance(getattr(type(self), x), property),
-                         dir(self))):
-            yield prop, getattr(self, prop)
-
-    def __str__(self):
-        return ('{{class: {}, {}}}'.format(self.__class__.__name__,
-                                           ', '.join(['{}: {!s}'.format(prop, value)
-                                                     for prop, value in self])))

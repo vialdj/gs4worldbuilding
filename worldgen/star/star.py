@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from .. import Range
+from .. import Range, Model
 
 from inspect import ismethod
 
 import numpy as np
 
 
-class Star(object):
+class Star(Model):
     """the star model"""
 
     def __set_ranged_property(self, prop, value):
