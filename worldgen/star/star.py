@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from .. import Range, Model
+from .. import Range, RandomizableModel
 
 from inspect import ismethod
 
 import numpy as np
 
 
-class Star(Model):
+class Star(RandomizableModel):
     """the star model"""
 
     def _set_ranged_property(self, prop, value):
@@ -39,19 +39,8 @@ class Star(Model):
     def mass(self, value):
         self._set_ranged_property('mass', value)
 
-    def randomize(self):
-        """randomizes applicable properties values"""
-        # ranged properties
-        rng_props = list(filter(lambda x: hasattr(self, 'random_{}'.format(x)),
-                                ['mass']))
-        for prop in rng_props:
-            f = getattr(type(self), 'random_{}'.format(prop))
-            if getattr(self, '{}_range'.format(prop)):
-                val = f() if ismethod(f) else f(self)
-                setattr(self, prop, val)
-
     def __init__(self):
-        self.randomize()
+        self.randomize(['mass'])
 
     def __iter__(self):
         """yield property names and values"""

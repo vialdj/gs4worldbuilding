@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from .. import Range, Model
+from worldgen.model import RandomizableModel
+from .. import Range, RandomizableModel
 from .marginal_atmosphere import Marginal
 from . import Atmosphere
 
@@ -14,7 +15,7 @@ from scipy.stats import truncnorm
 import numpy as np
 
 
-class World(Model):
+class World(RandomizableModel):
     """the World Model"""
 
     class Climate(int, Enum):
@@ -262,20 +263,9 @@ class World(Model):
         """the affinity score"""
         return self.ressource + self.habitability
 
-    def randomize(self):
-        """randomizes applicable properties values with precedence constraints"""
-        # ranged properties
-        rng_props = list(filter(lambda x: hasattr(self, 'random_{}'.format(x)),
-                                ['ressource', 'hydrosphere', 'volatile_mass',
-                                 'temperature', 'density', 'diameter']))
-        for prop in rng_props:
-            f = getattr(type(self), 'random_{}'.format(prop))
-            if getattr(self, '{}_range'.format(prop)):
-                val = f() if ismethod(f) else f(self)
-                setattr(self, prop, val)
-
     def __init__(self):
         self._atmosphere = self._atmosphere(self) if hasattr(type(self), '_atmosphere') else None
         if hasattr(type(self._atmosphere), 'randomize') and callable(getattr(type(self._atmosphere), 'randomize')):
             self._atmosphere.randomize()
-        self.randomize()
+        self.randomize(['ressource', 'hydrosphere', 'volatile_mass',
+                        'temperature', 'density', 'diameter'])

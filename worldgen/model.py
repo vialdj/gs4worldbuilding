@@ -2,6 +2,8 @@
 
 from . import Range
 
+from inspect import ismethod
+
 import numpy as np
 
 
@@ -32,3 +34,18 @@ class Model(object):
         return ('{{class: {}, {}}}'.format(self.__class__.__name__,
                                            ', '.join(['{}: {!s}'.format(prop, value)
                                                      for prop, value in self])))
+
+
+class RandomizableModel(Model):
+    """the Randomizable model specialization"""
+
+    def randomize(self, precedence):
+        """randomizes applicable properties values with precedence constraints"""
+        # ranged properties
+        rng_props = list(filter(lambda x: hasattr(self, 'random_{}'.format(x)),
+                                precedence))
+        for prop in rng_props:
+            f = getattr(type(self), 'random_{}'.format(prop))
+            if getattr(self, '{}_range'.format(prop)):
+                val = f() if ismethod(f) else f(self)
+                setattr(self, prop, val)    
