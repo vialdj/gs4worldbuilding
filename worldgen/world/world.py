@@ -1,15 +1,12 @@
 # -*- coding: utf-8 -*-
 
-from worldgen.model import RandomizableModel
 from .. import Range, RandomizableModel
 from .marginal_atmosphere import Marginal
 from . import Atmosphere
 
 import random
-
 from enum import Enum
 from math import sqrt, floor
-from inspect import ismethod
 
 from scipy.stats import truncnorm
 import numpy as np

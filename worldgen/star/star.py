@@ -3,7 +3,6 @@
 from .. import Range, RandomizableModel
 
 import random
-from inspect import ismethod
 
 import numpy as np
 

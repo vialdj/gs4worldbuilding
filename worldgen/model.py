@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from . import Range
-
 from inspect import ismethod
 
 import numpy as np
@@ -48,4 +46,4 @@ class RandomizableModel(Model):
             f = getattr(type(self), 'random_{}'.format(prop))
             if getattr(self, '{}_range'.format(prop)):
                 val = f() if ismethod(f) else f(self)
-                setattr(self, prop, val)    
+                setattr(self, prop, val)
