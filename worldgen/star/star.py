@@ -1,8 +1,11 @@
 # -*- coding: utf-8 -*-
 
+from typing import Tuple
 from .. import Range, RandomizableModel
 
 import random
+from enum import Enum
+from collections import namedtuple
 
 import numpy as np
 
@@ -10,18 +13,16 @@ import numpy as np
 class Star(RandomizableModel):
     """the star model"""
 
-    def _set_ranged_property(self, prop, value):
-        """centralised setter for ranged value properties"""
-        rng = getattr(self, '{}_range'.format(prop))
-        if not rng:
-            raise AttributeError('can\'t set attribute, no {}_range found'
-                                 .format(prop))
-        if np.isnan(value):
-            raise ValueError('can\'t manually set {} value to nan'.format(prop))
-        if value < rng.min or value > rng.max:
-            raise ValueError('{} value out of range {}'
-                             .format(prop, rng))
-        setattr(self, '_{}'.format(prop), value)
+    population = namedtuple('Population', ['base_age', 'step_a', 'step_b'])
+
+    class Population(population, Enum):
+        """class Population Enum from Stellar Age Table"""
+        EXTREME_POPULATION_1 = (0, 0, 0)
+        YOUNG_POPULATION_1 = (.1, .3, .05)
+        INTERMEDIATE_POPULATION_1 = (2, .6, .1)
+        OLD_POPULATION_1 = (5.6, .6, .1)
+        INTERMEDIATE_POPULATION_2 = (8, .6, .1)
+        EXTREME_POPULATION_2 = (10, .6, .1)
 
     @staticmethod
     def random_mass():
@@ -46,20 +47,40 @@ class Star(RandomizableModel):
         return random.choices(mass_distribution.keys(),
                               weights=mass_distribution.values, k=1)[0]
 
+    @classmethod
+    def random_population(cls):
+        """sum of a 3d roll over Stellar Age Table populations categories"""
+        return random.choices(list(cls.Population),
+                              weights=[0.00463, 0.08797, 0.4074, 0.4074,
+                                       0.08797, 0.00463], k=1)[0]
+
     @property
     def mass(self):
+        """mass in M☉"""
         return self._mass
 
     @property
     def mass_range(self):
+        """value range for mass"""
         return Range(.1, 2)
 
     @mass.setter
     def mass(self, value):
         self._set_ranged_property('mass', value)
 
+    @property
+    def population(self):
+        """population category over Stellar Age Table"""
+        return self._population
+
+    @population.setter
+    def population(self, value):
+        if not isinstance(value, self.Population):
+            raise ValueError('{} value type has to be {}'.format('population', self.Population))
+        _population = value
+
     def __init__(self):
-        self.randomize(['mass'])
+        self.randomize(['mass', 'population'])
 
     def __iter__(self):
         """yield property names and values"""
