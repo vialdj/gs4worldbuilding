@@ -56,13 +56,12 @@ class World(RandomizableModel):
         VERY_RICH = 4
         MOTHERLODE = 5
 
-    @classmethod
-    def random_ressource(cls):
+    def random_ressource(self):
         """sum of a 3d roll times over default worlds Ressource Value Table"""
         ressource_distribution = [0, 0, 0, .01852, .14352, .67592,
                                   .14352, .01852, 0, 0, 0]
-        return random.choices(list(cls.Ressource),
-                              weights=ressource_distribution, k=1)[0]
+        self.ressource = random.choices(list(self.Ressource),
+                                        weights=ressource_distribution, k=1)[0]
 
     def random_temperature(self):
         """sum of a 3d-3 roll times step value add minimum"""
@@ -70,24 +69,27 @@ class World(RandomizableModel):
         tmax = self.temperature_range.max
         roll = truncnorm((0 - 7.5) / 2.958040, (15 - 7.5) / 2.958040,
                          loc=7.5, scale=2.958040).rvs()
-        return tmin + roll / 15 * (tmax - tmin)
+        self.temperature = tmin + roll / 15 * (tmax - tmin)
 
     def random_density(self):
         """sum of a 3d roll over World Density Table"""
-        return (self.density_range.min + (self.density_range.max -
-                                          self.density_range.min) *
-                truncnorm((0 - 0.376) / 0.2, (1 - 0.376) / 0.2,
-                loc=0.376, scale=0.2).rvs())
+        if self.core is not None:
+            self.density = (self.density_range.min + (self.density_range.max -
+                            self.density_range.min) *
+                            truncnorm((0 - 0.376) / 0.2, (1 - 0.376) / 0.2,
+                            loc=0.376, scale=0.2).rvs())
 
     def random_diameter(self):
         """roll of 2d-2 in range [Dmin, Dmax]"""
-        return (self.diameter_range.min + np.random.triangular(0, .5, 1) *
-                (self.diameter_range.max - self.diameter_range.min))
+        if self.size is not None and self.core is not None:
+            self.diameter = (self.diameter_range.min + np.random.triangular(0, .5, 1) *
+                             (self.diameter_range.max - self.diameter_range.min))
 
     def random_volatile_mass(self):
         """sum of a 3d roll divided by 10"""
-        return truncnorm((3 - 10.5) / 2.958040, (18 - 10.5) / 2.958040,
-                         loc=10.5, scale=2.958040).rvs() / 10
+        if self.atmosphere is not None:
+            self.volatile_mass = truncnorm((3 - 10.5) / 2.958040, (18 - 10.5) / 2.958040,
+                                           loc=10.5, scale=2.958040).rvs() / 10
 
     @property
     def size(self):

@@ -1,4 +1,5 @@
 from .. import Range
+from .. import RandomizableModel
 from . import Atmosphere
 from . import World
 
@@ -10,7 +11,7 @@ from scipy.stats import truncnorm
 class SmallIce(World):
     """the small ice world model"""
 
-    class SmallIceAtmosphere(Atmosphere):
+    class SmallIceAtmosphere(Atmosphere, RandomizableModel):
         """the small ice atmosphere model"""
         _composition = ['N2', 'CH4']
         _suffocating = True
@@ -32,10 +33,9 @@ class SmallIce(World):
     _absorption = .93
     _atmosphere = SmallIceAtmosphere
 
-    @classmethod
-    def random_hydrosphere(cls):
+    def random_hydrosphere(self):
         """roll of 1d+2 divided by 10"""
-        return random.uniform(.3, .8)
+        self.hydrosphere = random.uniform(.3, .8)
 
     def __init__(self):
         super(SmallIce, self).__init__()

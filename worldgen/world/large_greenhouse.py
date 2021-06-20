@@ -27,10 +27,9 @@ class LargeGreenhouse(World):
     _absorption = .77
     _atmosphere = LargeGreenhouseAtmosphere
 
-    @classmethod
-    def random_hydrosphere(cls):
+    def random_hydrosphere(self):
         """roll of 2d-7 minimum at 0 and divided by 10"""
-        return max(np.random.triangular(-.5, 0, .5), 0)
+        self.hydrosphere = max(np.random.triangular(-.5, 0, .5), 0)
 
     def __init__(self):
         super(LargeGreenhouse, self).__init__()

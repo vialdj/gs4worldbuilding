@@ -1,3 +1,4 @@
+from .. import RandomizableModel
 from .. import Range
 from . import Atmosphere
 from . import World
@@ -10,7 +11,7 @@ from scipy.stats import truncnorm
 class StandardOcean(World):
     """the standard ocean world model"""
 
-    class StandardOceanAtmosphere(Atmosphere):
+    class StandardOceanAtmosphere(Atmosphere, RandomizableModel):
         """the standard ocean atmosphere model"""
         _composition = ['CO2', 'N2']
         _suffocating = True
@@ -29,10 +30,9 @@ class StandardOcean(World):
     _hydrosphere_range = Range(.5, 1)
     _atmosphere = StandardOceanAtmosphere
 
-    @classmethod
-    def random_hydrosphere(cls):
+    def random_hydrosphere(self):
         """roll of 1d+4 divided by 10"""
-        return random.uniform(.5, 1)
+        self.hydrosphere = random.uniform(.5, 1)
 
     @property
     def absorption(self):

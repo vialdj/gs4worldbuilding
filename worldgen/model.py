@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 
-from inspect import ismethod
-
 import numpy as np
 
 
@@ -39,11 +37,8 @@ class RandomizableModel(Model):
 
     def randomize(self, precedence):
         """randomizes applicable properties values with precedence constraints"""
-        # ranged properties
-        rng_props = list(filter(lambda x: hasattr(self, 'random_{}'.format(x)),
-                                precedence))
-        for prop in rng_props:
-            f = getattr(type(self), 'random_{}'.format(prop))
-            if getattr(self, '{}_range'.format(prop)):
-                val = f() if ismethod(f) else f(self)
-                setattr(self, prop, val)
+        # randomizable properties
+        props = list(filter(lambda x: hasattr(self, 'random_{}'.format(x)),
+                            precedence))
+        for prop in props:
+            getattr(type(self), 'random_{}'.format(prop))(self)

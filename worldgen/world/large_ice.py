@@ -23,10 +23,9 @@ class LargeIce(World):
     _absorption = .86
     _atmosphere = LargeIceAtmosphere
 
-    @classmethod
-    def random_hydrosphere(cls):
+    def random_hydrosphere(self):
         """roll of 2d-10 minimum at 0 and divided by 10"""
-        return max(np.random.triangular(-.8, -.3, .2), 0)
+        self.hydrosphere = max(np.random.triangular(-.8, -.3, .2), 0)
 
     def __init__(self):
         super(LargeIce, self).__init__()

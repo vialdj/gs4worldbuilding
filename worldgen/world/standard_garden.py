@@ -1,4 +1,5 @@
 from .. import Range
+from .. import RandomizableModel
 from .marginal_atmosphere import MarginalCandidate
 from . import Atmosphere
 from . import World
@@ -10,7 +11,8 @@ import random
 class StandardGarden(World):
     """the standard garden world model"""
 
-    class StandardGardenAtmosphere(Atmosphere, MarginalCandidate):
+    class StandardGardenAtmosphere(Atmosphere, MarginalCandidate,
+                                   RandomizableModel):
         """the standard garden atmosphere model"""
         _composition = ['N2', 'O2']
 
@@ -28,10 +30,9 @@ class StandardGarden(World):
     _hydrosphere_range = Range(.5, 1)
     _atmosphere = StandardGardenAtmosphere
 
-    @classmethod
-    def random_hydrosphere(cls):
+    def random_hydrosphere(self):
         """roll of 1d+4 divided by 10"""
-        return random.uniform(.5, 1)
+        self.hydrosphere = random.uniform(.5, 1)
 
     @property
     def absorption(self):

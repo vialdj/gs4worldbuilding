@@ -24,10 +24,9 @@ class StandardAmmonia(World):
     _absorption = .84
     _atmosphere = StandardAmmoniaAtmosphere
 
-    @classmethod
-    def random_hydrosphere(cls):
+    def random_hydrosphere(self):
         """roll of 2d maximum at 10 and divided by 10"""
-        return min(np.random.triangular(0.2, .7, 1.2), 1)
+        self.hydrosphere = min(np.random.triangular(0.2, .7, 1.2), 1)
 
     def __init__(self):
         super(StandardAmmonia, self).__init__()

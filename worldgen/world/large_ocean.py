@@ -22,10 +22,9 @@ class LargeOcean(World):
     _hydrosphere_range = Range(.7, 1)
     _atmosphere = LargeOceanAtmosphere
 
-    @classmethod
-    def random_hydrosphere(cls):
+    def random_hydrosphere(self):
         """roll of 1d+6 maxed at 10 divided by 10"""
-        return min(random.uniform(.7, 1.2), 1)
+        self.hydrosphere = min(random.uniform(.7, 1.2), 1)
 
     @property
     def absorption(self):
