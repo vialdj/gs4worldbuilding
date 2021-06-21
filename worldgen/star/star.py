@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from typing import Tuple
+
+from numpy.random import rand
 from .. import Range, RandomizableModel
 
 import random
@@ -13,7 +15,7 @@ import numpy as np
 class Star(RandomizableModel):
     """the star model"""
 
-    population = namedtuple('Population', ['base_age', 'step_a', 'step_b'])
+    population = namedtuple('Population', ['base', 'step_a', 'step_b'])
 
     class Population(population, Enum):
         """class Population Enum from Stellar Age Table"""
@@ -24,8 +26,7 @@ class Star(RandomizableModel):
         INTERMEDIATE_POPULATION_2 = (8, .6, .1)
         EXTREME_POPULATION_2 = (10, .6, .1)
 
-    @staticmethod
-    def random_mass():
+    def random_mass(self):
         """consecutive sum of a 3d roll times over Stellar Mass Table"""
         mass_distribution = {2: 0.002315, 1.9: 0.002315, 1.8: 0.003601121,
                              1.7: 0.005080129, 1.6: 0.00520875,
@@ -44,15 +45,23 @@ class Star(RandomizableModel):
                              0.3: 0.046875, 0.25: 0.125,
                              0.2: 0.11574, 0.15: 0.09722,
                              0.1: 0.16204}
-        return random.choices(mass_distribution.keys(),
-                              weights=mass_distribution.values, k=1)[0]
+        self.mass = random.choices(list(mass_distribution.keys()),
+                                   weights=list(mass_distribution.values()), k=1)[0]
 
-    @classmethod
-    def random_population(cls):
+    def random_population(self):
         """sum of a 3d roll over Stellar Age Table populations categories"""
-        return random.choices(list(cls.Population),
-                              weights=[0.00463, 0.08797, 0.4074, 0.4074,
-                                       0.08797, 0.00463], k=1)[0]
+        self.population = random.choices(list(self.Population),
+                                         weights=[0.00463, 0.08797, 0.4074,
+                                                  0.4074, 0.08797, 0.00463],
+                                         k=1)[0]
+
+    def random_age(self):
+        self._age = ((random.uniform(0, 5) * self.population.step_a +
+                     random.uniform(0, 5) * self.population.step_b) /
+                     ((self.population.step_a * 5 +
+                      self.population.step_b * 5) -
+                     (self.population.step_a +
+                      self.population.step_b)))
 
     @property
     def mass(self):
@@ -77,10 +86,28 @@ class Star(RandomizableModel):
     def population(self, value):
         if not isinstance(value, self.Population):
             raise ValueError('{} value type has to be {}'.format('population', self.Population))
-        _population = value
+        self._population = value
+
+    @property
+    def age(self):
+        """age in Ga"""
+        return self.population.base + ((self.population.step_a * 5 +
+                                        self.population.step_b * 5) -
+                                       (self.population.step_a +
+                                        self.population.step_b)) * self._age
+
+    @property
+    def age_range(self):
+        """computed value range for age"""
+        return Range(self.population.base, self.population.base +
+                     5 * self.population.step_a + 5 * self.population.step_b)
+
+    @age.setter
+    def age(self, value):
+        self._set_ranged_property('age', value)
 
     def __init__(self):
-        self.randomize(['mass', 'population'])
+        self.randomize(['mass', 'population', 'age'])
 
     def __iter__(self):
         """yield property names and values"""
