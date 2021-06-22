@@ -58,10 +58,7 @@ class Star(RandomizableModel):
     def random_age(self):
         self._age = ((random.uniform(0, 5) * self.population.step_a +
                      random.uniform(0, 5) * self.population.step_b) /
-                     ((self.population.step_a * 5 +
-                      self.population.step_b * 5) -
-                     (self.population.step_a +
-                      self.population.step_b)))
+                     (self.age_range.max - self.age_range.min))
 
     @property
     def mass(self):
@@ -91,10 +88,8 @@ class Star(RandomizableModel):
     @property
     def age(self):
         """age in Ga"""
-        return self.population.base + ((self.population.step_a * 5 +
-                                        self.population.step_b * 5) -
-                                       (self.population.step_a +
-                                        self.population.step_b)) * self._age
+        return self.population.base + (self.age_range.max -
+                                       self.age_range.min) * self._age
 
     @property
     def age_range(self):
