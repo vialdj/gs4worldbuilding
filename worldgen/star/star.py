@@ -26,6 +26,12 @@ class Star(RandomizableModel):
         INTERMEDIATE_POPULATION_2 = (8, .6, .1)
         EXTREME_POPULATION_2 = (10, .6, .1)
 
+    class Luminosity(Enum):
+        V = 'Main sequence',
+        IV = 'Subgiant',
+        III = 'Giant',
+        D = 'White dwarf'
+
     def random_mass(self):
         """consecutive sum of a 3d roll times over Stellar Mass Table"""
         mass_distribution = {2: 0.002315, 1.9: 0.002315, 1.8: 0.003601121,
@@ -100,6 +106,25 @@ class Star(RandomizableModel):
     @age.setter
     def age(self, value):
         self._set_ranged_property('age', value)
+
+    @property
+    def luminosity_class(self):
+        """the star luminosity class"""
+        return None
+
+    @property
+    def spectral_type(self):
+        spectral_types = {2: 'A5', 1.9: 'A6', 1.8: 'A5', 1.7: 'A9', 1.6: 'F0',
+                          1.5: 'F2', 1.45: 'F3', 1.4: 'F4', 1.35: 'F5',
+                          1.3: 'F6', 1.25: 'F7', 1.2: 'F8', 1.15: 'F9',
+                          1.10: 'G0', 1.05: 'G1', 1: 'G2', 0.95: 'G4',
+                          0.9: 'G6', 0.85: 'G8', 0.8: 'K0', 0.75: 'K2',
+                          0.7: 'K4', 0.65: 'K5', 0.6: 'K6', 0.55: 'K8',
+                          0.5: 'M0', 0.45: 'M1', 0.4: 'M2', 0.35: 'M3',
+                          0.3: 'M4', 0.25: 'M4', 0.2: 'M5', 0.15: 'M6',
+                          0.1: 'M7'}
+        return spectral_types[list(filter(lambda x: self.mass >= x,
+                              spectral_types.keys()))[0]]
 
     def __init__(self):
         self.randomize(['mass', 'population', 'age'])
