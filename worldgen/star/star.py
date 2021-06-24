@@ -28,6 +28,15 @@ class Star(RandomizableModel):
                                   'G1', 'G2', 'G4', 'G6', 'G8', 'K0', 'K2',
                                   'K4', 'K5', 'K6', 'K8', 'M0', 'M1', 'M2',
                                   'M3', 'M4', 'M4', 'M5', 'M6', 'M7'],
+                         'l_min': [16, 13, 11, 8.6, 6.7, 5.1, 4.3, 3.7, 3.1,
+                                   2.5, 2.1, 1.7, 1.4, 1.1, 0.87, 0.68, 0.56,
+                                   0.45, 0.36, 0.28, 0.23, 0.19, 0.15, 0.13,
+                                   0.11, 0.09, 0.07, 0.054, 0.037, 0.024,
+                                   0.015, 0.0079, 0.0036, 0.0012],
+                         'l_max': [20, 16, 13, 10, 8.2, 6.5, 5.7, 5.1, 4.5,
+                                   3.9, 3.5, 3.0, 2.6, 2.2, 1.9, 1.6, 1.3,
+                                   1.0, 0.84, 0.65, 0.48, 0.35, 0.25, 0.20,
+                                   0.15, 0.11, 0.08],
                          'm_span': [1.3, 1.5, 1.8, 2.1, 2.5, 3.0, 3.3, 3.7,
                                     4.1, 4.6, 5.2, 5.9, 6.7, 7.7, 8.8, 10,
                                     12, 14, 17, 20, 24, 30, 37, 42, 50, 59,
@@ -139,13 +148,29 @@ class Star(RandomizableModel):
         m_span = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].m_span
         s_span = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].s_span + m_span
         g_span = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].g_span + s_span
-        if (self.age > m_span and self.age <= s_span):
-            return self.Luminosity.IV
-        elif (self.age > s_span and self.age <= g_span):
-            return self.Luminosity.III
-        elif (self.age > g_span):
+        if (not np.isnan(g_span) and self.age > g_span):
             return self.Luminosity.D
+        elif (not np.isnan(s_span) and self.age > s_span):
+            return self.Luminosity.III
+        elif (not np.isnan(m_span) and self.age > m_span):
+            return self.Luminosity.IV
         return self.Luminosity.V
+
+    @property
+    def luminosity(self):
+        """star luminosity in L☉"""
+        l_min = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].l_min
+        l_max = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].l_max
+        m_span = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].m_span
+        if (np.isnan(l_max)):
+            return l_min
+        if (self.luminosity_class == self.Luminosity.IV):
+            return l_max
+        if (self.luminosity_class == self.Luminosity.III):
+            return l_max * 25
+        if (self.luminosity_class == self.Luminosity.D):
+            return .001
+        return (l_min + (self.age / m_span) * (l_max - l_min))
 
     @property
     def spectral_type(self):
