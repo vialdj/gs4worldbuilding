@@ -27,8 +27,18 @@ class Star(RandomizableModel):
                                   'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'G0',
                                   'G1', 'G2', 'G4', 'G6', 'G8', 'K0', 'K2',
                                   'K4', 'K5', 'K6', 'K8', 'M0', 'M1', 'M2',
-                                  'M3', 'M4', 'M4', 'M5', 'M6', 'M7']}
-    stellar_evolution = pd.DataFrame(stellar_evolution)
+                                  'M3', 'M4', 'M4', 'M5', 'M6', 'M7'],
+                         'm_span': [1.3, 1.5, 1.8, 2.1, 2.5, 3.0, 3.3, 3.7,
+                                    4.1, 4.6, 5.2, 5.9, 6.7, 7.7, 8.8, 10,
+                                    12, 14, 17, 20, 24, 30, 37, 42, 50, 59,
+                                    70],
+                         's_span': [0.2, 0.2, 0.3, 0.3, 0.4, 0.5, 0.5, 0.6,
+                                    0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6,
+                                    1.8],
+                         'g_span': [0.1, 0.1, 0.2, 0.2, 0.2, 0.3, 0.3, 0.4,
+                                    0.4, 0.4, 0.5, 0.6, 0.6, 0.7, 0.8, 1.0,
+                                    1.1]}
+    stellar_evolution = pd.DataFrame(dict([(k, pd.Series(v)) for k, v in stellar_evolution.items()]))
 
     class Population(population, Enum):
         """class Population Enum from Stellar Age Table"""
@@ -75,9 +85,12 @@ class Star(RandomizableModel):
                                          k=1)[0]
 
     def random_age(self):
-        self._age = ((random.uniform(0, 5) * self.population.step_a +
-                     random.uniform(0, 5) * self.population.step_b) /
-                     (self.age_range.max - self.age_range.min))
+        if (self.age_range.max - self.age_range.min) > 0:
+            self._age = ((random.uniform(0, 5) * self.population.step_a +
+                         random.uniform(0, 5) * self.population.step_b) /
+                         (self.age_range.max - self.age_range.min))
+        else:
+            self._age = np.nan
 
     @property
     def mass(self):
@@ -123,7 +136,16 @@ class Star(RandomizableModel):
     @property
     def luminosity_class(self):
         """the star luminosity class"""
-        return None
+        m_span = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].m_span
+        s_span = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].s_span + m_span
+        g_span = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].g_span + s_span
+        if (self.age > m_span and self.age <= s_span):
+            return self.Luminosity.IV
+        elif (self.age > s_span and self.age <= g_span):
+            return self.Luminosity.III
+        elif (self.age > g_span):
+            return self.Luminosity.D
+        return self.Luminosity.V
 
     @property
     def spectral_type(self):
