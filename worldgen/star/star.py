@@ -10,12 +10,25 @@ from enum import Enum
 from collections import namedtuple
 
 import numpy as np
+import pandas as pd
 
 
 class Star(RandomizableModel):
     """the star model"""
 
     population = namedtuple('Population', ['base', 'step_a', 'step_b'])
+
+    stellar_evolution = {'mass': [2, 1.9, 1.8, 1.7, 1.6, 1.5, 1.45, 1.4,
+                                  1.35, 1.3, 1.25, 1.2, 1.15, 1.10, 1.05,
+                                  1, 0.95, 0.9, 0.85, 0.8, 0.75, 0.7,
+                                  0.65, 0.6, 0.55, 0.5, 0.45, 0.4, 0.35,
+                                  0.3, 0.25, 0.2, 0.15, 0.1],
+                         'type': ['A5', 'A6', 'A7', 'A9', 'F0', 'F2', 'F3',
+                                  'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'G0',
+                                  'G1', 'G2', 'G4', 'G6', 'G8', 'K0', 'K2',
+                                  'K4', 'K5', 'K6', 'K8', 'M0', 'M1', 'M2',
+                                  'M3', 'M4', 'M4', 'M5', 'M6', 'M7']}
+    stellar_evolution = pd.DataFrame(stellar_evolution)
 
     class Population(population, Enum):
         """class Population Enum from Stellar Age Table"""
@@ -114,17 +127,7 @@ class Star(RandomizableModel):
 
     @property
     def spectral_type(self):
-        spectral_types = {2: 'A5', 1.9: 'A6', 1.8: 'A5', 1.7: 'A9', 1.6: 'F0',
-                          1.5: 'F2', 1.45: 'F3', 1.4: 'F4', 1.35: 'F5',
-                          1.3: 'F6', 1.25: 'F7', 1.2: 'F8', 1.15: 'F9',
-                          1.10: 'G0', 1.05: 'G1', 1: 'G2', 0.95: 'G4',
-                          0.9: 'G6', 0.85: 'G8', 0.8: 'K0', 0.75: 'K2',
-                          0.7: 'K4', 0.65: 'K5', 0.6: 'K6', 0.55: 'K8',
-                          0.5: 'M0', 0.45: 'M1', 0.4: 'M2', 0.35: 'M3',
-                          0.3: 'M4', 0.25: 'M4', 0.2: 'M5', 0.15: 'M6',
-                          0.1: 'M7'}
-        return spectral_types[list(filter(lambda x: self.mass >= x,
-                              spectral_types.keys()))[0]]
+        return self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].type
 
     def __init__(self):
         self.randomize(['mass', 'population', 'age'])
