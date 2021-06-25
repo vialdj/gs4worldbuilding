@@ -7,6 +7,7 @@ from .. import Range, RandomizableModel
 
 import random
 from enum import Enum
+from math import sqrt
 from collections import namedtuple
 
 import numpy as np
@@ -188,7 +189,29 @@ class Star(RandomizableModel):
             s_span = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].s_span
             return temp - ((self.age - m_span) / s_span) * (temp - 4800)
         # TODO: handle giant luminosity class
+        # TODO: handle white dwarves luminosity class
         return self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].temp
+
+    @property
+    def radius(self):
+        """radius in AU"""
+        # TODO: handle white dwarf luminosity class
+        return (155000 * sqrt(self.luminosity)) / self.temperature ** 2
+
+    @property
+    def inner_limit(self):
+        """inner limit in AU"""
+        return max(0.1 * self.mass, 0.01 * sqrt(self.luminosity))
+
+    @property
+    def outer_limit(self):
+        """outer limit in AU"""
+        return 40 * self.mass
+
+    @property
+    def snow_line(self):
+        """snow line in AU"""
+        return 4.85 * sqrt(self.luminosity)
 
     @property
     def spectral_type(self):
