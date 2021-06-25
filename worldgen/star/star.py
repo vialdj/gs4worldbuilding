@@ -28,6 +28,11 @@ class Star(RandomizableModel):
                                   'G1', 'G2', 'G4', 'G6', 'G8', 'K0', 'K2',
                                   'K4', 'K5', 'K6', 'K8', 'M0', 'M1', 'M2',
                                   'M3', 'M4', 'M4', 'M5', 'M6', 'M7'],
+                         'temp': [8200, 8000, 7800, 7500, 7300, 7000, 6900,
+                                  6700, 6600, 6500, 6400, 6300, 6100, 6000,
+                                  5900, 5800, 5700, 5500, 5400, 5200, 4900,
+                                  4600, 4400, 4200, 4000, 3800, 3600, 3500,
+                                  3400, 3300, 3300, 3200, 3200, 3100],
                          'l_min': [16, 13, 11, 8.6, 6.7, 5.1, 4.3, 3.7, 3.1,
                                    2.5, 2.1, 1.7, 1.4, 1.1, 0.87, 0.68, 0.56,
                                    0.45, 0.36, 0.28, 0.23, 0.19, 0.15, 0.13,
@@ -104,6 +109,7 @@ class Star(RandomizableModel):
     @property
     def mass(self):
         """mass in M☉"""
+        # TODO: handle white dwarf luminosity class mass
         return self._mass
 
     @property
@@ -158,12 +164,13 @@ class Star(RandomizableModel):
 
     @property
     def luminosity(self):
-        """star luminosity in L☉"""
+        """luminosity in L☉"""
         l_min = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].l_min
         l_max = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].l_max
         m_span = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].m_span
         if (np.isnan(l_max)):
             return l_min
+        # TODO: change to match-case after python 3.10 release
         if (self.luminosity_class == self.Luminosity.IV):
             return l_max
         if (self.luminosity_class == self.Luminosity.III):
@@ -171,6 +178,17 @@ class Star(RandomizableModel):
         if (self.luminosity_class == self.Luminosity.D):
             return .001
         return (l_min + (self.age / m_span) * (l_max - l_min))
+
+    @property
+    def temperature(self):
+        """effective temperature in K"""
+        if (self.luminosity_class == self.Luminosity.IV):
+            temp = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].temp
+            m_span = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].m_span
+            s_span = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].s_span
+            return temp - ((self.age - m_span) / s_span) * (temp - 4800)
+        # TODO: handle giant luminosity class
+        return self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].temp
 
     @property
     def spectral_type(self):
