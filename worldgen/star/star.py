@@ -12,14 +12,25 @@ from collections import namedtuple
 
 import numpy as np
 import pandas as pd
-
+import matplotlib.pyplot as plt
+import scipy.optimize
 
 class Star(RandomizableModel):
     """the star model"""
 
     population = namedtuple('Population', ['base', 'step_a', 'step_b'])
 
-    stellar_evolution = {'mass': [2, 1.9, 1.8, 1.7, 1.6, 1.5, 1.45, 1.4,
+    stellar_evolution = {'p': [0.002315, 0.002315, 0.003601121, 0.005080129,
+                               0.00520875, 0.004501471, 0.009388529,
+                               0.006687757, 0.007202243, 0.007502452,
+                               0.009860048, 0.0057875, 0.011146262,
+                               0.012003738, 0.011252058, 0.014787942, 0.00868,
+                               0.016716986, 0.018003014, 0.015753529,
+                               0.020703971, 0.0121525, 0.023404743,
+                               0.025205257, 0.030006752, 0.042330748,
+                               0.0434025, 0.0324075, 0.0457175, 0.046875,
+                               0.125, 0.11574, 0.09722, 0.16204],
+                         'mass': [2, 1.9, 1.8, 1.7, 1.6, 1.5, 1.45, 1.4,
                                   1.35, 1.3, 1.25, 1.2, 1.15, 1.10, 1.05,
                                   1, 0.95, 0.9, 0.85, 0.8, 0.75, 0.7,
                                   0.65, 0.6, 0.55, 0.5, 0.45, 0.4, 0.35,
@@ -72,25 +83,8 @@ class Star(RandomizableModel):
 
     def random_mass(self):
         """consecutive sum of a 3d roll times over Stellar Mass Table"""
-        mass_distribution = {2: 0.002315, 1.9: 0.002315, 1.8: 0.003601121,
-                             1.7: 0.005080129, 1.6: 0.00520875,
-                             1.5: 0.004501471, 1.45: 0.009388529,
-                             1.4: 0.006687757, 1.35: 0.007202243,
-                             1.3: 0.007502452, 1.25: 0.009860048,
-                             1.2: 0.0057875, 1.15: 0.011146262,
-                             1.10: 0.012003738, 1.05: 0.011252058,
-                             1: 0.014787942, 0.95: 0.00868,
-                             0.9: 0.016716986, 0.85: 0.018003014,
-                             0.8: 0.015753529, 0.75: 0.020703971,
-                             0.7: 0.0121525, 0.65: 0.023404743,
-                             0.6: 0.025205257, 0.55: 0.030006752,
-                             0.5: 0.042330748, 0.45: 0.0434025,
-                             0.4: 0.0324075, 0.35: 0.0457175,
-                             0.3: 0.046875, 0.25: 0.125,
-                             0.2: 0.11574, 0.15: 0.09722,
-                             0.1: 0.16204}
-        self.mass = random.choices(list(mass_distribution.keys()),
-                                   weights=list(mass_distribution.values()), k=1)[0]
+        self.mass = random.choices(list(self.stellar_evolution.mass),
+                                   weights=list(self.stellar_evolution.p), k=1)[0]
 
     def random_population(self):
         """sum of a 3d roll over Stellar Age Table populations categories"""
@@ -112,6 +106,11 @@ class Star(RandomizableModel):
         """mass in M☉"""
         # TODO: handle white dwarf luminosity class mass
         return self._mass
+
+    @property
+    def l_max(self):
+        """l_max fitted through the form a*exp(b*x)+c"""
+        return 0.320293 * np.exp(2.09055499 * self.mass) - 0.95302065 if self.mass >= .45 else np.nan
 
     @property
     def mass_range(self):
@@ -167,18 +166,17 @@ class Star(RandomizableModel):
     def luminosity(self):
         """luminosity in L☉"""
         l_min = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].l_min
-        l_max = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].l_max
         m_span = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].m_span
-        if (np.isnan(l_max)):
+        if (np.isnan(self.l_max)):
             return l_min
         # TODO: change to match-case after python 3.10 release
         if (self.luminosity_class == self.Luminosity.IV):
-            return l_max
+            return self.l_max
         if (self.luminosity_class == self.Luminosity.III):
-            return l_max * 25
+            return self.l_max * 25
         if (self.luminosity_class == self.Luminosity.D):
             return .001
-        return (l_min + (self.age / m_span) * (l_max - l_min))
+        return (l_min + (self.age / m_span) * (self.l_max - l_min))
 
     @property
     def temperature(self):
@@ -216,6 +214,22 @@ class Star(RandomizableModel):
     @property
     def spectral_type(self):
         return self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].type
+
+    def show(self):
+        stellar_evolution = self.stellar_evolution[self.stellar_evolution.mass >= .45]
+        #l_max = np.exp(stellar_evolution.mass * 2.62854207) * np.exp(-2.19029826)
+        l_max = 0.320293 * np.exp(2.09055499 * stellar_evolution.mass) - 0.95302065
+        _, ax = plt.subplots()
+        ax.set_title(r'l_max fitted through the form: $\mathcal{a}\/\mathcal{e}^{\mathcal{bx}}+\mathcal{c}$')
+        ax.plot(stellar_evolution.mass, stellar_evolution.l_max, 'o', label='l_max')
+        ax.plot(stellar_evolution.mass, l_max, '-', label='l_max fit')
+        ax.set_xlabel("mass in M☉")
+        ax.set_ylabel("l_max in L☉")
+        ax.legend()
+        ax.annotate(r"""$\mathcal{a} = \mathcal{0.320293}$
+$\mathcal{b} = \mathcal{2.09055499}$
+$\mathcal{c} = \mathcal{-0.95302065}$""", xy = (1.7, .25))
+        plt.show()
 
     def __init__(self):
         self.randomize(['mass', 'population', 'age'])
