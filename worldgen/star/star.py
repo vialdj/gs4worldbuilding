@@ -101,12 +101,6 @@ class Star(RandomizableModel):
         else:
             self._age = np.nan
 
-    @property
-    def mass(self):
-        """mass in M☉"""
-        # TODO: handle white dwarf luminosity class mass
-        return self._mass
-
     @staticmethod
     def __l_max(mass):
         """l_max fitted through the form a*exp(b*x)+c with threshold on .9"""
@@ -116,6 +110,17 @@ class Star(RandomizableModel):
             return 0.01864272 * np.exp(4.53674559 * mass) - 0.07758067
             return np.nan
         return np.nan
+
+    @staticmethod
+    def __l_min(mass):
+        """l_min fitted through the form a*exp(b*x)+c"""
+        return 4.33687595 * mass ** 3 - 5.79058616 * mass ** 2 + 2.42228237 * mass - 0.24000098
+
+    @property
+    def mass(self):
+        """mass in M☉"""
+        # TODO: handle white dwarf luminosity class mass
+        return self._mass
 
     @property
     def mass_range(self):
@@ -170,10 +175,9 @@ class Star(RandomizableModel):
     @property
     def luminosity(self):
         """luminosity in L☉"""
-        l_min = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].l_min
         m_span = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].m_span
         if (np.isnan(type(self).__l_max(self.mass))):
-            return l_min
+            return type(self).__l_min(self.mass)
         # TODO: change to match-case after python 3.10 release
         if (self.luminosity_class == self.Luminosity.IV):
             return type(self).__l_max(self.mass)
@@ -181,7 +185,7 @@ class Star(RandomizableModel):
             return type(self).__l_max(self.mass) * 25
         if (self.luminosity_class == self.Luminosity.D):
             return .001
-        return (l_min + (self.age / m_span) * (type(self).__l_max(self.mass) - l_min))
+        return (type(self).__l_min(self.mass) + (self.age / m_span) * (type(self).__l_max(self.mass) - l_min))
 
     @property
     def temperature(self):
@@ -222,28 +226,27 @@ class Star(RandomizableModel):
 
     def show(self):
         _, ax = plt.subplots()
-        stellar_evolution = self.stellar_evolution[self.stellar_evolution.mass >= .45]
-        ax.set_title(r"""l_max fitted through the form:$\mathcal{a}\/\mathcal{e}^{\mathcal{bx}}+\mathcal{c}$, $\mathcal{if}\/\mathcal{x} \geq \mathcal{.95}$
-$\mathcal{a}\prime\/\mathcal{e}^{\mathcal{b}\prime\mathcal{x}}+\mathcal{c}\prime$, $\mathcal{otherwise}$""")
-        ax.plot(self.stellar_evolution.mass, self.stellar_evolution.l_max, 'o', label='l_max')
-        print(scipy.optimize.curve_fit(lambda x, a, b, c: a * np.exp(b * x) + c, stellar_evolution.mass, stellar_evolution.l_max))
-        l_max = stellar_evolution.mass.map(type(self).__l_max)
-        ax.plot(stellar_evolution.mass, l_max, '-', label='l_max fit')
+        ax.set_title(r"""l_min fitted through the form: $\mathcal{a}\mathcal{x}^{3}+\mathcal{b}\mathcal{x}^{2}+\mathcal{c}\mathcal{x}+\mathcal{d}$""")
+        ax.plot(self.stellar_evolution.mass, self.stellar_evolution.l_min, 'o', label='l_min')
+        print(scipy.optimize.curve_fit(lambda x, a, b, c, d: a * x ** 3 + b * x ** 2 + c * x + d, self.stellar_evolution.mass, self.stellar_evolution.l_min))
+        l_min = self.stellar_evolution.mass.map(type(self).__l_min)
+        ax.plot(self.stellar_evolution.mass, l_min, '-', label='l_min fit')
         ax.set_xlabel("mass in M☉")
-        ax.set_ylabel("l_max in L☉")
+        ax.set_ylabel("l_min in L☉")
         ax.legend()
         # residual sum of squares
-        ss_res = np.sum((self.stellar_evolution.l_max - l_max) ** 2)
+        ss_res = np.sum((self.stellar_evolution.l_min - l_min) ** 2)
         # total sum of squares
-        ss_tot = np.sum((self.stellar_evolution.l_max - np.mean(self.stellar_evolution.l_max)) ** 2)
+        ss_tot = np.sum((self.stellar_evolution.l_min - np.mean(self.stellar_evolution.l_min)) ** 2)
         # r-squared
         r2 = 1 - (ss_res / ss_tot)
-        ax.annotate(r"""$\mathcal{a} = \mathcal{0.320293}$ $\mathcal{a}\prime = \mathcal{0.01864272}$
-$\mathcal{b} = \mathcal{2.09055499}$ $\mathcal{b}\prime = \mathcal{4.53674559}$
-$\mathcal{c} = \mathcal{-0.95302065}$ $\mathcal{c}\prime = \mathcal{-0.07758067}$
-$\mathcal{R}^{2} = \mathcal{""" + str(r2) + """}$""", xy=(1.36, .125))
-        stellar_evolution['l_max fit'] = l_max
-        #print(stellar_evolution[['mass', 'l_max', 'l_max fit']])
+        ax.annotate(r"""$\mathcal{a} = \mathcal{4.33687595}$
+$\mathcal{b} = \mathcal{5.79058616}$
+$\mathcal{c} = \mathcal{2.42228237}$
+$\mathcal{d} = \mathcal{0.24000098}$
+$\mathcal{R}^{2} = \mathcal{""" + str(r2) + """}$""", xy=(1.4, -0.35))
+        self.stellar_evolution['l_min fit'] = l_min
+        print(self.stellar_evolution[['mass', 'l_min', 'l_min fit']])
         plt.show()
 
     def __init__(self):
