@@ -15,6 +15,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.stats import truncexpon, kstest
+from scipy.optimize import curve_fit
 
 class Star(RandomizableModel):
     """the star model"""
@@ -122,6 +123,13 @@ class Star(RandomizableModel):
         """l_min fitted through the form a*exp(b*x)+c"""
         return 4.33687595 * mass ** 3 - 5.79058616 * mass ** 2 + 2.42228237 * mass - 0.24000098
 
+    @staticmethod
+    def __m_span(mass):
+        """m_span fitted through the form a*exp(b*x)+c"""
+        if mass >= .45:
+            return 355.25732733 * np.exp(-3.62394465 * mass) - 1.19842708
+        return np.nan
+
     @property
     def mass(self):
         """mass in M☉"""
@@ -167,7 +175,7 @@ class Star(RandomizableModel):
     @property
     def luminosity_class(self):
         """the star luminosity class"""
-        m_span = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].m_span
+        m_span = type(self).__m_span(self.mass)
         s_span = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].s_span + m_span
         g_span = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].g_span + s_span
         if (not np.isnan(g_span) and self.age > g_span):
@@ -181,7 +189,7 @@ class Star(RandomizableModel):
     @property
     def luminosity(self):
         """luminosity in L☉"""
-        m_span = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].m_span
+        m_span = type(self).__m_span(self.mass)
         if (np.isnan(type(self).__l_max(self.mass))):
             return type(self).__l_min(self.mass)
         # TODO: change to match-case after python 3.10 release
@@ -198,7 +206,7 @@ class Star(RandomizableModel):
         """effective temperature in K"""
         if (self.luminosity_class == self.Luminosity.IV):
             temp = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].temp
-            m_span = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].m_span
+            m_span = type(self).__m_span(self.mass)
             s_span = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].s_span
             return temp - ((self.age - m_span) / s_span) * (temp - 4800)
         # TODO: handle giant luminosity class
@@ -214,7 +222,6 @@ class Star(RandomizableModel):
     @property
     def inner_limit(self):
         """inner limit in AU"""
-        print(self.mass)
         return max(0.1 * self.mass, 0.01 * sqrt(self.luminosity))
 
     @property
@@ -233,30 +240,29 @@ class Star(RandomizableModel):
 
     def show(self):
         _, ax = plt.subplots()
-        ax.set_title(r"""P(mass) fitted through truncexpon distribution""")
-        ax.plot(self.stellar_evolution.mass, self.stellar_evolution.p, 'o', label='P(mass)')
-        data = random.choices(list(self.stellar_evolution.mass), weights=list(self.stellar_evolution.p), k=1000)
-        upper, lower = 2, .1
-        b, mu, sigma = truncexpon.fit(data, fb=upper-lower, floc=lower)
-        dist = truncexpon(b=b / sigma, scale=sigma, loc=mu)
-        fitness = kstest(data, [b, mu, sigma], 'truncexpon')
-        p = dist.pdf(self.stellar_evolution.mass)
-        r = dist.rvs(size=1000)
-        ax.hist(r, density=True, histtype='stepfilled', alpha=0.2, label='random 1000 sample')
-        ax.plot(self.stellar_evolution.mass, p, '-', label='fitted pdf')
+        ax.set_title(r"""s_span fitted through the form: $\mathcal{a}\/\mathcal{e}^\mathcal{bx}+\mathcal{c}$""")
+        x = self.stellar_evolution.mass[self.stellar_evolution.mass >= .95]
+        y = self.stellar_evolution.s_span[np.isnan(self.stellar_evolution.s_span) == False]
+        sigma = np.append(.25, np.repeat(1.0, 16))
+        ax.plot(x, y, 'o', label='s_span')
+        popt, _ = curve_fit(lambda x, a, b: a * np.exp(b * x), x, y, maxfev=3000, sigma=sigma)
+        a, b = popt
+        c = 0
+        y_pred = x.map(lambda x: a * np.exp(b * x) + c)
+        ax.plot(x, y_pred, '-', label='s_span fit')
         ax.set_xlabel("mass in M☉")
-        ax.set_ylabel("P")
+        ax.set_ylabel("s_span in Ga")
         ax.legend()
         # residual sum of squares
-        ss_res = np.sum((self.stellar_evolution.p - p) ** 2)
+        ss_res = np.sum((y - y_pred) ** 2)
         # total sum of squares
-        ss_tot = np.sum((self.stellar_evolution.p - np.mean(self.stellar_evolution.p)) ** 2)
+        ss_tot = np.sum((y - np.mean(y)) ** 2)
         # r-squared
         r2 = 1 - (ss_res / ss_tot)
-        ax.annotate(r"""$\mathcal{b} = \mathcal{""" + str(b) + """}$
-$\mu = \mathcal{""" + str(mu) + """}$
-$\sigma = \mathcal{""" + str(sigma) + """}$
-$\mathcal{KS test} = \mathcal{""" + str(fitness.statistic) + """}, \mathcal{""" + str(fitness.pvalue) + """}$""", xy=(.6, .8))
+        ax.annotate(r"""$\mathcal{a} = \mathcal{""" + str(a) + """}$
+$\mathcal{b} = \mathcal{""" + str(b) + """}$
+$\mathcal{c} = \mathcal{""" + str(c) + """}$
+$\mathcal{r2} = \mathcal{""" + str(r2) + """}$""", xy=(1.6, 1))
         plt.show()
 
     def __init__(self):
