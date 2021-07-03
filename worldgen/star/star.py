@@ -5,6 +5,7 @@ from typing import Tuple
 from numpy.random import rand
 from .. import Range, RandomizableModel
 
+import sys
 import random
 from enum import Enum
 from math import sqrt
@@ -13,7 +14,7 @@ from collections import namedtuple
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import scipy.optimize
+from scipy.stats import truncexpon, kstest
 
 class Star(RandomizableModel):
     """the star model"""
@@ -83,8 +84,13 @@ class Star(RandomizableModel):
 
     def random_mass(self):
         """consecutive sum of a 3d roll times over Stellar Mass Table"""
-        self.mass = random.choices(list(self.stellar_evolution.mass),
-                                   weights=list(self.stellar_evolution.p), k=1)[0]
+        upper, lower = 2, .1
+        b = upper - lower
+        mu = lower
+        sigma = .3164
+        self.mass = truncexpon(b=b / sigma, scale=sigma, loc=mu).rvs()
+        """self.mass = random.choices(list(self.stellar_evolution.mass),
+                                   weights=list(self.stellar_evolution.p), k=1)[0]"""
 
     def random_population(self):
         """sum of a 3d roll over Stellar Age Table populations categories"""
@@ -208,6 +214,7 @@ class Star(RandomizableModel):
     @property
     def inner_limit(self):
         """inner limit in AU"""
+        print(self.mass)
         return max(0.1 * self.mass, 0.01 * sqrt(self.luminosity))
 
     @property
@@ -226,27 +233,30 @@ class Star(RandomizableModel):
 
     def show(self):
         _, ax = plt.subplots()
-        ax.set_title(r"""l_min fitted through the form: $\mathcal{a}\mathcal{x}^{3}+\mathcal{b}\mathcal{x}^{2}+\mathcal{c}\mathcal{x}+\mathcal{d}$""")
-        ax.plot(self.stellar_evolution.mass, self.stellar_evolution.l_min, 'o', label='l_min')
-        print(scipy.optimize.curve_fit(lambda x, a, b, c, d: a * x ** 3 + b * x ** 2 + c * x + d, self.stellar_evolution.mass, self.stellar_evolution.l_min))
-        l_min = self.stellar_evolution.mass.map(type(self).__l_min)
-        ax.plot(self.stellar_evolution.mass, l_min, '-', label='l_min fit')
+        ax.set_title(r"""P(mass) fitted through truncexpon distribution""")
+        ax.plot(self.stellar_evolution.mass, self.stellar_evolution.p, 'o', label='P(mass)')
+        data = random.choices(list(self.stellar_evolution.mass), weights=list(self.stellar_evolution.p), k=1000)
+        upper, lower = 2, .1
+        b, mu, sigma = truncexpon.fit(data, fb=upper-lower, floc=lower)
+        dist = truncexpon(b=b / sigma, scale=sigma, loc=mu)
+        fitness = kstest(data, [b, mu, sigma], 'truncexpon')
+        p = dist.pdf(self.stellar_evolution.mass)
+        r = dist.rvs(size=1000)
+        ax.hist(r, density=True, histtype='stepfilled', alpha=0.2, label='random 1000 sample')
+        ax.plot(self.stellar_evolution.mass, p, '-', label='fitted pdf')
         ax.set_xlabel("mass in M☉")
-        ax.set_ylabel("l_min in L☉")
+        ax.set_ylabel("P")
         ax.legend()
         # residual sum of squares
-        ss_res = np.sum((self.stellar_evolution.l_min - l_min) ** 2)
+        ss_res = np.sum((self.stellar_evolution.p - p) ** 2)
         # total sum of squares
-        ss_tot = np.sum((self.stellar_evolution.l_min - np.mean(self.stellar_evolution.l_min)) ** 2)
+        ss_tot = np.sum((self.stellar_evolution.p - np.mean(self.stellar_evolution.p)) ** 2)
         # r-squared
         r2 = 1 - (ss_res / ss_tot)
-        ax.annotate(r"""$\mathcal{a} = \mathcal{4.33687595}$
-$\mathcal{b} = \mathcal{5.79058616}$
-$\mathcal{c} = \mathcal{2.42228237}$
-$\mathcal{d} = \mathcal{0.24000098}$
-$\mathcal{R}^{2} = \mathcal{""" + str(r2) + """}$""", xy=(1.4, -0.35))
-        self.stellar_evolution['l_min fit'] = l_min
-        print(self.stellar_evolution[['mass', 'l_min', 'l_min fit']])
+        ax.annotate(r"""$\mathcal{b} = \mathcal{""" + str(b) + """}$
+$\mu = \mathcal{""" + str(mu) + """}$
+$\sigma = \mathcal{""" + str(sigma) + """}$
+$\mathcal{KS test} = \mathcal{""" + str(fitness.statistic) + """}, \mathcal{""" + str(fitness.pvalue) + """}$""", xy=(.6, .8))
         plt.show()
 
     def __init__(self):
