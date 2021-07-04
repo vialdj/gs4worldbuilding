@@ -130,6 +130,13 @@ class Star(RandomizableModel):
             return 355.25732733 * np.exp(-3.62394465 * mass) - 1.19842708
         return np.nan
 
+    @staticmethod
+    def __s_span(mass):
+        """s_span fitted through the form a*exp(b*x)"""
+        if mass >= .45:
+            return 18.445568275396568 * np.exp(-2.471832533773299 * mass)
+        return np.nan
+
     @property
     def mass(self):
         """mass in M☉"""
@@ -176,7 +183,7 @@ class Star(RandomizableModel):
     def luminosity_class(self):
         """the star luminosity class"""
         m_span = type(self).__m_span(self.mass)
-        s_span = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].s_span + m_span
+        s_span = type(self).__s_span(self.mass)
         g_span = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].g_span + s_span
         if (not np.isnan(g_span) and self.age > g_span):
             return self.Luminosity.D
@@ -199,7 +206,7 @@ class Star(RandomizableModel):
             return type(self).__l_max(self.mass) * 25
         if (self.luminosity_class == self.Luminosity.D):
             return .001
-        return (type(self).__l_min(self.mass) + (self.age / m_span) * (type(self).__l_max(self.mass) - l_min))
+        return (type(self).__l_min(self.mass) + (self.age / m_span) * (type(self).__l_max(self.mass) - type(self).__l_min(self.mass)))
 
     @property
     def temperature(self):
@@ -207,7 +214,7 @@ class Star(RandomizableModel):
         if (self.luminosity_class == self.Luminosity.IV):
             temp = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].temp
             m_span = type(self).__m_span(self.mass)
-            s_span = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].s_span
+            s_span = type(self).__s_span(self.mass)
             return temp - ((self.age - m_span) / s_span) * (temp - 4800)
         # TODO: handle giant luminosity class
         # TODO: handle white dwarves luminosity class
@@ -240,18 +247,17 @@ class Star(RandomizableModel):
 
     def show(self):
         _, ax = plt.subplots()
-        ax.set_title(r"""s_span fitted through the form: $\mathcal{a}\/\mathcal{e}^\mathcal{bx}+\mathcal{c}$""")
+        ax.set_title(r"""g_span fitted through the form: $\mathcal{a}\/\mathcal{e}^\mathcal{bx}$""")
         x = self.stellar_evolution.mass[self.stellar_evolution.mass >= .95]
-        y = self.stellar_evolution.s_span[np.isnan(self.stellar_evolution.s_span) == False]
-        sigma = np.append(.25, np.repeat(1.0, 16))
-        ax.plot(x, y, 'o', label='s_span')
-        popt, _ = curve_fit(lambda x, a, b: a * np.exp(b * x), x, y, maxfev=3000, sigma=sigma)
+        y = self.stellar_evolution.g_span[np.isnan(self.stellar_evolution.g_span) == False]
+        ax.plot(x, y, 'o', label='g_span')
+        popt, _ = curve_fit(lambda x, a, b: a * np.exp(b * x), x, y, maxfev=3000)
         a, b = popt
-        c = 0
-        y_pred = x.map(lambda x: a * np.exp(b * x) + c)
-        ax.plot(x, y_pred, '-', label='s_span fit')
+        print(a, b)
+        y_pred = x.map(lambda x: a * np.exp(b * x))
+        ax.plot(x, y_pred, '-', label='g_span fit')
         ax.set_xlabel("mass in M☉")
-        ax.set_ylabel("s_span in Ga")
+        ax.set_ylabel("g_span in Ga")
         ax.legend()
         # residual sum of squares
         ss_res = np.sum((y - y_pred) ** 2)
@@ -261,8 +267,7 @@ class Star(RandomizableModel):
         r2 = 1 - (ss_res / ss_tot)
         ax.annotate(r"""$\mathcal{a} = \mathcal{""" + str(a) + """}$
 $\mathcal{b} = \mathcal{""" + str(b) + """}$
-$\mathcal{c} = \mathcal{""" + str(c) + """}$
-$\mathcal{r2} = \mathcal{""" + str(r2) + """}$""", xy=(1.6, 1))
+$\mathcal{r2} = \mathcal{""" + str(r2) + """}$""", xy=(1.6, .5))
         plt.show()
 
     def __init__(self):
