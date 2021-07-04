@@ -1,11 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from typing import Tuple
-
-from numpy.random import rand
 from .. import Range, RandomizableModel
 
-import sys
 import random
 from enum import Enum
 from math import sqrt
@@ -13,8 +9,7 @@ from collections import namedtuple
 
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from scipy.stats import truncexpon, kstest
+from scipy.stats import truncexpon
 
 
 class Star(RandomizableModel):
@@ -56,8 +51,6 @@ class Star(RandomizableModel):
         mu = lower
         sigma = .3164
         self.mass = truncexpon(b=b / sigma, scale=sigma, loc=mu).rvs()
-        """self.mass = random.choices(list(self.stellar_evolution.mass),
-                                   weights=list(self.stellar_evolution.p), k=1)[0]"""
 
     def random_population(self):
         """sum of a 3d roll over Stellar Age Table populations categories"""
