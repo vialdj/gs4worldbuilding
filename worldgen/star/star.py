@@ -133,8 +133,15 @@ class Star(RandomizableModel):
     @staticmethod
     def __s_span(mass):
         """s_span fitted through the form a*exp(b*x)"""
-        if mass >= .45:
+        if mass >= .95:
             return 18.445568275396568 * np.exp(-2.471832533773299 * mass)
+        return np.nan
+
+    @staticmethod
+    def __g_span(mass):
+        """g_span fitted through the form a*exp(b*x)"""
+        if mass >= .95:
+            return 11.045171731219448 * np.exp(-2.4574060414344223 * mass)
         return np.nan
 
     @property
@@ -184,7 +191,7 @@ class Star(RandomizableModel):
         """the star luminosity class"""
         m_span = type(self).__m_span(self.mass)
         s_span = type(self).__s_span(self.mass)
-        g_span = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].g_span + s_span
+        g_span = type(self).__g_span(self.mass)
         if (not np.isnan(g_span) and self.age > g_span):
             return self.Luminosity.D
         elif (not np.isnan(s_span) and self.age > s_span):
