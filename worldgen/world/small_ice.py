@@ -3,8 +3,7 @@ from .. import RandomizableModel
 from . import Atmosphere
 from . import World
 
-import random
-
+from random import uniform
 from scipy.stats import truncnorm
 
 
@@ -35,7 +34,7 @@ class SmallIce(World):
 
     def random_hydrosphere(self):
         """roll of 1d+2 divided by 10"""
-        self.hydrosphere = random.uniform(.3, .8)
+        self.hydrosphere = uniform(.3, .8)
 
     def __init__(self):
         super(SmallIce, self).__init__()

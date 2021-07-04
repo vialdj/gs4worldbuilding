@@ -4,8 +4,8 @@ from .marginal_atmosphere import MarginalCandidate
 from . import Atmosphere
 from . import World
 
+from random import uniform
 from scipy.stats import truncnorm
-import random
 
 
 class StandardGarden(World):
@@ -32,7 +32,7 @@ class StandardGarden(World):
 
     def random_hydrosphere(self):
         """roll of 1d+4 divided by 10"""
-        self.hydrosphere = random.uniform(.5, 1)
+        self.hydrosphere = uniform(.5, 1)
 
     @property
     def absorption(self):

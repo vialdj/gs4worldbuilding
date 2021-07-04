@@ -3,8 +3,7 @@ from .. import Range
 from . import Atmosphere
 from . import World
 
-import random
-
+from random import uniform
 from scipy.stats import truncnorm
 
 
@@ -32,7 +31,7 @@ class StandardOcean(World):
 
     def random_hydrosphere(self):
         """roll of 1d+4 divided by 10"""
-        self.hydrosphere = random.uniform(.5, 1)
+        self.hydrosphere = uniform(.5, 1)
 
     @property
     def absorption(self):

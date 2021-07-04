@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 from .. import Model
 from enum import Enum
 

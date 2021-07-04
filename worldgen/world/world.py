@@ -4,7 +4,7 @@ from .. import Range, RandomizableModel
 from .marginal_atmosphere import Marginal
 from . import Atmosphere
 
-import random
+from random import choices
 from enum import Enum
 from math import sqrt, floor
 
@@ -60,8 +60,8 @@ class World(RandomizableModel):
         """sum of a 3d roll times over default worlds Ressource Value Table"""
         ressource_distribution = [0, 0, 0, .01852, .14352, .67592,
                                   .14352, .01852, 0, 0, 0]
-        self.ressource = random.choices(list(self.Ressource),
-                                        weights=ressource_distribution, k=1)[0]
+        self.ressource = choices(list(self.Ressource),
+                                 weights=ressource_distribution, k=1)[0]
 
     def random_temperature(self):
         """sum of a 3d-3 roll times step value add minimum"""

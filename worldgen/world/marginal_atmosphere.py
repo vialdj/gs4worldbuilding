@@ -1,8 +1,9 @@
 from .atmosphere import Atmosphere
 from .. import Range
 
-import random
 import copy
+
+from random import choices
 
 
 class Marginal():
@@ -98,7 +99,7 @@ def pollutants(atmosphere):
     return Pollutants
 
 
-class MarginalCandidate:
+class MarginalCandidate(object):
     """the MarginalCandidate class to be inherited by marginalizable
 specialized atmospheres"""
 
@@ -122,9 +123,9 @@ provided marginal modifier or one at random"""
         }
 
         if marginal_type is None:
-            marginal_type = random.choices(list(marginal_distribution.keys()),
-                                           weights=list(marginal_distribution
-                                                        .values()))[0]
+            marginal_type = choices(list(marginal_distribution.keys()),
+                                    weights=list(marginal_distribution
+                                                 .values()))[0]
 
         base = copy.copy(self)
         marginal = self

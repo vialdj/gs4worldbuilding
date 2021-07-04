@@ -5,7 +5,7 @@ from . import Atmosphere
 from . import World
 
 from scipy.stats import truncnorm
-import random
+from random import uniform
 
 
 class LargeGarden(World):
@@ -32,7 +32,7 @@ class LargeGarden(World):
 
     def random_hydrosphere(self):
         """roll of 1d+6 maxed at 10 divided by 10"""
-        self.hydrosphere = min(random.uniform(.7, 1.2), 1)
+        self.hydrosphere = min(uniform(.7, 1.2), 1)
 
     @property
     def absorption(self):
