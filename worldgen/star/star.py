@@ -143,6 +143,11 @@ class Star(RandomizableModel):
         if mass >= .95:
             return 11.045171731219448 * np.exp(-2.4574060414344223 * mass)
         return np.nan
+    
+    @staticmethod
+    def __temp(mass):
+        """temp fitted through the form a * x + b)"""
+        return 2948.6212815383583 * mass + 2598.6586686607316
 
     @property
     def mass(self):
@@ -219,13 +224,13 @@ class Star(RandomizableModel):
     def temperature(self):
         """effective temperature in K"""
         if (self.luminosity_class == self.Luminosity.IV):
-            temp = self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].temp
+            temp = type(self).__temp(self.mass)
             m_span = type(self).__m_span(self.mass)
             s_span = type(self).__s_span(self.mass)
             return temp - ((self.age - m_span) / s_span) * (temp - 4800)
         # TODO: handle giant luminosity class
         # TODO: handle white dwarves luminosity class
-        return self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].temp
+        return type(self).__temp(self.mass)
 
     @property
     def radius(self):
@@ -254,17 +259,17 @@ class Star(RandomizableModel):
 
     def show(self):
         _, ax = plt.subplots()
-        ax.set_title(r"""g_span fitted through the form: $\mathcal{a}\/\mathcal{e}^\mathcal{bx}$""")
-        x = self.stellar_evolution.mass[self.stellar_evolution.mass >= .95]
-        y = self.stellar_evolution.g_span[np.isnan(self.stellar_evolution.g_span) == False]
-        ax.plot(x, y, 'o', label='g_span')
-        popt, _ = curve_fit(lambda x, a, b: a * np.exp(b * x), x, y, maxfev=3000)
+        ax.set_title(r"""temp fitted through the form: $\mathcal{a}\/\mathcal{x}+\mathcal{b}$""")
+        x = self.stellar_evolution.mass
+        y = self.stellar_evolution.temp
+        ax.plot(x, y, 'o', label='temp')
+        popt, _ = curve_fit(lambda x, a, b: a * x + b, x, y, maxfev=3000)
         a, b = popt
         print(a, b)
-        y_pred = x.map(lambda x: a * np.exp(b * x))
-        ax.plot(x, y_pred, '-', label='g_span fit')
+        y_pred = x.map(lambda x: a * x + b)
+        ax.plot(x, y_pred, '-', label='temp fit')
         ax.set_xlabel("mass in M☉")
-        ax.set_ylabel("g_span in Ga")
+        ax.set_ylabel("temp in K")
         ax.legend()
         # residual sum of squares
         ss_res = np.sum((y - y_pred) ** 2)
