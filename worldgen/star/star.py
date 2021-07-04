@@ -39,9 +39,9 @@ class Star(RandomizableModel):
         EXTREME_POPULATION_2 = (10, .6, .1)
 
     class Luminosity(Enum):
-        V = 'Main sequence',
-        IV = 'Subgiant',
-        III = 'Giant',
+        V = 'Main sequence'
+        IV = 'Subgiant'
+        III = 'Giant'
         D = 'White dwarf'
 
     def random_mass(self):
@@ -72,9 +72,8 @@ class Star(RandomizableModel):
         """l_max fitted through the form a*exp(b*x)+c with threshold on .9"""
         if mass >= .95:
             return 0.320293 * np.exp(2.09055499 * mass) - 0.95302065
-        elif mass >= .45:
+        if mass >= .45:
             return 0.01864272 * np.exp(4.53674559 * mass) - 0.07758067
-            return np.nan
         return np.nan
 
     @staticmethod
@@ -158,9 +157,9 @@ class Star(RandomizableModel):
         g_span = type(self).__g_span(self.mass)
         if (not np.isnan(g_span) and self.age > g_span):
             return self.Luminosity.D
-        elif (not np.isnan(s_span) and self.age > s_span):
+        if (not np.isnan(s_span) and self.age > s_span):
             return self.Luminosity.III
-        elif (not np.isnan(m_span) and self.age > m_span):
+        if (not np.isnan(m_span) and self.age > m_span):
             return self.Luminosity.IV
         return self.Luminosity.V
 
@@ -218,15 +217,3 @@ class Star(RandomizableModel):
 
     def __init__(self):
         self.randomize(['mass', 'population', 'age'])
-
-    def __iter__(self):
-        """yield property names and values"""
-        for prop in list(filter(lambda x: hasattr(type(self), x)
-                         and isinstance(getattr(type(self), x), property),
-                         dir(self))):
-            yield prop, getattr(self, prop)
-
-    def __str__(self):
-        return ('{{class: {}, {}}}'.format(self.__class__.__name__,
-                                           ', '.join(['{}: {!s}'.format(prop, value)
-                                                     for prop, value in self])))
