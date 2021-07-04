@@ -15,24 +15,14 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from scipy.stats import truncexpon, kstest
-from scipy.optimize import curve_fit
+
 
 class Star(RandomizableModel):
     """the star model"""
 
     population = namedtuple('Population', ['base', 'step_a', 'step_b'])
 
-    stellar_evolution = {'p': [0.002315, 0.002315, 0.003601121, 0.005080129,
-                               0.00520875, 0.004501471, 0.009388529,
-                               0.006687757, 0.007202243, 0.007502452,
-                               0.009860048, 0.0057875, 0.011146262,
-                               0.012003738, 0.011252058, 0.014787942, 0.00868,
-                               0.016716986, 0.018003014, 0.015753529,
-                               0.020703971, 0.0121525, 0.023404743,
-                               0.025205257, 0.030006752, 0.042330748,
-                               0.0434025, 0.0324075, 0.0457175, 0.046875,
-                               0.125, 0.11574, 0.09722, 0.16204],
-                         'mass': [2, 1.9, 1.8, 1.7, 1.6, 1.5, 1.45, 1.4,
+    stellar_evolution = {'mass': [2, 1.9, 1.8, 1.7, 1.6, 1.5, 1.45, 1.4,
                                   1.35, 1.3, 1.25, 1.2, 1.15, 1.10, 1.05,
                                   1, 0.95, 0.9, 0.85, 0.8, 0.75, 0.7,
                                   0.65, 0.6, 0.55, 0.5, 0.45, 0.4, 0.35,
@@ -41,31 +31,7 @@ class Star(RandomizableModel):
                                   'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'G0',
                                   'G1', 'G2', 'G4', 'G6', 'G8', 'K0', 'K2',
                                   'K4', 'K5', 'K6', 'K8', 'M0', 'M1', 'M2',
-                                  'M3', 'M4', 'M4', 'M5', 'M6', 'M7'],
-                         'temp': [8200, 8000, 7800, 7500, 7300, 7000, 6900,
-                                  6700, 6600, 6500, 6400, 6300, 6100, 6000,
-                                  5900, 5800, 5700, 5500, 5400, 5200, 4900,
-                                  4600, 4400, 4200, 4000, 3800, 3600, 3500,
-                                  3400, 3300, 3300, 3200, 3200, 3100],
-                         'l_min': [16, 13, 11, 8.6, 6.7, 5.1, 4.3, 3.7, 3.1,
-                                   2.5, 2.1, 1.7, 1.4, 1.1, 0.87, 0.68, 0.56,
-                                   0.45, 0.36, 0.28, 0.23, 0.19, 0.15, 0.13,
-                                   0.11, 0.09, 0.07, 0.054, 0.037, 0.024,
-                                   0.015, 0.0079, 0.0036, 0.0012],
-                         'l_max': [20, 16, 13, 10, 8.2, 6.5, 5.7, 5.1, 4.5,
-                                   3.9, 3.5, 3.0, 2.6, 2.2, 1.9, 1.6, 1.3,
-                                   1.0, 0.84, 0.65, 0.48, 0.35, 0.25, 0.20,
-                                   0.15, 0.11, 0.08],
-                         'm_span': [1.3, 1.5, 1.8, 2.1, 2.5, 3.0, 3.3, 3.7,
-                                    4.1, 4.6, 5.2, 5.9, 6.7, 7.7, 8.8, 10,
-                                    12, 14, 17, 20, 24, 30, 37, 42, 50, 59,
-                                    70],
-                         's_span': [0.2, 0.2, 0.3, 0.3, 0.4, 0.5, 0.5, 0.6,
-                                    0.6, 0.7, 0.8, 0.9, 1.0, 1.2, 1.4, 1.6,
-                                    1.8],
-                         'g_span': [0.1, 0.1, 0.2, 0.2, 0.2, 0.3, 0.3, 0.4,
-                                    0.4, 0.4, 0.5, 0.6, 0.6, 0.7, 0.8, 1.0,
-                                    1.1]}
+                                  'M3', 'M4', 'M4', 'M5', 'M6', 'M7']}
     stellar_evolution = pd.DataFrame(dict([(k, pd.Series(v)) for k, v in stellar_evolution.items()]))
 
     class Population(population, Enum):
@@ -218,16 +184,16 @@ class Star(RandomizableModel):
             return type(self).__l_max(self.mass) * 25
         if (self.luminosity_class == self.Luminosity.D):
             return .001
-        return (type(self).__l_min(self.mass) + (self.age / m_span) * (type(self).__l_max(self.mass) - type(self).__l_min(self.mass)))
+        return (type(self).__l_min(self.mass) + (self.age / m_span) *
+                (type(self).__l_max(self.mass) - type(self).__l_min(self.mass)))
 
     @property
     def temperature(self):
         """effective temperature in K"""
         if (self.luminosity_class == self.Luminosity.IV):
             temp = type(self).__temp(self.mass)
-            m_span = type(self).__m_span(self.mass)
-            s_span = type(self).__s_span(self.mass)
-            return temp - ((self.age - m_span) / s_span) * (temp - 4800)
+            return (temp - ((self.age - type(self).__m_span(self.mass)) /
+                    type(self).__s_span(self.mass)) * (temp - 4800))
         # TODO: handle giant luminosity class
         # TODO: handle white dwarves luminosity class
         return type(self).__temp(self.mass)
@@ -256,31 +222,6 @@ class Star(RandomizableModel):
     @property
     def spectral_type(self):
         return self.stellar_evolution.iloc[self.stellar_evolution.index[self.mass >= self.stellar_evolution.mass].tolist()[0]].type
-
-    def show(self):
-        _, ax = plt.subplots()
-        ax.set_title(r"""temp fitted through the form: $\mathcal{a}\/\mathcal{x}+\mathcal{b}$""")
-        x = self.stellar_evolution.mass
-        y = self.stellar_evolution.temp
-        ax.plot(x, y, 'o', label='temp')
-        popt, _ = curve_fit(lambda x, a, b: a * x + b, x, y, maxfev=3000)
-        a, b = popt
-        print(a, b)
-        y_pred = x.map(lambda x: a * x + b)
-        ax.plot(x, y_pred, '-', label='temp fit')
-        ax.set_xlabel("mass in M☉")
-        ax.set_ylabel("temp in K")
-        ax.legend()
-        # residual sum of squares
-        ss_res = np.sum((y - y_pred) ** 2)
-        # total sum of squares
-        ss_tot = np.sum((y - np.mean(y)) ** 2)
-        # r-squared
-        r2 = 1 - (ss_res / ss_tot)
-        ax.annotate(r"""$\mathcal{a} = \mathcal{""" + str(a) + """}$
-$\mathcal{b} = \mathcal{""" + str(b) + """}$
-$\mathcal{r2} = \mathcal{""" + str(r2) + """}$""", xy=(1.6, .5))
-        plt.show()
 
     def __init__(self):
         self.randomize(['mass', 'population', 'age'])
