@@ -1,66 +1,67 @@
+import worldgen as w
+
 from worldgen.world.marginal_atmosphere import Marginal
 from worldgen.utils import Range
+
 import pytest
 import numpy as np
 
-from .context import worldgen
-from worldgen.world import *
 
 @pytest.fixture
 def asteroid_belt():
     # returns an AsteroidBelt instance
-    return AsteroidBelt()
+    return w.AsteroidBelt()
 
 
 @pytest.fixture
 def large_ammonia():
     # returns a LargeAmmonia instance
-    return LargeAmmonia()
+    return w.LargeAmmonia()
 
 @pytest.fixture
 def large_greenhouse():
     # returns a LargeGreenhouse instance
-    return LargeGreenhouse()
+    return w.LargeGreenhouse()
 
 
 @pytest.fixture
 def large_garden():
     # returns a LargeGarden instance
-    return LargeGarden()
+    return w.LargeGarden()
 
 
 @pytest.fixture
 def large_ice():
     # returns a LargeIce instance
-    return LargeIce()
+    return w.LargeIce()
 
 
 @pytest.fixture
 def large_ocean():
     # returns a LargeOcean instance
-    return LargeOcean()
+    return w.LargeOcean()
 
 
 @pytest.fixture
 def large_ice():
     # returns a LargeIce instance
-    return LargeIce()
+    return w.LargeIce()
 
 @pytest.fixture
 def standard_garden():
     # returns a StandardGarden instance
-    return StandardGarden()
+    return w.StandardGarden()
 
 @pytest.fixture
 def standard_greenhouse():
     # returns a StandardGreenhouse instance
-    return StandardGreenhouse()
+    return w.StandardGreenhouse()
 
 
 @pytest.fixture
 def standard_ammonia():
     # returns a StandardAmmonia instance
-    return StandardAmmonia()
+    return w.StandardAmmonia()
 
 
 def test_set_density_raises_exception_on_no_range(asteroid_belt):
@@ -94,10 +95,10 @@ def test_set_diameter_raises_exception_on_no_range(asteroid_belt):
 
 
 def test_set_marginal(standard_garden):
-    standard_garden.atmosphere.make_marginal(chlorine_or_fluorine)
+    standard_garden.atmosphere.make_marginal(w.chlorine_or_fluorine)
     assert issubclass(type(standard_garden.atmosphere), Marginal)
-    assert standard_garden.atmosphere.toxicity == Range(Atmosphere.Toxicity.HIGH,
-                                                        Atmosphere.Toxicity.LETHAL)
+    assert standard_garden.atmosphere.toxicity == Range(w.Atmosphere.Toxicity.HIGH,
+                                                        w.Atmosphere.Toxicity.LETHAL)
     assert standard_garden.atmosphere.corrosive
 
 
@@ -106,7 +107,7 @@ def test_get_size_is_None(asteroid_belt):
 
 
 def test_get_size(large_ammonia):
-    assert large_ammonia.size == World.Size.LARGE
+    assert large_ammonia.size == w.World.Size.LARGE
 
 
 def test_get_core_is_None(asteroid_belt):
@@ -114,7 +115,7 @@ def test_get_core_is_None(asteroid_belt):
 
 
 def test_get_core(large_ammonia):
-    assert large_ammonia.core == World.Core.ICY_CORE
+    assert large_ammonia.core == w.World.Core.ICY_CORE
 
 
 def test_get_hydrosphere_is_nan(asteroid_belt):
@@ -136,7 +137,7 @@ def test_get_atmosphere_is_None(asteroid_belt):
 
 def test_get_atmosphere(large_ammonia):
     assert large_ammonia.atmosphere.composition == ['He', 'NH3', 'CH4']
-    assert large_ammonia.atmosphere.toxicity == World.Toxicity.LETHAL
+    assert large_ammonia.atmosphere.toxicity == w.Atmosphere.Toxicity.LETHAL
     assert large_ammonia.atmosphere.suffocating is True
     assert large_ammonia.atmosphere.corrosive is True
 
@@ -146,20 +147,20 @@ def test_get_atmosphere(large_greenhouse):
              large_greenhouse.atmosphere.composition == ['CO2']) or
             (large_greenhouse.hydrosphere >= .1 and
              large_greenhouse.atmosphere.composition == ['N2', 'H2O', 'O2']))
-    assert large_greenhouse.atmosphere.toxicity == World.Toxicity.LETHAL
+    assert large_greenhouse.atmosphere.toxicity == w.Atmosphere.Toxicity.LETHAL
     assert large_greenhouse.atmosphere.suffocating is True
     assert large_greenhouse.atmosphere.corrosive is True
 
 
 def test_get_atmosphere(large_ice):
     assert large_ice.atmosphere.composition == ['He', 'N2']
-    assert large_ice.atmosphere.toxicity == World.Toxicity.HIGH
+    assert large_ice.atmosphere.toxicity == w.Atmosphere.Toxicity.HIGH
     assert large_ice.atmosphere.suffocating is True
 
 
 def test_get_atmosphere(large_ocean):
     assert large_ocean.atmosphere.composition == ['He', 'N2']
-    assert large_ocean.atmosphere.toxicity == World.Toxicity.HIGH
+    assert large_ocean.atmosphere.toxicity == w.Atmosphere.Toxicity.HIGH
     assert large_ocean.atmosphere.suffocating is True
 
 
@@ -168,14 +169,14 @@ def test_get_atmosphere(standard_greenhouse):
              standard_greenhouse.atmosphere.composition == ['CO2']) or
             (standard_greenhouse.hydrosphere >= .1 and
              standard_greenhouse.atmosphere.composition == ['N2', 'H2O', 'O2']))
-    assert standard_greenhouse.atmosphere.toxicity == World.Toxicity.LETHAL
+    assert standard_greenhouse.atmosphere.toxicity == w.Atmosphere.Toxicity.LETHAL
     assert standard_greenhouse.atmosphere.suffocating is True
     assert standard_greenhouse.atmosphere.corrosive is True
 
 
 def test_get_atmosphere(standard_ammonia):
     assert standard_ammonia.atmosphere.composition == ['N2', 'NH3', 'CH4']
-    assert standard_ammonia.atmosphere.toxicity == Atmosphere.Toxicity.LETHAL
+    assert standard_ammonia.atmosphere.toxicity == w.Atmosphere.Toxicity.LETHAL
     assert standard_ammonia.atmosphere.suffocating is True
     assert standard_ammonia.atmosphere.corrosive is True
 
@@ -241,7 +242,7 @@ def test_get_blackbody_temperature(asteroid_belt):
 def test_get_climate(asteroid_belt):
     lower = asteroid_belt.climate.value
     upper = np.inf
-    for item in World.Climate:
+    for item in w.World.Climate:
         if item.value > lower:
             upper = item.value
     assert (asteroid_belt.temperature >= lower and
@@ -251,7 +252,7 @@ def test_get_climate(asteroid_belt):
 def test_get_pressure_category(large_ammonia):
     lower = large_ammonia.atmosphere.pressure_category.value
     upper = np.inf
-    for item in Atmosphere.Pressure:
+    for item in w.Atmosphere.Pressure:
         if item.value > lower:
             upper = item.value
     assert (large_ammonia.atmosphere.pressure >= lower and
