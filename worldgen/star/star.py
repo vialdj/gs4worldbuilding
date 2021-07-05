@@ -58,10 +58,8 @@ class Star(RandomizableModel):
     @staticmethod
     def __l_max(mass):
         """l_max fitted through the form a*exp(b*x)+c with threshold on .9"""
-        if mass >= .95:
-            return 0.320293 * np.exp(2.09055499 * mass) - 0.95302065
         if mass >= .45:
-            return 0.01864272 * np.exp(4.53674559 * mass) - 0.07758067
+            return 1.417549268949681 * mass ** 3.786542028176919
         return np.nan
 
     @staticmethod
@@ -89,7 +87,7 @@ class Star(RandomizableModel):
         if mass >= .95:
             return 11.045171731219448 * np.exp(-2.4574060414344223 * mass)
         return np.nan
-    
+
     @staticmethod
     def __temp(mass):
         """temp fitted through the form a * x + b)"""
