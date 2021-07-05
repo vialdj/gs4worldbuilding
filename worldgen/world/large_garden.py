@@ -36,10 +36,11 @@ class LargeGarden(World):
 
     @property
     def absorption(self):
-        """match hydrosphere to Temperature Factors Table"""
-        assert(self.hydrosphere), "attribute is not applicable"
-        d = {.20: .95, .50: .92, .90: .88, 1: .84}
-        return d[list(filter(lambda x: x >= self.hydrosphere, sorted(d.keys())))[0]]
+        """absorbtion from Temperature Factors Table fitted
+through a * x ** 3 + b * x ** 2 + c * x + d"""
+        return (-0.7500000000000038 * self.hydrosphere ** 3 +
+                1.2000000000000057 * self.hydrosphere ** 2 -
+                0.6475000000000023 * self.hydrosphere + 1.0375000000000003)
 
     def __init__(self):
         super(LargeGarden, self).__init__()
