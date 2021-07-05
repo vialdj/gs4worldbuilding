@@ -66,8 +66,8 @@ class Star(RandomizableModel):
 
     @staticmethod
     def __l_min(mass):
-        """l_min fitted through the form a*exp(b*x)+c"""
-        return 4.33687595 * mass ** 3 - 5.79058616 * mass ** 2 + 2.42228237 * mass - 0.24000098
+        """l_min fitted through the form a*x**b"""
+        return 0.8994825154104518 * mass ** 4.182711149771404
 
     @staticmethod
     def __m_span(mass):
