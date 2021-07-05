@@ -211,10 +211,10 @@ def test_get_absorption(asteroid_belt):
 
 
 def test_get_absorption(large_garden):
-    assert ((large_garden.hydrosphere < .2 and large_garden.absorption == .95) or
-            (large_garden.hydrosphere < .5 and large_garden.absorption == .92) or
-            (large_garden.hydrosphere < .90 and large_garden.absorption == .88) or
-            large_garden.absorption == .84)
+    assert ((large_garden.hydrosphere < .2 and large_garden.absorption >= .95) or
+            (large_garden.hydrosphere < .5 and large_garden.absorption >= .92) or
+            (large_garden.hydrosphere < .90 and large_garden.absorption >= .88) or
+            large_garden.absorption >= .84)
 
 
 def test_get_gravity_is_nan(asteroid_belt):
