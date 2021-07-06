@@ -1,8 +1,9 @@
 worldgen/__pycache__/*
 worldgen/world/__pycache__/*
+worldgen/star/__pycache__/*
 tests/__pycache__/*
 .vscode
 htmlcov/*
 .coverage
 worldgen/.coverage
-dev/*-checkpoint.ipynb
+notebooks/.ipynb_checkpoints/*
