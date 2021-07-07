@@ -88,8 +88,8 @@ class World(RandomizableModel):
     def random_volatile_mass(self):
         """sum of a 3d roll divided by 10"""
         if self.atmosphere is not None:
-            self.volatile_mass = truncnorm((3 - 10.5) / 2.958040, (18 - 10.5) / 2.958040,
-                                           loc=10.5, scale=2.958040).rvs() / 10
+            self.volatile_mass = truncnorm((.3 - 1.05) / 2.958040, (1.8 - 1.05) / 2.958040,
+                                           loc=1.05, scale=2.958040).rvs()
 
     @property
     def size(self):

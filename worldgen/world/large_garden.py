@@ -4,7 +4,6 @@ from .marginal_atmosphere import MarginalCandidate
 from . import Atmosphere
 from . import World
 
-from scipy.stats import truncnorm
 from random import uniform
 
 
@@ -17,9 +16,8 @@ class LargeGarden(World):
         _composition = ['N2', 'O2', 'He', 'Ne', 'Ar', 'Kr', 'Xe']
 
         def randomize(self):
-            """sum of a 3d roll to apply marginal modifier"""
-            if truncnorm((3 - 10.5) / 2.958040, (18 - 10.5) / 2.958040,
-                         loc=10.5, scale=2.958040).rvs() > 11:
+            """sum of a 3d roll to apply marginal modifier if > 11"""
+            if uniform(0, 1) < .375:
                 self.make_marginal()
 
     _temperature_range = Range(250, 340)

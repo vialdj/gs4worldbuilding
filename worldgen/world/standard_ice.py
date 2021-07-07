@@ -5,7 +5,7 @@ from . import World
 
 import numpy as np
 
-from scipy.stats import truncnorm
+from random import uniform
 
 
 class StandardIce(World):
@@ -17,9 +17,8 @@ class StandardIce(World):
         _suffocating = True
 
         def randomize(self):
-            """sum of a 3d roll to define toxicity"""
-            if truncnorm((3 - 10.5) / 2.958040, (18 - 10.5) / 2.958040,
-                         loc=10.5, scale=2.958040).rvs() > 12:
+            """sum of a 3d roll to define toxicity if value > 12"""
+            if uniform(0, 1) < .7407:
                 self._toxicity = Atmosphere.Toxicity.MILD
 
     _temperature_range = Range(80, 230)
