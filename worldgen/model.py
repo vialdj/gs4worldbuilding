@@ -8,7 +8,7 @@ class Model(object):
 
     def _set_ranged_property(self, prop, value):
         """setter for ranged value properties"""
-        rng = getattr(self, '{}_range'.format(prop))
+        rng = getattr(self, '{}_range'.format(prop), None)
         if not rng:
             raise AttributeError('can\'t set attribute, no {}_range found'
                                  .format(prop))
