@@ -15,7 +15,7 @@ class ModelWidget(qt.QWidget):
         layout = qt.QVBoxLayout()
         layout.addWidget(qt.QLabel(model.__class__.__name__))
         for prop, value in model:
-            if not (value is None or (type(value) in [float, float64] and isnan(value))):
+            if not (value is None or (type(value) in [float, float64] and isnan(value))) and not prop.endswith('_range'):
                 layout.addWidget(PropertyWidget(model, prop, value, write=getattr(type(model), prop).fset is not None))
         self.setLayout(layout)
 
@@ -58,8 +58,6 @@ class DoubleWidget(qt.QWidget):
                 widget.setRange(range.min, range.max)
                 widget.setSingleStep(.001)
                 widget.setFocusPolicy(Qt.StrongFocus)
-                widget.setTickPosition(qt.QSlider.TicksBothSides)
-                widget.setTickInterval(.010)
                 widget.setSingleStep(.001)
 
             widget.setValue(value)
