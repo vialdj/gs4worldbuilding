@@ -3,8 +3,11 @@ from worldgen.model import Model
 from enum import Enum
 
 import PyQt5.QtWidgets as qt
-from PyQt5.QtCore import Qt
+from PyQt5.QtCore import Qt, QLocale
+import PyQt5.QtGui as qtgui
 from numpy import float64, isnan, format_float_scientific
+
+QLocale.setDefault(QLocale(QLocale.C))
 
 
 class ModelWidget(qt.QGroupBox):
@@ -12,11 +15,12 @@ class ModelWidget(qt.QGroupBox):
 
     def __init__(self, model):
         super(ModelWidget, self).__init__()
+        self.setTitle(model.__class__.__name__)
         layout = qt.QVBoxLayout()
         for prop, value in model:
             if not (value is None or (type(value) in [float, float64] and isnan(value))) and not prop.endswith('_range'):
                 layout.addWidget(PropertyWidget(model, prop, value, write=getattr(type(model), prop).fset is not None))
-        self.setTitle(model.__class__.__name__)
+        layout.setContentsMargins(2, 1, 2, 1)
         self.setLayout(layout)
 
 
@@ -33,6 +37,7 @@ class PropertyWidget(qt.QWidget):
         else:
             widget = self.__make_value_widget(value, write, getattr(model, '{}_range'.format(prop), None))
         layout.addWidget(widget)
+        layout.setContentsMargins(2, 1, 2, 1)
         self.setLayout(layout)
 
     @staticmethod
@@ -53,17 +58,16 @@ class DoubleWidget(qt.QWidget):
         super(DoubleWidget, self).__init__()
         layout = qt.QHBoxLayout()
         if write:
-            widget = qt.QSlider(Qt.Horizontal)
+            widget = qt.QLineEdit(str(value))
+            widget.setAlignment(Qt.AlignRight)
+            validator = qtgui.QDoubleValidator()
             if range:
-                widget.setRange(range.min, range.max)
-                widget.setSingleStep(.001)
-                widget.setFocusPolicy(Qt.StrongFocus)
-                widget.setSingleStep(.001)
-
-            widget.setValue(value)
+                validator.setRange(range.min, range.max, 2)
+            widget.setValidator(validator)
         else:
             widget = qt.QLabel('{:.2f}'.format(value))
         layout.addWidget(widget)
+        layout.setContentsMargins(2, 1, 2, 1)
         self.setLayout(layout)
 
 
@@ -81,6 +85,7 @@ class EnumWidget(qt.QWidget):
         else:
             widget = qt.QLabel(value.name)
         layout.addWidget(widget)
+        layout.setContentsMargins(2, 1, 2, 1)
         self.setLayout(layout)
 
 
@@ -88,13 +93,13 @@ class BoolWidget(qt.QWidget):
     """the bool value widget class"""
 
     def __init__(self, value, write, range):
-        super(BoolWidget, self).__init__()
+        super(BoolWidget, self).__init__()        
         layout = qt.QHBoxLayout()
         if write:
             widget = qt.QCheckBox()
             widget.setChecked(value)
-            layout.addWidget(widget)
         else:
             widget = qt.QLabel(str(value))
         layout.addWidget(widget)
+        layout.setContentsMargins(2, 1, 2, 1)
         self.setLayout(layout)
