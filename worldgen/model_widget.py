@@ -7,16 +7,16 @@ from PyQt5.QtCore import Qt
 from numpy import float64, isnan, format_float_scientific
 
 
-class ModelWidget(qt.QWidget):
+class ModelWidget(qt.QGroupBox):
     """the Model Widget class"""
 
     def __init__(self, model):
         super(ModelWidget, self).__init__()
         layout = qt.QVBoxLayout()
-        layout.addWidget(qt.QLabel(model.__class__.__name__))
         for prop, value in model:
             if not (value is None or (type(value) in [float, float64] and isnan(value))) and not prop.endswith('_range'):
                 layout.addWidget(PropertyWidget(model, prop, value, write=getattr(type(model), prop).fset is not None))
+        self.setTitle(model.__class__.__name__)
         self.setLayout(layout)
 
 
