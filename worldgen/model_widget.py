@@ -15,20 +15,28 @@ class ModelWidget(qt.QGroupBox):
 
     def __init__(self, model):
         super(ModelWidget, self).__init__()
+
+        self.model = model
+
         self.setTitle(model.__class__.__name__)
-        layout = qt.QVBoxLayout()
-        for prop, value in model:
+        self.setLayout(qt.QVBoxLayout())
+        self.update()
+
+    def update(self):
+        for prop, value in self.model:
             if not (value is None or (type(value) in [float, float64] and isnan(value))) and not prop.endswith('_range'):
-                layout.addWidget(PropertyWidget(model, prop, value, write=getattr(type(model), prop).fset is not None))
-        layout.setContentsMargins(2, 1, 2, 1)
-        self.setLayout(layout)
+                self.layout().addWidget(PropertyWidget(self, self.model, prop, value, write=getattr(type(self.model), prop).fset is not None))
+        self.layout().setContentsMargins(2, 1, 2, 1)
 
 
 class PropertyWidget(qt.QWidget):
     """the Property Widget class"""
 
-    def __init__(self, model, prop, value, write):
-        super(PropertyWidget, self).__init__()
+    def __init__(self, parent, model, prop, value, write):
+        super(PropertyWidget, self).__init__(parent)
+
+        self.model = model
+        self.prop = prop
 
         layout = qt.QHBoxLayout()
         layout.addWidget(qt.QLabel(prop))
@@ -40,50 +48,56 @@ class PropertyWidget(qt.QWidget):
         layout.setContentsMargins(2, 1, 2, 1)
         self.setLayout(layout)
 
-    @staticmethod
-    def __make_value_widget(value, write, range):
+    def __make_value_widget(self, value, write, range):
         if (type(value) is bool):
-            return BoolWidget(value, write, range)
+            return BoolWidget(self, value, write, range)
         elif (type(value) in [float, float64]):
-            return DoubleWidget(value, write, range)
+            return DoubleWidget(self, value, write, range)
         elif issubclass(type(value), Enum):
-            return EnumWidget(value, write, range)
+            return EnumWidget(self, value, write, range)
         return qt.QLabel(str(value))
 
-
-class DoubleWidget(qt.QWidget):
-    """the double value widget Class"""
-
-    def __init__(self, value, write, range):
-        super(DoubleWidget, self).__init__()
-        layout = qt.QHBoxLayout()
-        if write:
-            widget = qt.QLineEdit(str(value))
-            widget.setAlignment(Qt.AlignRight)
-            validator = qtgui.QDoubleValidator()
-            if range:
-                validator.setRange(range.min, range.max, 2)
-            widget.setValidator(validator)
-        else:
-            widget = qt.QLabel('{:.2f}'.format(value))
-        layout.addWidget(widget)
-        layout.setContentsMargins(2, 1, 2, 1)
-        self.setLayout(layout)
+    def value_changed(self, value):
+        setattr(type(self.model), self.prop, value)
+        self.parent().update()
 
 
 class EnumWidget(qt.QWidget):
     """the enum value widget class"""
 
-    def __init__(self, value, write, range):
-        super(EnumWidget, self).__init__()
+    def __init__(self, parent, value, write, range):
+        super(EnumWidget, self).__init__(parent)
         layout = qt.QHBoxLayout()
         if write:
             widget = qt.QComboBox()
-            names = [enum.name for enum in type(value)]
+            enums = filter(lambda e: e.value >= range.min and e.value <= range.max, [enum for enum in type(value)]) if range else [enum for enum in type(value)]
+            names = [enum.name for enum in enums]
             widget.addItems(names)
             widget.setCurrentIndex(names.index(value.name))
+            widget.currentIndexChanged.connect(parent.value_changed)
         else:
             widget = qt.QLabel(value.name)
+        layout.addWidget(widget)
+        layout.setContentsMargins(2, 1, 2, 1)
+        self.setLayout(layout)
+
+
+class DoubleWidget(qt.QWidget):
+    """the double value widget Class"""
+
+    def __init__(self, parent, value, write, range):
+        super(DoubleWidget, self).__init__(parent)
+        layout = qt.QHBoxLayout()
+        if write:
+            widget = qt.QLineEdit(str(value))
+            widget.setAlignment(Qt.AlignRight)
+            self.validator = qtgui.QDoubleValidator()
+            if range:
+                self.validator.setRange(range.min, range.max, 2)
+            widget.setValidator(self.validator)
+            widget.editingFinished.connect(parent.value_changed)
+        else:
+            widget = qt.QLabel('{:.2f}'.format(value))
         layout.addWidget(widget)
         layout.setContentsMargins(2, 1, 2, 1)
         self.setLayout(layout)
@@ -92,12 +106,13 @@ class EnumWidget(qt.QWidget):
 class BoolWidget(qt.QWidget):
     """the bool value widget class"""
 
-    def __init__(self, value, write, range):
-        super(BoolWidget, self).__init__()        
+    def __init__(self, parent, value, write, range):
+        super(BoolWidget, self).__init__(parent)
         layout = qt.QHBoxLayout()
         if write:
             widget = qt.QCheckBox()
             widget.setChecked(value)
+            widget.stateChanged.connect(parent.value_changed)
         else:
             widget = qt.QLabel(str(value))
         layout.addWidget(widget)
