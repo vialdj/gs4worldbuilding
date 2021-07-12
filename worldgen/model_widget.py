@@ -1,4 +1,4 @@
-from worldgen.model import Model
+from worldgen.model import Model, RandomizableModel
 
 from enum import Enum
 
@@ -50,6 +50,10 @@ class PropertyWidget(qt.QWidget):
         else:
             self.widget = self.__make_value_widget()
         layout.addWidget(self.widget)
+        if getattr(model, 'random_{}'.format(prop), None) is not None:
+            button = qt.QPushButton("Randomize")
+            button.clicked.connect(self.randomize)
+            layout.addWidget(button)
         layout.setContentsMargins(2, 1, 2, 1)
         self.setLayout(layout)
 
@@ -64,6 +68,10 @@ class PropertyWidget(qt.QWidget):
 
     def value_changed(self):
         self.parent().update()
+
+    def randomize(self):
+        getattr(self.model, 'random_{}'.format(self.prop))()
+        self.value_changed()
 
     def update(self):
         self.value = getattr(self.model, self.prop)
@@ -80,7 +88,7 @@ class ValueWidget(qt.QWidget):
         super(ValueWidget, self).__init__(parent)
 
         self.value = getattr(model, prop)
-        self.write = getattr(type(model), prop).fset is not None
+        self.writable = getattr(type(model), prop).fset is not None
         self.range = getattr(model, '{}_range'.format(prop), None)
         self.model = model
         self.prop = prop
@@ -91,7 +99,7 @@ class ValueWidget(qt.QWidget):
 
     def update(self):
         self.value = getattr(self.model, self.prop)
-        self.write = getattr(type(self.model), self.prop).fset is not None
+        self.writable = getattr(type(self.model), self.prop).fset is not None
         self.range = getattr(self.model, '{}_range'.format(self.prop), None)
 
 
@@ -101,7 +109,7 @@ class EnumWidget(ValueWidget):
     def __init__(self, parent, model, prop):
         super(EnumWidget, self).__init__(parent, model, prop)
         layout = qt.QHBoxLayout()
-        if self.write:
+        if self.writable:
             self.widget = qt.QComboBox()
             enums = filter(lambda e: e.value >= self.range.min and e.value <= self.range.max, [enum for enum in type(self.value)]) if self.range else [enum for enum in type(self.value)]
             self.names = [enum.name for enum in enums]
@@ -122,7 +130,7 @@ class EnumWidget(ValueWidget):
     def update(self):
         super(EnumWidget, self).update()
 
-        if self.write:
+        if self.writable:
             names = [self.widget.itemText(i) for i in range(self.widget.count())]
             self.widget.setCurrentIndex(names.index(self.value.name))
         else:
@@ -135,7 +143,7 @@ class DoubleWidget(ValueWidget):
     def __init__(self, parent, model, prop):
         super(DoubleWidget, self).__init__(parent, model, prop)
         layout = qt.QVBoxLayout()
-        if self.write:
+        if self.writable:
             self.label = qt.QLabel('{:.2f}'.format(self.value))
             layout.addWidget(self.label)
             self.widget = DoubleSlider(Qt.Horizontal)
@@ -154,7 +162,7 @@ class DoubleWidget(ValueWidget):
     def update(self):
         super(DoubleWidget, self).update()
 
-        if self.write:
+        if self.writable:
             self.label.setText('{:.2f}'.format(self.value))
             self.widget.setRange(self.range.min, self.range.max)
             self.widget.setValue(self.value)
@@ -168,7 +176,7 @@ class BoolWidget(ValueWidget):
     def __init__(self, parent, model, prop):
         super(BoolWidget, self).__init__(parent, model, prop)
         layout = qt.QHBoxLayout()
-        if self.write:
+        if self.writable:
             self.widget = qt.QCheckBox()
             self.update()
             self.widget.stateChanged.connect(self.value_changed)
@@ -181,7 +189,7 @@ class BoolWidget(ValueWidget):
     def update(self):
         super(BoolWidget, self).update()
 
-        if self.write:
+        if self.writable:
             self.widget.setChecked(self.value)
         else:
             self.widget.setText(str(self.value))
