@@ -35,10 +35,12 @@ class Model(object):
 class RandomizableModel(Model):
     """the Randomizable model specialization"""
 
-    def randomize(self, precedence):
+    _precedence = []
+
+    def randomize(self):
         """randomizes applicable properties values with precedence constraints"""
         # randomizable properties
         props = list(filter(lambda x: hasattr(self, 'random_{}'.format(x)),
-                            precedence))
+                            self._precedence))
         for prop in props:
             getattr(type(self), 'random_{}'.format(prop))(self)

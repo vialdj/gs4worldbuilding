@@ -25,11 +25,19 @@ class ModelWidget(qt.QGroupBox):
             if not (value is None or (type(value) in [float, float64] and isnan(value))) and not prop.endswith('_range'):
                 self.p_widgets[prop] = PropertyWidget(self, self.model, prop)
                 self.layout().addWidget(self.p_widgets[prop])
+        if isinstance(model, RandomizableModel):
+            button = qt.QPushButton("Randomize")
+            button.clicked.connect(self.randomize)
+            self.layout().addWidget(button)
         self.layout().setContentsMargins(2, 1, 2, 1)
 
     def update(self):
         for p_widget in self.p_widgets.values():
             p_widget.update()
+
+    def randomize(self):
+        getattr(self.model, 'randomize')()
+        self.update()
 
 
 class PropertyWidget(qt.QWidget):

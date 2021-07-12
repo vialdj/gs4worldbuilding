@@ -15,6 +15,9 @@ import numpy as np
 class World(RandomizableModel):
     """the World Model"""
 
+    _precedence = ['ressource', 'hydrosphere', 'volatile_mass',
+                   'temperature', 'density', 'diameter']
+
     class Climate(int, Enum):
         """class Climate Enum from World Climate Table"""
         FROZEN = 0
@@ -266,5 +269,4 @@ class World(RandomizableModel):
         self._atmosphere = self._atmosphere(self) if hasattr(type(self), '_atmosphere') else None
         if hasattr(type(self._atmosphere), 'randomize') and callable(getattr(type(self._atmosphere), 'randomize')):
             self._atmosphere.randomize()
-        self.randomize(['ressource', 'hydrosphere', 'volatile_mass',
-                        'temperature', 'density', 'diameter'])
+        self.randomize()
