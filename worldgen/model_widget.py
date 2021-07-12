@@ -28,8 +28,8 @@ class ModelWidget(qt.QGroupBox):
         self.layout().setContentsMargins(2, 1, 2, 1)
 
     def update(self):
-        for prop, p_widget in self.p_widgets.items():
-            p_widget.update(getattr(self.model, prop))
+        for p_widget in self.p_widgets.values():
+            p_widget.update()
 
 
 class PropertyWidget(qt.QWidget):
@@ -40,37 +40,37 @@ class PropertyWidget(qt.QWidget):
 
         self.model = model
         self.prop = prop
+        self.value = getattr(model, prop)
+        self.value_type = type(getattr(model, prop))
 
         layout = qt.QHBoxLayout()
         layout.addWidget(qt.QLabel(prop))
-        value = getattr(model, prop)
-        if issubclass(type(value), Model):
-            self.widget = ModelWidget(value)
+        if issubclass(self.value_type, Model):
+            self.widget = ModelWidget(self.value)
         else:
-            self.widget = self.__make_value_widget(model, prop, value)
+            self.widget = self.__make_value_widget()
         layout.addWidget(self.widget)
         layout.setContentsMargins(2, 1, 2, 1)
         self.setLayout(layout)
 
-    def __make_value_widget(self, model, prop, value):
-        if (type(value) is bool):
-            return BoolWidget(self, model, prop)
-        elif (type(value) in [float, float64]):
-            return DoubleWidget(self, model, prop)
-        elif issubclass(type(value), Enum):
-            return EnumWidget(self, model, prop)
-        return qt.QLabel(str(value))
+    def __make_value_widget(self):
+        if (self.value_type is bool):
+            return BoolWidget(self, self.model, self.prop)
+        elif (self.value_type in [float, float64]):
+            return DoubleWidget(self, self.model, self.prop)
+        elif issubclass(self.value_type, Enum):
+            return EnumWidget(self, self.model, self.prop)
+        return qt.QLabel(str(self.value))
 
     def value_changed(self):
         self.parent().update()
 
-    def update(self, value):
-        if isinstance(self.widget, BoolWidget) or isinstance(self.widget, DoubleWidget) or isinstance(self.widget, EnumWidget):
-            self.widget.update(value)
-        elif isinstance(self.widget, ModelWidget):
+    def update(self):
+        self.value = getattr(self.model, self.prop)
+        if isinstance(self.widget, ValueWidget) or isinstance(self.widget, ModelWidget):
             self.widget.update()
         else:
-            self.widget.setText(str(value))
+            self.widget.setText(str(self.value))
 
 
 class ValueWidget(qt.QWidget):
@@ -89,6 +89,11 @@ class ValueWidget(qt.QWidget):
         setattr(self.model, self.prop, value)
         self.parent().value_changed()
 
+    def update(self):
+        self.value = getattr(self.model, self.prop)
+        self.write = getattr(type(self.model), self.prop).fset is not None
+        self.range = getattr(self.model, '{}_range'.format(self.prop), None)
+
 
 class EnumWidget(ValueWidget):
     """the enum value widget class"""
@@ -101,7 +106,7 @@ class EnumWidget(ValueWidget):
             enums = filter(lambda e: e.value >= self.range.min and e.value <= self.range.max, [enum for enum in type(self.value)]) if self.range else [enum for enum in type(self.value)]
             self.names = [enum.name for enum in enums]
             self.widget.addItems(self.names)
-            self.update(self.value)
+            self.update()
             self.widget.currentIndexChanged.connect(self.value_changed)
         else:
             self.widget = qt.QLabel(self.value.name)
@@ -114,12 +119,14 @@ class EnumWidget(ValueWidget):
         setattr(self.model, self.prop, value)
         self.parent().value_changed()
 
-    def update(self, value):
+    def update(self):
+        super(EnumWidget, self).update()
+
         if self.write:
             names = [self.widget.itemText(i) for i in range(self.widget.count())]
-            self.widget.setCurrentIndex(names.index(value.name))
+            self.widget.setCurrentIndex(names.index(self.value.name))
         else:
-            self.widget.setText(value.name)
+            self.widget.setText(self.value.name)
 
 
 class DoubleWidget(ValueWidget):
@@ -132,9 +139,8 @@ class DoubleWidget(ValueWidget):
             self.label = qt.QLabel('{:.2f}'.format(self.value))
             layout.addWidget(self.label)
             self.widget = DoubleSlider(Qt.Horizontal)
-            self.widget.setRange(self.range.min, self.range.max)
-            self.update(self.value)
-            self.widget.sliderReleased.connect(self.value_changed)
+            self.update()
+            self.widget.valueChanged.connect(self.value_changed)
         else:
             self.widget = qt.QLabel('{:.2f}'.format(self.value))
         layout.addWidget(self.widget)
@@ -145,12 +151,15 @@ class DoubleWidget(ValueWidget):
         setattr(self.model, self.prop, self.widget.value())
         self.parent().value_changed()
 
-    def update(self, value):
+    def update(self):
+        super(DoubleWidget, self).update()
+
         if self.write:
-            self.label.setText('{:.2f}'.format(value))
-            self.widget.setValue(value)
+            self.label.setText('{:.2f}'.format(self.value))
+            self.widget.setRange(self.range.min, self.range.max)
+            self.widget.setValue(self.value)
         else:
-            self.widget.setText('{:.2f}'.format(value))
+            self.widget.setText('{:.2f}'.format(self.value))
 
 
 class BoolWidget(ValueWidget):
@@ -161,7 +170,7 @@ class BoolWidget(ValueWidget):
         layout = qt.QHBoxLayout()
         if self.write:
             self.widget = qt.QCheckBox()
-            self.update(self.value)
+            self.update()
             self.widget.stateChanged.connect(self.value_changed)
         else:
             self.widget = qt.QLabel(str(self.value))
@@ -169,11 +178,13 @@ class BoolWidget(ValueWidget):
         layout.setContentsMargins(2, 1, 2, 1)
         self.setLayout(layout)
 
-    def update(self, value):
+    def update(self):
+        super(BoolWidget, self).update()
+
         if self.write:
-            self.widget.setChecked(value)
+            self.widget.setChecked(self.value)
         else:
-            self.widget.setText(str(value))
+            self.widget.setText(str(self.value))
 
 
 class DoubleSlider(qt.QSlider):
