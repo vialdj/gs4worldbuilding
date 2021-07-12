@@ -23,7 +23,7 @@ class ModelWidget(qt.QGroupBox):
         self.setLayout(qt.QVBoxLayout())
         for prop, value in self.model:
             if not (value is None or (type(value) in [float, float64] and isnan(value))) and not prop.endswith('_range'):
-                self.p_widgets[prop] = PropertyWidget(self, self.model, prop, value, write=getattr(type(self.model), prop).fset is not None)
+                self.p_widgets[prop] = PropertyWidget(self, self.model, prop)
                 self.layout().addWidget(self.p_widgets[prop])
         self.layout().setContentsMargins(2, 1, 2, 1)
 
@@ -35,7 +35,7 @@ class ModelWidget(qt.QGroupBox):
 class PropertyWidget(qt.QWidget):
     """the Property Widget class"""
 
-    def __init__(self, parent, model, prop, value, write):
+    def __init__(self, parent, model, prop):
         super(PropertyWidget, self).__init__(parent)
 
         self.model = model
@@ -43,21 +43,22 @@ class PropertyWidget(qt.QWidget):
 
         layout = qt.QHBoxLayout()
         layout.addWidget(qt.QLabel(prop))
+        value = getattr(model, prop)
         if issubclass(type(value), Model):
             self.widget = ModelWidget(value)
         else:
-            self.widget = self.__make_value_widget(model, prop, value, write, getattr(model, '{}_range'.format(prop), None))
+            self.widget = self.__make_value_widget(model, prop, value)
         layout.addWidget(self.widget)
         layout.setContentsMargins(2, 1, 2, 1)
         self.setLayout(layout)
 
-    def __make_value_widget(self, model, prop, value, write, range):
+    def __make_value_widget(self, model, prop, value):
         if (type(value) is bool):
-            return BoolWidget(self, model, prop, value, write, range)
+            return BoolWidget(self, model, prop)
         elif (type(value) in [float, float64]):
-            return DoubleWidget(self, model, prop, value, write, range)
+            return DoubleWidget(self, model, prop)
         elif issubclass(type(value), Enum):
-            return EnumWidget(self, model, prop, value, write, range)
+            return EnumWidget(self, model, prop)
         return qt.QLabel(str(value))
 
     def value_changed(self):
@@ -75,12 +76,12 @@ class PropertyWidget(qt.QWidget):
 class ValueWidget(qt.QWidget):
     """the value widget class"""
 
-    def __init__(self, parent, model, prop, value, write, range):
+    def __init__(self, parent, model, prop):
         super(ValueWidget, self).__init__(parent)
 
-        self.value = value
-        self.write = write
-        self.range = range
+        self.value = getattr(model, prop)
+        self.write = getattr(type(model), prop).fset is not None
+        self.range = getattr(model, '{}_range'.format(prop), None)
         self.model = model
         self.prop = prop
 
@@ -92,21 +93,26 @@ class ValueWidget(qt.QWidget):
 class EnumWidget(ValueWidget):
     """the enum value widget class"""
 
-    def __init__(self, parent, model, prop, value, write, range):
-        super(EnumWidget, self).__init__(parent, model, prop, value, write, range)
+    def __init__(self, parent, model, prop):
+        super(EnumWidget, self).__init__(parent, model, prop)
         layout = qt.QHBoxLayout()
-        if write:
+        if self.write:
             self.widget = qt.QComboBox()
-            enums = filter(lambda e: e.value >= range.min and e.value <= range.max, [enum for enum in type(value)]) if range else [enum for enum in type(value)]
-            names = [enum.name for enum in enums]
-            self.widget.addItems(names)
-            self.update(value)
+            enums = filter(lambda e: e.value >= self.range.min and e.value <= self.range.max, [enum for enum in type(self.value)]) if self.range else [enum for enum in type(self.value)]
+            self.names = [enum.name for enum in enums]
+            self.widget.addItems(self.names)
+            self.update(self.value)
             self.widget.currentIndexChanged.connect(self.value_changed)
         else:
-            self.widget = qt.QLabel(value.name)
+            self.widget = qt.QLabel(self.value.name)
         layout.addWidget(self.widget)
         layout.setContentsMargins(2, 1, 2, 1)
         self.setLayout(layout)
+
+    def value_changed(self):
+        value = type(self.value)[self.names[self.widget.currentIndex()]]
+        setattr(self.model, self.prop, value)
+        self.parent().value_changed()
 
     def update(self, value):
         if self.write:
@@ -119,18 +125,18 @@ class EnumWidget(ValueWidget):
 class DoubleWidget(ValueWidget):
     """the double value widget Class"""
 
-    def __init__(self, parent, model, prop, value, write, range):
-        super(DoubleWidget, self).__init__(parent, model, prop, value, write, range)
+    def __init__(self, parent, model, prop):
+        super(DoubleWidget, self).__init__(parent, model, prop)
         layout = qt.QVBoxLayout()
-        if write:
-            self.label = qt.QLabel('{:.2f}'.format(value))
+        if self.write:
+            self.label = qt.QLabel('{:.2f}'.format(self.value))
             layout.addWidget(self.label)
             self.widget = DoubleSlider(Qt.Horizontal)
-            self.widget.setRange(range.min, range.max)
-            self.update(value)
+            self.widget.setRange(self.range.min, self.range.max)
+            self.update(self.value)
             self.widget.sliderReleased.connect(self.value_changed)
         else:
-            self.widget = qt.QLabel('{:.2f}'.format(value))
+            self.widget = qt.QLabel('{:.2f}'.format(self.value))
         layout.addWidget(self.widget)
         layout.setContentsMargins(2, 1, 2, 1)
         self.setLayout(layout)
@@ -150,15 +156,15 @@ class DoubleWidget(ValueWidget):
 class BoolWidget(ValueWidget):
     """the bool value widget class"""
 
-    def __init__(self, parent, model, prop, value, write, range):
-        super(BoolWidget, self).__init__(parent, model, prop, value, write, range)
+    def __init__(self, parent, model, prop):
+        super(BoolWidget, self).__init__(parent, model, prop)
         layout = qt.QHBoxLayout()
-        if write:
+        if self.write:
             self.widget = qt.QCheckBox()
-            self.update(value)
+            self.update(self.value)
             self.widget.stateChanged.connect(self.value_changed)
         else:
-            self.widget = qt.QLabel(str(value))
+            self.widget = qt.QLabel(str(self.value))
         layout.addWidget(self.widget)
         layout.setContentsMargins(2, 1, 2, 1)
         self.setLayout(layout)
