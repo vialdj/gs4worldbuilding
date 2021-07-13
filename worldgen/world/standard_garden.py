@@ -19,6 +19,8 @@ class StandardGarden(World):
             """sum of a 3d roll to apply marginal modifier if > 11"""
             if uniform(0, 1) < .375:
                 self.make_marginal()
+            else:
+                self.remove_marginal()
 
     _temperature_range = Range(250, 340)
     _size = World.Size.STANDARD
