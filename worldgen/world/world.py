@@ -19,7 +19,7 @@ class World(RandomizableModel):
                    'temperature', 'density', 'diameter']
 
     class Climate(int, Enum):
-        """class Climate Enum from World Climate Table"""
+        """class Climate Enum from world Climate Table"""
         FROZEN = 0
         VERY_COLD = 244
         COLD = 255
@@ -265,8 +265,11 @@ class World(RandomizableModel):
         """the affinity score"""
         return self.ressource + self.habitability
 
-    def __init__(self):
-        self._atmosphere = self._atmosphere(self) if hasattr(type(self), '_atmosphere') else None
+    def randomize(self):
         if hasattr(type(self._atmosphere), 'randomize') and callable(getattr(type(self._atmosphere), 'randomize')):
             self._atmosphere.randomize()
+        super(World, self).randomize()
+
+    def __init__(self):
+        self._atmosphere = self._atmosphere(self) if hasattr(type(self), '_atmosphere') else None
         self.randomize()

@@ -8,13 +8,13 @@ from math import sqrt
 from collections import namedtuple
 
 import numpy as np
-import pandas as pd
 from scipy.stats import truncexpon
 
 
 class Star(RandomizableModel):
     """the star model"""
 
+    _precedence = ['mass', 'population', 'age']
     population = namedtuple('Population', ['base', 'step_a', 'step_b'])
 
     class Population(population, Enum):
@@ -57,7 +57,7 @@ class Star(RandomizableModel):
 
     @staticmethod
     def __l_max(mass):
-        """l_max fitted through the form a*exp(b*x)+c with threshold on .9"""
+        """l_max fitted through the form a*x**b"""
         if mass >= .45:
             return 1.417549268949681 * mass ** 3.786542028176919
         return np.nan
@@ -209,4 +209,4 @@ class Star(RandomizableModel):
         return d[list(filter(lambda x: x >= self.mass, sorted(d.keys())))[0]]
 
     def __init__(self):
-        self.randomize(['mass', 'population', 'age'])
+        self.randomize()
