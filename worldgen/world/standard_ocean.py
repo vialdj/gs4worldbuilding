@@ -14,11 +14,14 @@ class StandardOcean(World):
         """the standard ocean atmosphere model"""
         _composition = ['CO2', 'N2']
         _suffocating = True
+        _toxicity = None
 
         def randomize(self):
             """sum of a 3d roll to define toxicity if value > 12"""
             if uniform(0, 1) < .7407:
                 self._toxicity = Atmosphere.Toxicity.MILD
+            else:
+                self._toxicity = None
 
     _temperature_range = Range(250, 340)
     _size = World.Size.STANDARD
