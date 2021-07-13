@@ -8,7 +8,7 @@ def main():
     wgen = WorldGenerator()
 
     app = QApplication([])
-    widget = ModelWidget(wgen.world)
+    widget = ModelWidget(None, wgen.world)
 
     widget.show()
     app.exec_()

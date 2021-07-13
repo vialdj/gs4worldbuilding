@@ -4,8 +4,7 @@ from enum import Enum
 
 import PyQt5.QtWidgets as qt
 from PyQt5.QtCore import Qt, QLocale
-import PyQt5.QtGui as qtgui
-from numpy import float64, isnan, format_float_scientific
+from numpy import float64, isnan
 
 QLocale.setDefault(QLocale(QLocale.C))
 
@@ -13,18 +12,15 @@ QLocale.setDefault(QLocale(QLocale.C))
 class ModelWidget(qt.QGroupBox):
     """the Model Widget class"""
 
-    def __init__(self, model):
-        super(ModelWidget, self).__init__()
+    def __init__(self, parent, model):
+        super(ModelWidget, self).__init__(parent)
 
         self.model = model
         self.p_widgets = {}
 
         self.setTitle(model.__class__.__name__)
         self.setLayout(qt.QVBoxLayout())
-        for prop, value in self.model:
-            if not (value is None or (type(value) in [float, float64] and isnan(value))) and not prop.endswith('_range'):
-                self.p_widgets[prop] = PropertyWidget(self, self.model, prop)
-                self.layout().addWidget(self.p_widgets[prop])
+        self.update()
         if isinstance(model, RandomizableModel):
             button = qt.QPushButton("Randomize")
             button.clicked.connect(self.randomize)
@@ -32,12 +28,35 @@ class ModelWidget(qt.QGroupBox):
         self.layout().setContentsMargins(2, 1, 2, 1)
 
     def update(self):
-        for p_widget in self.p_widgets.values():
-            p_widget.update()
+        self.setTitle(self.model.__class__.__name__)
+        props = list(self.p_widgets.keys())
+        for prop, value in self.model:
+            if not prop.endswith('_range') and not (value is None or (type(value) in [float, float64] and isnan(value))):
+                if prop in self.p_widgets:
+                    self.p_widgets[prop].update()
+                    props.remove(prop)
+                else:
+                    self.p_widgets[prop] = PropertyWidget(self, self.model, prop)
+                    self.layout().addWidget(self.p_widgets[prop])
+            elif prop in self.p_widgets:
+                self.layout().removeWidget(self.p_widgets[prop])
+                self.p_widgets[prop].deleteLater()
+                del self.p_widgets[prop]
+                props.remove(prop)
+        for prop in props:
+            self.layout().removeWidget(self.p_widgets[prop])
+            self.p_widgets[prop].deleteLater()
+            del self.p_widgets[prop]
+
+    def value_changed(self):
+        self.parent().value_changed()
 
     def randomize(self):
         getattr(self.model, 'randomize')()
-        self.update()
+        if isinstance(self.parent(), PropertyWidget):
+            self.value_changed()
+        else:
+            self.update()
 
 
 class PropertyWidget(qt.QWidget):
@@ -52,9 +71,11 @@ class PropertyWidget(qt.QWidget):
         self.value_type = type(getattr(model, prop))
 
         layout = qt.QHBoxLayout()
-        layout.addWidget(qt.QLabel(prop))
+        name = qt.QLabel(prop)
+        name.setToolTip(eval('type(model).{}.__doc__'.format(prop)))
+        layout.addWidget(name)
         if issubclass(self.value_type, Model):
-            self.widget = ModelWidget(self.value)
+            self.widget = ModelWidget(self, self.value)
         else:
             self.widget = self.__make_value_widget()
         layout.addWidget(self.widget)
