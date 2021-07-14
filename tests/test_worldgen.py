@@ -1,7 +1,6 @@
 import worldgen as w
 
 from worldgen.world.marginal_atmosphere import Marginal
-from worldgen.utils import Range
 
 import pytest
 import numpy as np
@@ -97,8 +96,8 @@ def test_set_diameter_raises_exception_on_no_range(asteroid_belt):
 def test_set_marginal(standard_garden):
     standard_garden.atmosphere.make_marginal(w.chlorine_or_fluorine)
     assert issubclass(type(standard_garden.atmosphere), Marginal)
-    assert standard_garden.atmosphere.toxicity == Range(w.Atmosphere.Toxicity.HIGH,
-                                                        w.Atmosphere.Toxicity.LETHAL)
+    assert standard_garden.atmosphere.toxicity == w.Model.Range(w.Atmosphere.Toxicity.HIGH,
+                                                                w.Atmosphere.Toxicity.LETHAL)
     assert standard_garden.atmosphere.corrosive
 
 

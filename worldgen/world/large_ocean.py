@@ -1,4 +1,3 @@
-from .. import Range
 from . import Atmosphere
 from . import World
 
@@ -14,12 +13,12 @@ class LargeOcean(World):
         _toxicity = Atmosphere.Toxicity.HIGH
         _suffocating = True
 
-    _temperature_range = Range(250, 340)
+    _temperature_range = World.Range(250, 340)
     _size = World.Size.LARGE
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 5
     _greenhouse_factor = .16
-    _hydrosphere_range = Range(.7, 1)
+    _hydrosphere_range = World.Range(.7, 1)
     _atmosphere = LargeOceanAtmosphere
 
     def random_hydrosphere(self):

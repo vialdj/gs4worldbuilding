@@ -1,5 +1,4 @@
 from .atmosphere import Atmosphere
-from .. import Range
 
 import copy
 
@@ -18,8 +17,8 @@ class Marginal():
 def chlorine_or_fluorine(atmosphere):
 
     class ChlorineOrFluorine(atmosphere, Marginal):
-        _toxicity = Range(Atmosphere.Toxicity.HIGH, Atmosphere.Toxicity.LETHAL)
-        _corrosive = Range(False, True)
+        _toxicity = Atmosphere.Range(Atmosphere.Toxicity.HIGH, Atmosphere.Toxicity.LETHAL)
+        _corrosive = Atmosphere.Range(False, True)
 
     return ChlorineOrFluorine
 
@@ -27,7 +26,7 @@ def chlorine_or_fluorine(atmosphere):
 def high_carbon_dioxide(atmosphere):
 
     class HighCarbonDioxide(atmosphere, Marginal):
-        _toxicity = Range(None, Atmosphere.Toxicity.MILD)
+        _toxicity = Atmosphere.Range(None, Atmosphere.Toxicity.MILD)
         _pressure_category = Atmosphere.Pressure.VERY_DENSE
 
     return HighCarbonDioxide
@@ -70,7 +69,7 @@ def low_oxygen(atmosphere):
 def nitrogen_compounds(atmosphere):
 
     class NitrogenCompounds(atmosphere, Marginal):
-        _toxicity = Range(Atmosphere.Toxicity.MILD, Atmosphere.Toxicity.HIGH)
+        _toxicity = Atmosphere.Range(Atmosphere.Toxicity.MILD, Atmosphere.Toxicity.HIGH)
 
     return NitrogenCompounds
 
@@ -78,7 +77,7 @@ def nitrogen_compounds(atmosphere):
 def sulfur_compounds(atmosphere):
 
     class SulfurCompounds(atmosphere, Marginal):
-        _toxicity = Range(Atmosphere.Toxicity.MILD, Atmosphere.Toxicity.HIGH)
+        _toxicity = Atmosphere.Range(Atmosphere.Toxicity.MILD, Atmosphere.Toxicity.HIGH)
 
     return SulfurCompounds
 
@@ -86,7 +85,7 @@ def sulfur_compounds(atmosphere):
 def organic_toxins(atmosphere):
 
     class OrganicToxins(atmosphere, Marginal):
-        _toxicity = Range(Atmosphere.Toxicity.MILD, Atmosphere.Toxicity.LETHAL)
+        _toxicity = Atmosphere.Range(Atmosphere.Toxicity.MILD, Atmosphere.Toxicity.LETHAL)
 
     return OrganicToxins
 
@@ -128,6 +127,7 @@ provided marginal modifier or one at random"""
                                                  .values()))[0]
 
         base = copy.copy(self)
+        base.locked = True
         marginal = self
         marginal.__class__ = marginal_type(type(self))
         marginal._base = base
@@ -138,3 +138,4 @@ provided marginal modifier or one at random"""
             base_type = type(self.base)
             atmosphere = self
             atmosphere.__class__ = base_type
+            atmosphere.locked = False

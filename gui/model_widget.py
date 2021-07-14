@@ -21,7 +21,7 @@ class ModelWidget(qt.QGroupBox):
         self.setTitle(model.__class__.__name__)
         self.setLayout(qt.QVBoxLayout())
         self.update()
-        if isinstance(model, RandomizableModel):
+        if isinstance(model, RandomizableModel) and not model.locked:
             button = qt.QPushButton("Randomize")
             button.clicked.connect(self.randomize)
             self.layout().addWidget(button)
@@ -146,7 +146,7 @@ class EnumWidget(ValueWidget):
             self.update()
             self.widget.currentIndexChanged.connect(self.value_changed)
         else:
-            self.widget = qt.QLabel(self.value.name)
+            self.widget = qt.QLabel(str(self.value))
         layout.addWidget(self.widget)
         layout.setContentsMargins(2, 1, 2, 1)
         self.setLayout(layout)
@@ -163,7 +163,7 @@ class EnumWidget(ValueWidget):
             names = [self.widget.itemText(i) for i in range(self.widget.count())]
             self.widget.setCurrentIndex(names.index(self.value.name))
         else:
-            self.widget.setText(self.value.name)
+            self.widget.setText(str(self.value))
 
 
 class DoubleWidget(ValueWidget):

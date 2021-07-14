@@ -1,4 +1,3 @@
-from .. import Range
 from . import Atmosphere
 from . import World
 
@@ -14,12 +13,12 @@ class LargeIce(World):
         _toxicity = Atmosphere.Toxicity.LETHAL
         _suffocating = True
 
-    _temperature_range = Range(80, 230)
+    _temperature_range = World.Range(80, 230)
     _size = World.Size.LARGE
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 5
     _greenhouse_factor = .2
-    _hydrosphere_range = Range(0, .2)
+    _hydrosphere_range = World.Range(0, .2)
     _absorption = .86
     _atmosphere = LargeIceAtmosphere
 

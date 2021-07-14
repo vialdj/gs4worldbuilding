@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .. import Range, RandomizableModel
+from .. import RandomizableModel
 from .marginal_atmosphere import Marginal
 from . import Atmosphere
 
@@ -32,14 +32,14 @@ class World(RandomizableModel):
         VERY_HOT = 333
         INFERNAL = 344
 
-    class Size(Range, Enum):
+    class Size(RandomizableModel.Range, Enum):
         """class Size Enum from Size Constraints Table"""
         TINY = (.004, .024)
         SMALL = (.024, .030)
         STANDARD = (.030, .065)
         LARGE = (.065, .091)
 
-    class Core(Range, Enum):
+    class Core(RandomizableModel.Range, Enum):
         """class Core Enum from World Density Table"""
         ICY_CORE = (.3, .7)
         SMALL_IRON_CORE = (.6, 1)
@@ -135,7 +135,7 @@ class World(RandomizableModel):
     @property
     def volatile_mass_range(self):
         """computed value range for volatile mass"""
-        return Range(.3, 1.8) if self.atmosphere else None
+        return type(self).Range(.3, 1.8) if self.atmosphere else None
 
     @volatile_mass.setter
     def volatile_mass(self, value):
@@ -149,7 +149,7 @@ class World(RandomizableModel):
     @property
     def ressource_range(self):
         """ressource range class variable"""
-        return type(self)._ressource_range if hasattr(type(self), '_ressource_range') else Range(self.Ressource.VERY_POOR, self.Ressource.VERY_ABUNDANT)
+        return type(self)._ressource_range if hasattr(type(self), '_ressource_range') else type(self).Range(self.Ressource.VERY_POOR, self.Ressource.VERY_ABUNDANT)
 
     @ressource.setter
     def ressource(self, value):
@@ -206,8 +206,8 @@ class World(RandomizableModel):
     @property
     def diameter_range(self):
         """computed value range for diameter"""
-        return (Range(sqrt(self.blackbody_temperature / self.density) * self.size.min,
-                      sqrt(self.blackbody_temperature / self.density) * self.size.max)
+        return (type(self).Range(sqrt(self.blackbody_temperature / self.density) * self.size.min,
+                                 sqrt(self.blackbody_temperature / self.density) * self.size.max)
                 if self.density and self.size else None)
 
     @diameter.setter

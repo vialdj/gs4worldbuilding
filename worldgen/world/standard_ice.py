@@ -1,4 +1,3 @@
-from .. import Range
 from .. import RandomizableModel
 from . import Atmosphere
 from . import World
@@ -21,12 +20,12 @@ class StandardIce(World):
             if uniform(0, 1) < .7407:
                 self._toxicity = Atmosphere.Toxicity.MILD
 
-    _temperature_range = Range(80, 230)
+    _temperature_range = World.Range(80, 230)
     _size = World.Size.STANDARD
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 1
     _greenhouse_factor = .2
-    _hydrosphere_range = Range(0, .2)
+    _hydrosphere_range = World.Range(0, .2)
     _absorption = .86
     _atmosphere = StandardIceAtmosphere
 

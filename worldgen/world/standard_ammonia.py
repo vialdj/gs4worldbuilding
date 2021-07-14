@@ -1,4 +1,3 @@
-from .. import Range
 from . import Atmosphere
 from . import World
 
@@ -15,12 +14,12 @@ class StandardAmmonia(World):
         _suffocating = True
         _corrosive = True
 
-    _temperature_range = Range(140, 215)
+    _temperature_range = World.Range(140, 215)
     _size = World.Size.STANDARD
     _core = World.Core.ICY_CORE
     _pressure_factor = 1
     _greenhouse_factor = .2
-    _hydrosphere_range = Range(.2, 1)
+    _hydrosphere_range = World.Range(.2, 1)
     _absorption = .84
     _atmosphere = StandardAmmoniaAtmosphere
 

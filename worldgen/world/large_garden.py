@@ -1,4 +1,3 @@
-from .. import Range
 from .. import RandomizableModel
 from .marginal_atmosphere import MarginalCandidate
 from . import Atmosphere
@@ -20,12 +19,12 @@ class LargeGarden(World):
             if uniform(0, 1) < .375:
                 self.make_marginal()
 
-    _temperature_range = Range(250, 340)
+    _temperature_range = World.Range(250, 340)
     _size = World.Size.LARGE
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 5
     _greenhouse_factor = .16
-    _hydrosphere_range = Range(.7, 1)
+    _hydrosphere_range = World.Range(.7, 1)
     _atmosphere = LargeGardenAtmosphere
 
     def random_hydrosphere(self):

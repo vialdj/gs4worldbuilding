@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .. import Range, RandomizableModel
+from .. import RandomizableModel
 
 import random
 from enum import Enum
@@ -102,7 +102,7 @@ class Star(RandomizableModel):
     @property
     def mass_range(self):
         """value range for mass"""
-        return Range(.1, 2)
+        return type(self).Range(.1, 2)
 
     @mass.setter
     def mass(self, value):
@@ -128,8 +128,8 @@ class Star(RandomizableModel):
     @property
     def age_range(self):
         """computed value range for age"""
-        return Range(self.population.base, self.population.base +
-                     5 * self.population.step_a + 5 * self.population.step_b)
+        return type(self).Range(self.population.base, self.population.base +
+                                5 * self.population.step_a + 5 * self.population.step_b)
 
     @age.setter
     def age(self, value):

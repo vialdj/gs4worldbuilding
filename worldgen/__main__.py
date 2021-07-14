@@ -1,17 +1,9 @@
-from worldgen.world_generator import WorldGenerator
-from worldgen.model_widget import ModelWidget
-
-from PyQt5.QtWidgets import QApplication, QLabel
+from worldgen import Builder
 
 
 def main():
-    wgen = WorldGenerator()
-
-    app = QApplication([])
-    widget = ModelWidget(None, wgen.world)
-
-    widget.show()
-    app.exec_()
+    wgen = Builder()
+    print(wgen.world)
 
 
 if __name__ == '__main__':

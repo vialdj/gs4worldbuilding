@@ -1,14 +1,13 @@
-from .. import Range
 from . import World
 
 from random import choices
 
 
 class AsteroidBelt(World):
-    _temperature_range = Range(140, 500)
+    _temperature_range = World.Range(140, 500)
     _absorption = .97
-    _ressource_range = Range(World.Ressource.WORTHLESS,
-                             World.Ressource.MOTHERLODE)
+    _ressource_range = World.Range(World.Ressource.WORTHLESS,
+                                   World.Ressource.MOTHERLODE)
 
     def random_ressource(self):
         """sum of a 3d roll times over default worlds Ressource Value Table"""

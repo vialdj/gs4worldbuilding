@@ -4,7 +4,7 @@ from worldgen.star import Star
 from random import choices
 
 
-class WorldGenerator():
+class Builder():
     # World generator
     def __init__(self):
         world_types_distribution = {w.TinySulfur: 0.0457488,
@@ -30,7 +30,7 @@ class WorldGenerator():
 
         world_type = choices(list(world_types_distribution.keys()),
                              weights=list(world_types_distribution.values()))[0]
-        self.world = world_type()
+        self.world = w.StandardGarden()
 
     def __str__(self):
         return str(self.world)
