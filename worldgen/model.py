@@ -1,10 +1,17 @@
 # -*- coding: utf-8 -*-
 
+from collections import namedtuple
+
 import numpy as np
 
 
 class Model(object):
     """the Model class"""
+
+    class Range(namedtuple('Range', ['min', 'max'])):
+        """value range named tuple"""
+        def __str__(self):
+            return ('[{}, {}]'.format(self.min, self.max))
 
     def _set_ranged_property(self, prop, value):
         """setter for ranged value properties"""
@@ -12,7 +19,7 @@ class Model(object):
         if not rng:
             raise AttributeError('can\'t set attribute, no {}_range found'
                                  .format(prop))
-        if np.isnan(value):
+        if isnan(value):
             raise ValueError('can\'t manually set {} value to nan'.format(prop))
         if value < rng.min or value > rng.max:
             raise ValueError('{} value out of range {}'
@@ -36,11 +43,13 @@ class RandomizableModel(Model):
     """the Randomizable model specialization"""
 
     _precedence = []
+    locked = False
 
     def randomize(self):
         """randomizes applicable properties values with precedence constraints"""
         # randomizable properties
-        props = list(filter(lambda x: hasattr(self, 'random_{}'.format(x)),
-                            self._precedence))
-        for prop in props:
-            getattr(type(self), 'random_{}'.format(prop))(self)
+        if not self.locked:
+            props = list(filter(lambda x: hasattr(self, 'random_{}'.format(x)),
+                                self._precedence))
+            for prop in props:
+                getattr(type(self), 'random_{}'.format(prop))(self)
