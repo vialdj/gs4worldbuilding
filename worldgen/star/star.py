@@ -89,8 +89,13 @@ class Star(RandomizableModel):
 
     @staticmethod
     def __temp(mass):
-        """temp fitted through the form a * x + b)"""
+        """temp in interval [3100, 8200] linearly through the form a * x + b)"""
         return 2684.21052632 * mass + 2831.57894737
+
+    @staticmethod
+    def __temp_g(mass):
+        """temp in interval [3000, 5000] linearly through the form a * x + b)"""
+        return 1052.63157589 * mass + 2105.26315789
 
     @property
     def mass(self):
@@ -153,7 +158,6 @@ class Star(RandomizableModel):
         m_span = type(self).__m_span(self.mass)
         if (np.isnan(type(self).__l_max(self.mass))):
             return type(self).__l_min(self.mass)
-        # TODO: change to match-case after python 3.10 release
         if (self.luminosity_class == self.Luminosity.IV):
             return type(self).__l_max(self.mass)
         if (self.luminosity_class == self.Luminosity.III):
@@ -166,13 +170,14 @@ class Star(RandomizableModel):
     @property
     def temperature(self):
         """effective temperature in K"""
+        temp = type(self).__temp(self.mass)
         if (self.luminosity_class == self.Luminosity.IV):
-            temp = type(self).__temp(self.mass)
             return (temp - ((self.age - type(self).__m_span(self.mass)) /
                     type(self).__s_span(self.mass)) * (temp - 4800))
-        # TODO: handle giant luminosity class
+        if (self.luminosity_class == self.Luminosity.III):
+            return type(self).__temp_g(self.mass)
         # TODO: handle white dwarves luminosity class
-        return type(self).__temp(self.mass)
+        return temp
 
     @property
     def radius(self):
