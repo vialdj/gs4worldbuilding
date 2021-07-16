@@ -90,7 +90,7 @@ class Star(RandomizableModel):
     @staticmethod
     def __temp(mass):
         """temp fitted through the form a * x + b)"""
-        return 2845.6 * mass + 2749.5099529827608
+        return 2684.21052632 * mass + 2831.57894737
 
     @property
     def mass(self):
