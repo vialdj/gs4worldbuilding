@@ -38,7 +38,7 @@ class Star(RandomizableModel):
         b = upper - lower
         mu = lower
         sigma = .3164
-        self.mass = truncexpon(b=b / sigma, scale=sigma, loc=mu).rvs()
+        self._mass = truncexpon(b=b / sigma, scale=sigma, loc=mu).rvs()
 
     def random_population(self):
         """sum of a 3d roll over Stellar Age Table populations categories"""
@@ -49,9 +49,8 @@ class Star(RandomizableModel):
 
     def random_age(self):
         if (self.age_range.max - self.age_range.min) > 0:
-            self._age = ((random.uniform(0, 5) * self.population.step_a +
-                         random.uniform(0, 5) * self.population.step_b) /
-                         (self.age_range.max - self.age_range.min))
+            self._age = self.population.base + (random.uniform(0, 5) * self.population.step_a +
+                                                random.uniform(0, 5) * self.population.step_b)
         else:
             self._age = np.nan
 
@@ -91,7 +90,7 @@ class Star(RandomizableModel):
     @staticmethod
     def __temp(mass):
         """temp fitted through the form a * x + b)"""
-        return 2948.6212815383583 * mass + 2598.6586686607316
+        return 2845.6 * mass + 2749.5099529827608
 
     @property
     def mass(self):
@@ -122,8 +121,7 @@ class Star(RandomizableModel):
     @property
     def age(self):
         """age in Ga"""
-        return self.population.base + (self.age_range.max -
-                                       self.age_range.min) * self._age
+        return self._age
 
     @property
     def age_range(self):
@@ -138,9 +136,9 @@ class Star(RandomizableModel):
     @property
     def luminosity_class(self):
         """the star luminosity class"""
-        m_span = type(self).__m_span(self.mass)
-        s_span = type(self).__s_span(self.mass)
-        g_span = type(self).__g_span(self.mass)
+        m_span = type(self).__m_span(self._mass)
+        s_span = type(self).__s_span(self._mass)
+        g_span = type(self).__g_span(self._mass)
         if (not np.isnan(g_span) and self.age > g_span):
             return self.Luminosity.D
         if (not np.isnan(s_span) and self.age > s_span):
