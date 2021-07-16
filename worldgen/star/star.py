@@ -137,8 +137,8 @@ class Star(RandomizableModel):
     def luminosity_class(self):
         """the star luminosity class"""
         m_span = type(self).__m_span(self._mass)
-        s_span = type(self).__s_span(self._mass)
-        g_span = type(self).__g_span(self._mass)
+        s_span = type(self).__s_span(self._mass) + m_span
+        g_span = type(self).__g_span(self._mass) + s_span
         if (not np.isnan(g_span) and self.age > g_span):
             return self.Luminosity.D
         if (not np.isnan(s_span) and self.age > s_span):
