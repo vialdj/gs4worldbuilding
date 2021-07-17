@@ -3,7 +3,7 @@
 [![Coverage Status](https://coveralls.io/repos/github/vialdj/worldgen/badge.svg?branch=master&t=6zTiIW)](https://coveralls.io/github/vialdj/worldgen?branch=master)
 
 # worldgen
-Worldgen allows you to randomly generates worlds, stars and star systems based on the GURPS Space 4th Edition design sequence.
+Worldgen implement the model defined in the GURPS Space (4th Edition) design sequence. It allows you to randomly generates worlds, stars and star systems. Once an object is generated through any of the available methods, you can then tune some of its properties while keeping the model consistent.
 
 ## Dice rolls to random numbers
 ### Roll for condition
