@@ -2,8 +2,10 @@ from worldgen import Builder
 
 
 def main():
-    wgen = Builder()
-    print(wgen.world)
+    builder = Builder()
+    world = builder.build_world()
+
+    print(world)
 
 
 if __name__ == '__main__':

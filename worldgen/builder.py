@@ -1,4 +1,4 @@
-import worldgen as w
+import worldgen
 from worldgen.star import Star
 
 from random import choices
@@ -7,30 +7,31 @@ from random import choices
 class Builder():
     # World generator
     def __init__(self):
-        world_types_distribution = {w.TinySulfur: 0.0457488,
-                                    w.TinyIce: 0.16274024,
-                                    w.TinyRock: 0.11266216,
-                                    w.SmallHadean: 0.00312988,
-                                    w.SmallIce: 0.00938964,
-                                    w.SmallRock: 0.05007808,
-                                    w.StandardChthonian: 0.00300024,
-                                    w.StandardGreenhouse: 0.01200096,
-                                    w.StandardAmmonia: 0.05924988,
-                                    w.StandardHadean: 0.01877928,
-                                    w.StandardIce: 0.0312988,
-                                    w.StandardOcean: 0.11266216,
-                                    w.StandardGarden: 0.15899976,
-                                    w.LargeChthonian: 0.00300024,
-                                    w.LargeGreenhouse: 0.01200096,
-                                    w.LargeAmmonia: 0.02699892,
-                                    w.LargeIce: 0.00312988,
-                                    w.LargeGarden: 0.00300024,
-                                    w.LargeOcean: 0.00938964,
-                                    w.AsteroidBelt: 0.16274024}
+        self.terrestrial_distribution = {worldgen.TinySulfur: 0.0457488,
+                                         worldgen.TinyIce: 0.16274024,
+                                         worldgen.TinyRock: 0.11266216,
+                                         worldgen.SmallHadean: 0.00312988,
+                                         worldgen.SmallIce: 0.00938964,
+                                         worldgen.SmallRock: 0.05007808,
+                                         worldgen.StandardChthonian: 0.00300024,
+                                         worldgen.StandardGreenhouse: 0.01200096,
+                                         worldgen.StandardAmmonia: 0.05924988,
+                                         worldgen.StandardHadean: 0.01877928,
+                                         worldgen.StandardIce: 0.0312988,
+                                         worldgen.StandardOcean: 0.11266216,
+                                         worldgen.StandardGarden: 0.15899976,
+                                         worldgen.LargeChthonian: 0.00300024,
+                                         worldgen.LargeGreenhouse: 0.01200096,
+                                         worldgen.LargeAmmonia: 0.02699892,
+                                         worldgen.LargeIce: 0.00312988,
+                                         worldgen.LargeGarden: 0.00300024,
+                                         worldgen.LargeOcean: 0.00938964,
+                                         worldgen.AsteroidBelt: 0.16274024}
 
-        world_type = choices(list(world_types_distribution.keys()),
-                             weights=list(world_types_distribution.values()))[0]
-        self.world = w.StandardGarden()
+    def build_world(self):
+        world_type = choices(list(self.terrestrial_distribution.keys()),
+                             weights=list(self.terrestrial_distribution.values()))[0]
+        return world_type()
 
     def __str__(self):
         return str(self.world)
