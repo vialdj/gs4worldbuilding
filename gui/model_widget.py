@@ -1,52 +1,53 @@
+import gui.value_widget as gui_vwidgets
+
 from worldgen.model import Model, RandomizableModel
 
 from enum import Enum
 
-import PyQt5.QtWidgets as qt
-from PyQt5.QtCore import Qt, QLocale
-from numpy import float64, isnan
+import PyQt5.QtWidgets as qt_widgets
+import PyQt5.QtCore as qt_core
 
-QLocale.setDefault(QLocale(QLocale.C))
+import numpy as np
 
 
-class ModelWidget(qt.QGroupBox):
+class ModelWidget(qt_widgets.QGroupBox):
     """the Model Widget class"""
 
     def __init__(self, parent, model):
         super(ModelWidget, self).__init__(parent)
 
         self.model = model
-        self.p_widgets = {}
+        self.prop_widgets = {}
 
         self.setTitle(model.__class__.__name__)
-        self.setLayout(qt.QVBoxLayout())
+        self.setLayout(qt_widgets.QVBoxLayout())
         self.update()
         if isinstance(model, RandomizableModel) and not model.locked:
-            button = qt.QPushButton("Randomize")
+            button = qt_widgets.QPushButton("Randomize")
             button.clicked.connect(self.randomize)
             self.layout().addWidget(button)
         self.layout().setContentsMargins(2, 1, 2, 1)
 
     def update(self):
         self.setTitle(self.model.__class__.__name__)
-        props = list(self.p_widgets.keys())
+        props = list(self.prop_widgets.keys())
         for prop, value in self.model:
-            if not prop.endswith('_range') and not (value is None or (type(value) in [float, float64] and isnan(value))):
-                if prop in self.p_widgets:
-                    self.p_widgets[prop].update()
+            if not prop.endswith('_range') and not (value is None or (isinstance(value, (float, np.float64)) and np.isnan(value))):
+                if prop in self.prop_widgets:
+                    self.prop_widgets[prop].update()
                     props.remove(prop)
                 else:
-                    self.p_widgets[prop] = PropertyWidget(self, self.model, prop)
-                    self.layout().addWidget(self.p_widgets[prop])
-            elif prop in self.p_widgets:
-                self.layout().removeWidget(self.p_widgets[prop])
-                self.p_widgets[prop].deleteLater()
-                del self.p_widgets[prop]
+                    self.prop_widgets[prop] = PropertyWidget(self, self.model, prop)
+                    self.layout().addWidget(self.prop_widgets[prop])
+            elif prop in self.prop_widgets:
+                self.layout().removeWidget(self.prop_widgets[prop])
+                self.prop_widgets[prop].deleteLater()
+                del self.prop_widgets[prop]
                 props.remove(prop)
         for prop in props:
-            self.layout().removeWidget(self.p_widgets[prop])
-            self.p_widgets[prop].deleteLater()
-            del self.p_widgets[prop]
+            self.layout().removeWidget(self.prop_widgets[prop])
+            self.prop_widgets[prop].deleteLater()
+            del self.prop_widgets[prop]
 
     def value_changed(self):
         self.parent().value_changed()
@@ -59,7 +60,7 @@ class ModelWidget(qt.QGroupBox):
             self.update()
 
 
-class PropertyWidget(qt.QWidget):
+class PropertyWidget(qt_widgets.QWidget):
     """the Property Widget class"""
 
     def __init__(self, parent, model, prop):
@@ -70,30 +71,30 @@ class PropertyWidget(qt.QWidget):
         self.value = getattr(model, prop)
         self.value_type = type(getattr(model, prop))
 
-        layout = qt.QHBoxLayout()
-        name = qt.QLabel(prop)
-        name.setToolTip(eval('type(model).{}.__doc__'.format(prop)))
-        layout.addWidget(name)
+        layout = qt_widgets.QGridLayout()
+        name_widget = qt_widgets.QLabel(prop)
+        name_widget.setToolTip(eval('type(model).{}.__doc__'.format(prop)))
+        layout.addWidget(name_widget, 0, 0)
         if issubclass(self.value_type, Model):
-            self.widget = ModelWidget(self, self.value)
+            self.value_widget = ModelWidget(self, self.value)
         else:
-            self.widget = self.__make_value_widget()
-        layout.addWidget(self.widget)
+            self.value_widget = self.__make_value_widget()
+        layout.addWidget(self.value_widget, 0, 1, qt_core.Qt.AlignRight)
         if getattr(model, 'random_{}'.format(prop), None) is not None:
-            button = qt.QPushButton("Randomize")
-            button.clicked.connect(self.randomize)
-            layout.addWidget(button)
+            button_widget = qt_widgets.QPushButton("Randomize")
+            button_widget.clicked.connect(self.randomize)
+            layout.addWidget(button_widget, 0, 2)
         layout.setContentsMargins(2, 1, 2, 1)
         self.setLayout(layout)
 
     def __make_value_widget(self):
         if (self.value_type is bool):
-            return BoolWidget(self, self.model, self.prop)
-        elif (self.value_type in [float, float64]):
-            return DoubleWidget(self, self.model, self.prop)
+            return gui_vwidgets.BoolWidget(self, self.model, self.prop)
+        elif (self.value_type in [float, np.float64]):
+            return gui_vwidgets.DoubleWidget(self, self.model, self.prop)
         elif issubclass(self.value_type, Enum):
-            return EnumWidget(self, self.model, self.prop)
-        return qt.QLabel(str(self.value))
+            return gui_vwidgets.EnumWidget(self, self.model, self.prop)
+        return qt_widgets.QLabel(str(self.value))
 
     def value_changed(self):
         self.parent().update()
@@ -104,155 +105,7 @@ class PropertyWidget(qt.QWidget):
 
     def update(self):
         self.value = getattr(self.model, self.prop)
-        if isinstance(self.widget, ValueWidget) or isinstance(self.widget, ModelWidget):
-            self.widget.update()
+        if isinstance(self.value_widget, gui_vwidgets.ValueWidget) or isinstance(self.value_widget, ModelWidget):
+            self.value_widget.update()
         else:
-            self.widget.setText(str(self.value))
-
-
-class ValueWidget(qt.QWidget):
-    """the value widget class"""
-
-    def __init__(self, parent, model, prop):
-        super(ValueWidget, self).__init__(parent)
-
-        self.value = getattr(model, prop)
-        self.writable = getattr(type(model), prop).fset is not None
-        self.range = getattr(model, '{}_range'.format(prop), None)
-        self.model = model
-        self.prop = prop
-
-    def value_changed(self, value):
-        setattr(self.model, self.prop, value)
-        self.parent().value_changed()
-
-    def update(self):
-        self.value = getattr(self.model, self.prop)
-        self.writable = getattr(type(self.model), self.prop).fset is not None
-        self.range = getattr(self.model, '{}_range'.format(self.prop), None)
-
-
-class EnumWidget(ValueWidget):
-    """the enum value widget class"""
-
-    def __init__(self, parent, model, prop):
-        super(EnumWidget, self).__init__(parent, model, prop)
-        layout = qt.QHBoxLayout()
-        if self.writable:
-            self.widget = qt.QComboBox()
-            enums = filter(lambda e: e.value >= self.range.min and e.value <= self.range.max, [enum for enum in type(self.value)]) if self.range else [enum for enum in type(self.value)]
-            self.names = [enum.name for enum in enums]
-            self.widget.addItems(self.names)
-            self.update()
-            self.widget.currentIndexChanged.connect(self.value_changed)
-        else:
-            self.widget = qt.QLabel(str(self.value))
-        layout.addWidget(self.widget)
-        layout.setContentsMargins(2, 1, 2, 1)
-        self.setLayout(layout)
-
-    def value_changed(self):
-        value = type(self.value)[self.names[self.widget.currentIndex()]]
-        setattr(self.model, self.prop, value)
-        self.parent().value_changed()
-
-    def update(self):
-        super(EnumWidget, self).update()
-
-        if self.writable:
-            names = [self.widget.itemText(i) for i in range(self.widget.count())]
-            self.widget.setCurrentIndex(names.index(self.value.name))
-        else:
-            self.widget.setText(str(self.value))
-
-
-class DoubleWidget(ValueWidget):
-    """the double value widget Class"""
-
-    def __init__(self, parent, model, prop):
-        super(DoubleWidget, self).__init__(parent, model, prop)
-        layout = qt.QVBoxLayout()
-        if self.writable:
-            self.label = qt.QLabel('{:.2f}'.format(self.value))
-            layout.addWidget(self.label)
-            self.widget = DoubleSlider(Qt.Horizontal)
-            self.update()
-            self.widget.valueChanged.connect(self.value_changed)
-        else:
-            self.widget = qt.QLabel('{:.2f}'.format(self.value))
-        layout.addWidget(self.widget)
-        layout.setContentsMargins(2, 1, 2, 1)
-        self.setLayout(layout)
-
-    def value_changed(self):
-        setattr(self.model, self.prop, self.widget.value())
-        self.parent().value_changed()
-
-    def update(self):
-        super(DoubleWidget, self).update()
-
-        if self.writable:
-            self.label.setText('{:.2f}'.format(self.value))
-            self.widget.setRange(self.range.min, self.range.max)
-            self.widget.setValue(self.value)
-        else:
-            self.widget.setText('{:.2f}'.format(self.value))
-
-
-class BoolWidget(ValueWidget):
-    """the bool value widget class"""
-
-    def __init__(self, parent, model, prop):
-        super(BoolWidget, self).__init__(parent, model, prop)
-        layout = qt.QHBoxLayout()
-        if self.writable:
-            self.widget = qt.QCheckBox()
-            self.update()
-            self.widget.stateChanged.connect(self.value_changed)
-        else:
-            self.widget = qt.QLabel(str(self.value))
-        layout.addWidget(self.widget)
-        layout.setContentsMargins(2, 1, 2, 1)
-        self.setLayout(layout)
-
-    def update(self):
-        super(BoolWidget, self).update()
-
-        if self.writable:
-            self.widget.setChecked(self.value)
-        else:
-            self.widget.setText(str(self.value))
-
-
-class DoubleSlider(qt.QSlider):
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.decimals = 2
-        self._max_int = 10 ** self.decimals
-
-        super().setMinimum(0)
-        super().setMaximum(self._max_int)
-
-        self._min_value = 0.0
-        self._max_value = 1.0
-
-    @property
-    def _value_range(self):
-        return self._max_value - self._min_value
-
-    def value(self):
-        return float(super().value()) / self._max_int * self._value_range + self._min_value
-
-    def setValue(self, value):
-        super().setValue(int((value - self._min_value) / self._value_range * self._max_int))
-
-    def setRange(self, min, max):
-        self._min_value = min
-        self._max_value = max
-
-    def minimum(self):
-        return self._min_value
-
-    def maximum(self):
-        return self._max_value
+            self.value_widget.setText(str(self.value))

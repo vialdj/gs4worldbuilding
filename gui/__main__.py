@@ -1,14 +1,17 @@
-from ..worldgen import Builder
-from gui import ModelWidget
+from .model_widget import ModelWidget
+
+from worldgen import Builder
 
 from PyQt5.QtWidgets import QApplication
 
 
 def main():
-    wgen = Builder()
+
+    builder = Builder()
+    world = builder.build_world()
 
     app = QApplication([])
-    widget = ModelWidget(None, wgen.world)
+    widget = ModelWidget(None, world)
 
     widget.show()
     app.exec_()
