@@ -2,6 +2,7 @@
 
 from .. import RandomizableModel
 
+import copy
 import random
 from enum import Enum
 from math import sqrt
@@ -108,6 +109,7 @@ class Star(RandomizableModel):
     @mass.setter
     def mass(self, value):
         self._set_ranged_property('mass', value)
+        self.update_stage()
 
     @property
     def population(self):
@@ -197,3 +199,99 @@ class Star(RandomizableModel):
 
     def __init__(self):
         self.randomize()
+
+    def update_stage(self):
+        """update the star to ist proper evolutionary stage decorator based
+on its state"""
+        m_span = type(self)._m_span(self._mass)
+        s_span = type(self)._s_span(self._mass) + m_span
+        g_span = type(self).__g_span(self._mass) + s_span
+        if (not np.isnan(g_span) and self.age > g_span):
+            self.apply_stage(WhiteDwarf)
+        elif (not np.isnan(s_span) and self.age > s_span):
+            self.apply_stage(Giant)
+        elif (not np.isnan(m_span) and self.age > m_span):
+            self.apply_stage(Subgiant)
+        elif issubclass(type(self), EvolutionaryStage):
+            self.remove_stage()
+
+    def apply_stage(self, stage_type):
+        """applies the evolutionary stage decorator to the star"""
+        if issubclass(type(self), EvolutionaryStage):
+            self.remove_stage()
+        base = copy.copy(self)
+        stage = self
+        stage.__class__ = stage_type
+        stage._base = base
+
+    def remove_stage(self):
+        if issubclass(type(self), EvolutionaryStage):
+            base_type = type(self.base)
+            star = self
+            star.__class__ = base_type
+
+class EvolutionaryStage(Star):
+    """the EvolutionaryStage class to be inherited by concrete Star decorators"""
+
+    @property
+    def base(self):
+        """the base star"""
+        return (self._base if hasattr(self, '_base') else None)
+
+    def __init__(self):
+        super(EvolutionaryStage, self).__init__()
+        self.Mass.__set__ = None
+
+
+class Subgiant(EvolutionaryStage):
+    """The Subgiant Star decorator"""
+
+    _luminosity_class = Star.Luminosity.IV
+
+    @property
+    def luminosity(self):
+        """luminosity in L☉"""
+        return type(self)._l_max(self.mass)
+
+    @property
+    def temperature(self):
+        """effective temperature in K"""
+        temp = type(self)._temp(self.mass)
+        return (temp - ((self.age - type(self)._m_span(self.mass)) /
+                type(self)._s_span(self.mass)) * (temp - 4800))
+
+    def __init__(self):
+        super(Subgiant, self).__init__()
+
+
+class Giant(EvolutionaryStage):
+    """The Giant Star decorator"""
+
+    _luminosity_class = Star.Luminosity.III
+
+    @staticmethod
+    def _temp(mass):
+        """temp in interval [3000, 5000] linearly through the form a * x + b)"""
+        return 1052.63157589 * mass + 2105.26315789
+
+    @property
+    def luminosity(self):
+        """luminosity in L☉"""
+        return type(self)._l_max(self.mass) * 25
+
+    def __init__(self):
+        super(Giant, self).__init__()
+
+
+class WhiteDwarf(EvolutionaryStage):
+    """The White Dwarf Star decorator"""
+
+    _luminosity_class = Star.Luminosity.D
+
+    @property
+    def luminosity(self):
+        """luminosity in L☉"""
+        return np.nan
+
+    def __init__(self):
+        super(WhiteDwarf, self).__init__()
