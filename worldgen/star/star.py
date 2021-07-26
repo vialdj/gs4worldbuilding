@@ -15,7 +15,7 @@ from scipy.stats import truncexpon
 class Star(RandomizableModel):
     """the Star model on its main sequence"""
 
-    _precedence = ['mass', 'population', 'age']
+    _precedence = ['base_mass', 'population', 'age']
 
     population = namedtuple('Population', ['base', 'step_a', 'step_b'])
 
@@ -34,7 +34,7 @@ class Star(RandomizableModel):
         III = 'Giant'
         D = 'White dwarf'
 
-    def random_mass(self):
+    def random_base_mass(self):
         """consecutive sum of a 3d roll times over Stellar Mass Table"""
         upper, lower = 2, .1
         b = upper - lower
@@ -211,7 +211,7 @@ class Star(RandomizableModel):
              .95: 'G4', .9: 'G6', .85: 'G8', .8: 'K0', .75: 'K2', .7: 'K4',
              .65: 'K5', .6: 'K6', .55: 'K8', .5: 'M0', .45: 'M1', .4: 'M2',
              .35: 'M3', .3: 'M4', .25: 'M4', .2: 'M5', .15: 'M6', .1: 'M7'}
-        return d[list(filter(lambda x: x >= self.mass, sorted(d.keys())))[0]]
+        return None if self.luminosity_class == type(self).Luminosity.D else d[list(filter(lambda x: x >= self.mass, sorted(d.keys())))[0]]
 
     def __init__(self):
         self._decorator = None
