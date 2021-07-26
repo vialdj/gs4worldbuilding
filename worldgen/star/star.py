@@ -16,7 +16,6 @@ class Star(RandomizableModel):
     """the Star model on its main sequence"""
 
     _precedence = ['mass', 'population', 'age']
-    #_luminosity_class = Star.Luminosity.V
 
     population = namedtuple('Population', ['base', 'step_a', 'step_b'])
 
@@ -41,7 +40,7 @@ class Star(RandomizableModel):
         b = upper - lower
         mu = lower
         sigma = .3164
-        self._mass = truncexpon(b=b / sigma, scale=sigma, loc=mu).rvs()
+        self._base_mass = truncexpon(b=b / sigma, scale=sigma, loc=mu).rvs()
 
     def random_population(self):
         """sum of a 3d roll over Stellar Age Table populations categories"""
@@ -58,7 +57,7 @@ class Star(RandomizableModel):
             self._age = np.nan
 
     @staticmethod
-    def _l_max(mass):
+    def __l_max(mass):
         """l_max fitted through the form a*x**b"""
         if mass >= .45:
             return 1.417549268949681 * mass ** 3.786542028176919
@@ -70,14 +69,14 @@ class Star(RandomizableModel):
         return 0.8994825154104518 * mass ** 4.182711149771404
 
     @staticmethod
-    def _m_span(mass):
+    def __m_span(mass):
         """m_span fitted through the form a*exp(b*x)+c"""
         if mass >= .45:
             return 355.25732733 * np.exp(-3.62394465 * mass) - 1.19842708
         return np.nan
 
     @staticmethod
-    def _s_span(mass):
+    def __s_span(mass):
         """s_span fitted through the form a*exp(b*x)"""
         if mass >= .95:
             return 18.445568275396568 * np.exp(-2.471832533773299 * mass)
@@ -91,25 +90,33 @@ class Star(RandomizableModel):
         return np.nan
 
     @staticmethod
-    def _temp(mass):
+    def __temp_V(mass):
         """temp in interval [3100, 8200] linearly through the form a * x + b)"""
         return 2684.21052632 * mass + 2831.57894737
 
-    @property
-    def mass(self):
-        """mass in M☉"""
-        # TODO: handle white dwarf luminosity class mass
-        return self._mass
+    @staticmethod
+    def __temp_III(mass):
+        """temp in interval [3000, 5000] linearly through the form a * x + b)"""
+        return 1052.63157589 * mass + 2105.26315789
 
     @property
-    def mass_range(self):
+    def mass(self):
+        """read-only mass in M☉ with applied modifiers"""
+        return .001 if self.luminosity_class == type(self).Luminosity.D else self.base_mass
+
+    @property
+    def base_mass(self):
+        """mass in M☉ without modifiers"""
+        return self._base_mass
+
+    @property
+    def base_mass_range(self):
         """value range for mass"""
         return type(self).Range(.1, 2)
 
-    @mass.setter
-    def mass(self, value):
-        self._set_ranged_property('mass', value)
-        self.update_stage()
+    @base_mass.setter
+    def base_mass(self, value):
+        self._set_ranged_property('base_mass', value)
 
     @property
     def population(self):
@@ -140,30 +147,39 @@ class Star(RandomizableModel):
     @property
     def luminosity_class(self):
         """the star luminosity class"""
-        return self._luminosity_class if hasattr(self, '_luminosity_class') else type(self).Luminosity.V
-        m_span = type(self).__m_span(self._mass)
-        s_span = type(self).__s_span(self._mass) + m_span
-        g_span = type(self).__g_span(self._mass) + s_span
+        m_span = type(self).__m_span(self.base_mass)
+        s_span = type(self).__s_span(self.base_mass) + m_span
+        g_span = type(self).__g_span(self.base_mass) + s_span
         if (not np.isnan(g_span) and self.age > g_span):
-            return self.Luminosity.D
-        if (not np.isnan(s_span) and self.age > s_span):
-            return self.Luminosity.III
-        if (not np.isnan(m_span) and self.age > m_span):
-            return self.Luminosity.IV
-        return self.Luminosity.V
+            return type(self).Luminosity.D
+        elif (not np.isnan(s_span) and self.age > s_span):
+            return type(self).Luminosity.III
+        elif (not np.isnan(m_span) and self.age > m_span):
+            return type(self).Luminosity.IV
+        return type(self).Luminosity.V
 
     @property
     def luminosity(self):
         """luminosity in L☉"""
-        if (np.isnan(type(self)._l_max(self.mass))):
+        if (self.luminosity_class == type(self).Luminosity.D):
+            return np.nan
+        if (self.luminosity_class == type(self).Luminosity.III):
+            type(self).__l_max(self.mass) * 25
+        if (self.luminosity_class == type(self).Luminosity.IV):
+            return type(self).__l_max(self.mass)
+        if (np.isnan(type(self).__l_max(self.mass))):
             return type(self).__l_min(self.mass)
-        return (type(self).__l_min(self.mass) + (self.age / type(self)._m_span(self.mass)) *
-                (type(self)._l_max(self.mass) - type(self).__l_min(self.mass)))
+        return (type(self).__l_min(self.mass) + (self.age / type(self).__m_span(self.mass)) *
+                (type(self).__l_max(self.mass) - type(self).__l_min(self.mass)))
 
     @property
     def temperature(self):
         """effective temperature in K"""
-        return type(self)._temp(self.mass)
+        temp = type(self).__temp_III(self.mass) if self.luminosity_class == type(self).Luminosity.III else type(self).__temp_V(self.mass)
+        if (self.luminosity_class == type(self).Luminosity.IV):
+            return (temp - ((self.age - type(self).__m_span(self.mass)) /
+                    type(self).__s_span(self.mass)) * (temp - 4800))
+        return temp
 
     @property
     def radius(self):
@@ -198,100 +214,5 @@ class Star(RandomizableModel):
         return d[list(filter(lambda x: x >= self.mass, sorted(d.keys())))[0]]
 
     def __init__(self):
+        self._decorator = None
         self.randomize()
-
-    def update_stage(self):
-        """update the star to ist proper evolutionary stage decorator based
-on its state"""
-        m_span = type(self)._m_span(self._mass)
-        s_span = type(self)._s_span(self._mass) + m_span
-        g_span = type(self).__g_span(self._mass) + s_span
-        if (not np.isnan(g_span) and self.age > g_span):
-            self.apply_stage(WhiteDwarf)
-        elif (not np.isnan(s_span) and self.age > s_span):
-            self.apply_stage(Giant)
-        elif (not np.isnan(m_span) and self.age > m_span):
-            self.apply_stage(Subgiant)
-        elif issubclass(type(self), EvolutionaryStage):
-            self.remove_stage()
-
-    def apply_stage(self, stage_type):
-        """applies the evolutionary stage decorator to the star"""
-        if issubclass(type(self), EvolutionaryStage):
-            self.remove_stage()
-        base = copy.copy(self)
-        stage = self
-        stage.__class__ = stage_type
-        stage._base = base
-
-    def remove_stage(self):
-        if issubclass(type(self), EvolutionaryStage):
-            base_type = type(self.base)
-            star = self
-            star.__class__ = base_type
-
-class EvolutionaryStage(Star):
-    """the EvolutionaryStage class to be inherited by concrete Star decorators"""
-
-    @property
-    def base(self):
-        """the base star"""
-        return (self._base if hasattr(self, '_base') else None)
-
-    def __init__(self):
-        super(EvolutionaryStage, self).__init__()
-        self.Mass.__set__ = None
-
-
-class Subgiant(EvolutionaryStage):
-    """The Subgiant Star decorator"""
-
-    _luminosity_class = Star.Luminosity.IV
-
-    @property
-    def luminosity(self):
-        """luminosity in L☉"""
-        return type(self)._l_max(self.mass)
-
-    @property
-    def temperature(self):
-        """effective temperature in K"""
-        temp = type(self)._temp(self.mass)
-        return (temp - ((self.age - type(self)._m_span(self.mass)) /
-                type(self)._s_span(self.mass)) * (temp - 4800))
-
-    def __init__(self):
-        super(Subgiant, self).__init__()
-
-
-class Giant(EvolutionaryStage):
-    """The Giant Star decorator"""
-
-    _luminosity_class = Star.Luminosity.III
-
-    @staticmethod
-    def _temp(mass):
-        """temp in interval [3000, 5000] linearly through the form a * x + b)"""
-        return 1052.63157589 * mass + 2105.26315789
-
-    @property
-    def luminosity(self):
-        """luminosity in L☉"""
-        return type(self)._l_max(self.mass) * 25
-
-    def __init__(self):
-        super(Giant, self).__init__()
-
-
-class WhiteDwarf(EvolutionaryStage):
-    """The White Dwarf Star decorator"""
-
-    _luminosity_class = Star.Luminosity.D
-
-    @property
-    def luminosity(self):
-        """luminosity in L☉"""
-        return np.nan
-
-    def __init__(self):
-        super(WhiteDwarf, self).__init__()
