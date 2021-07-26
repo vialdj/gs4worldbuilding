@@ -102,7 +102,7 @@ class Star(RandomizableModel):
     @property
     def mass(self):
         """read-only mass in M☉ with applied modifiers"""
-        return .001 if self.luminosity_class == type(self).Luminosity.D else self.base_mass
+        return .9 + ((self.base_mass - .1) / 1.9) * .5 if self.luminosity_class == type(self).Luminosity.D else self.base_mass
 
     @property
     def base_mass(self):
@@ -162,7 +162,7 @@ class Star(RandomizableModel):
     def luminosity(self):
         """luminosity in L☉"""
         if (self.luminosity_class == type(self).Luminosity.D):
-            return np.nan
+            return .001
         if (self.luminosity_class == type(self).Luminosity.III):
             type(self).__l_max(self.mass) * 25
         if (self.luminosity_class == type(self).Luminosity.IV):
