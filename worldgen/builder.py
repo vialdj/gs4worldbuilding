@@ -1,5 +1,4 @@
 import worldgen
-from worldgen.star import Star
 
 from random import choices
 
@@ -34,7 +33,7 @@ class Builder():
         return world_type()
 
     def build_star(self):
-        return Star()
+        return worldgen.Star()
 
-    def __str__(self):
-        return str(self.world)
+    def build_star_system(self):
+        return worldgen.StarSystem()
