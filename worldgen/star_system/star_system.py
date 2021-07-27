@@ -1,5 +1,6 @@
 from .. import RandomizableModel
 from .. import Star
+from .. import CompanionStar
 
 from collections import namedtuple
 from random import choices
@@ -14,11 +15,11 @@ class StarSystem(RandomizableModel):
         pass
 
     def __random_binary(self):
-        self.secondary_star = Star()
+        self.secondary_star = CompanionStar(self.primary_star)
 
     def __random_tertiary(self):
-        self.secondary_star = Star()
-        self.tertiary_star = Star()
+        self.secondary_star = CompanionStar(self.primary_star)
+        self.tertiary_star = CompanionStar(self.primary_star)
 
     def random_stars(self):
         self.primary_star = Star()
