@@ -32,8 +32,5 @@ class Builder():
                              weights=list(self.terrestrial_distribution.values()))[0]
         return world_type()
 
-    def build_star(self):
-        return worldgen.Star()
-
     def build_star_system(self):
         return worldgen.StarSystem()

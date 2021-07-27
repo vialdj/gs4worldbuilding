@@ -2,8 +2,6 @@
 
 from .. import RandomizableModel
 
-import copy
-import random
 from enum import Enum
 from math import sqrt
 from collections import namedtuple
@@ -15,18 +13,7 @@ from scipy.stats import truncexpon
 class Star(RandomizableModel):
     """the Star model on its main sequence"""
 
-    _precedence = ['base_mass', 'population', 'age']
-
-    population = namedtuple('Population', ['base', 'step_a', 'step_b'])
-
-    class Population(population, Enum):
-        """class Population Enum from Stellar Age Table"""
-        EXTREME_POPULATION_1 = (0, 0, 0)
-        YOUNG_POPULATION_1 = (.1, .3, .05)
-        INTERMEDIATE_POPULATION_1 = (2, .6, .1)
-        OLD_POPULATION_1 = (5.6, .6, .1)
-        INTERMEDIATE_POPULATION_2 = (8, .6, .1)
-        EXTREME_POPULATION_2 = (10, .6, .1)
+    _precedence = ['seed_mass']
 
     class Luminosity(Enum):
         V = 'Main sequence'
@@ -34,27 +21,13 @@ class Star(RandomizableModel):
         III = 'Giant'
         D = 'White dwarf'
 
-    def random_base_mass(self):
+    def random_seed_mass(self):
         """consecutive sum of a 3d roll times over Stellar Mass Table"""
         upper, lower = 2, .1
         b = upper - lower
         mu = lower
         sigma = .3164
-        self._base_mass = truncexpon(b=b / sigma, scale=sigma, loc=mu).rvs()
-
-    def random_population(self):
-        """sum of a 3d roll over Stellar Age Table populations categories"""
-        self.population = random.choices(list(self.Population),
-                                         weights=[0.00463, 0.08797, 0.4074,
-                                                  0.4074, 0.08797, 0.00463],
-                                         k=1)[0]
-
-    def random_age(self):
-        if (self.age_range.max - self.age_range.min) > 0:
-            self._age = self.population.base + (random.uniform(0, 5) * self.population.step_a +
-                                                random.uniform(0, 5) * self.population.step_b)
-        else:
-            self._age = np.nan
+        self._seed_mass = truncexpon(b=b / sigma, scale=sigma, loc=mu).rvs()
 
     @staticmethod
     def __l_max(mass):
@@ -102,59 +75,33 @@ class Star(RandomizableModel):
     @property
     def mass(self):
         """read-only mass in M☉ with applied modifiers"""
-        return .9 + ((self.base_mass - .1) / 1.9) * .5 if self.luminosity_class == type(self).Luminosity.D else self.base_mass
+        return .9 + ((self.seed_mass - .1) / 1.9) * .5 if self.luminosity_class == type(self).Luminosity.D else self.seed_mass
 
     @property
-    def base_mass(self):
+    def seed_mass(self):
         """mass in M☉ without modifiers"""
-        return self._base_mass
+        return self._seed_mass
 
     @property
-    def base_mass_range(self):
+    def seed_mass_range(self):
         """value range for mass"""
         return type(self).Range(.1, 2)
 
-    @base_mass.setter
-    def base_mass(self, value):
-        self._set_ranged_property('base_mass', value)
-
-    @property
-    def population(self):
-        """population category over Stellar Age Table"""
-        return self._population
-
-    @population.setter
-    def population(self, value):
-        if not isinstance(value, self.Population):
-            raise ValueError('{} value type has to be {}'.format('population', self.Population))
-        self._population = value
-
-    @property
-    def age(self):
-        """age in Ga"""
-        return self._age
-
-    @property
-    def age_range(self):
-        """computed value range for age"""
-        return type(self).Range(self.population.base, self.population.base +
-                                5 * self.population.step_a + 5 * self.population.step_b)
-
-    @age.setter
-    def age(self, value):
-        self._set_ranged_property('age', value)
+    @seed_mass.setter
+    def seed_mass(self, value):
+        self._set_ranged_property('seed_mass', value)
 
     @property
     def luminosity_class(self):
         """the star luminosity class"""
-        m_span = type(self).__m_span(self.base_mass)
-        s_span = type(self).__s_span(self.base_mass) + m_span
-        g_span = type(self).__g_span(self.base_mass) + s_span
-        if (not np.isnan(g_span) and self.age > g_span):
+        m_span = type(self).__m_span(self.seed_mass)
+        s_span = type(self).__s_span(self.seed_mass) + m_span
+        g_span = type(self).__g_span(self.seed_mass) + s_span
+        if (not np.isnan(g_span) and self._star_system.age > g_span):
             return type(self).Luminosity.D
-        elif (not np.isnan(s_span) and self.age > s_span):
+        elif (not np.isnan(s_span) and self._star_system.age > s_span):
             return type(self).Luminosity.III
-        elif (not np.isnan(m_span) and self.age > m_span):
+        elif (not np.isnan(m_span) and self._star_system.age > m_span):
             return type(self).Luminosity.IV
         return type(self).Luminosity.V
 
@@ -169,7 +116,7 @@ class Star(RandomizableModel):
             return type(self).__l_max(self.mass)
         if (np.isnan(type(self).__l_max(self.mass))):
             return type(self).__l_min(self.mass)
-        return (type(self).__l_min(self.mass) + (self.age / type(self).__m_span(self.mass)) *
+        return (type(self).__l_min(self.mass) + (self._star_system.age / type(self).__m_span(self.mass)) *
                 (type(self).__l_max(self.mass) - type(self).__l_min(self.mass)))
 
     @property
@@ -177,7 +124,7 @@ class Star(RandomizableModel):
         """effective temperature in K"""
         temp = type(self).__temp_III(self.mass) if self.luminosity_class == type(self).Luminosity.III else type(self).__temp_V(self.mass)
         if (self.luminosity_class == type(self).Luminosity.IV):
-            return (temp - ((self.age - type(self).__m_span(self.mass)) /
+            return (temp - ((self._star_system.age - type(self).__m_span(self.mass)) /
                     type(self).__s_span(self.mass)) * (temp - 4800))
         return temp
 
@@ -213,6 +160,6 @@ class Star(RandomizableModel):
              .35: 'M3', .3: 'M4', .25: 'M4', .2: 'M5', .15: 'M6', .1: 'M7'}
         return None if self.luminosity_class == type(self).Luminosity.D else d[list(filter(lambda x: x >= self.mass, sorted(d.keys())))[0]]
 
-    def __init__(self):
-        self._decorator = None
+    def __init__(self, star_system):
+        self._star_system = star_system
         self.randomize()

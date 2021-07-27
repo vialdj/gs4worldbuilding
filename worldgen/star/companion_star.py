@@ -57,6 +57,7 @@ class CompanionStar(Star):
     def eccentricity(self):
         return None
 
-    def __init__(self, primary_star):
+    def __init__(self, star_system, primary_star):
+        super(CompanionStar, self).__init__(star_system)
         self._primary_star = primary_star
-        super(CompanionStar, self).__init__()
+
