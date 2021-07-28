@@ -19,7 +19,7 @@ class World(RandomizableModel):
                    'temperature', 'density', 'diameter']
 
     class Climate(int, Enum):
-        """class Climate Enum from world Climate Table"""
+        """class Climate Enum from world Climate Table with temperature threshold in K"""
         FROZEN = 0
         VERY_COLD = 244
         COLD = 255
@@ -91,8 +91,8 @@ class World(RandomizableModel):
     def random_volatile_mass(self):
         """sum of a 3d roll divided by 10"""
         if self.atmosphere is not None:
-            self.volatile_mass = truncnorm((.3 - 1.05) / 2.958040, (1.8 - 1.05) / 2.958040,
-                                           loc=1.05, scale=2.958040).rvs()
+            self.volatile_mass = truncnorm((3 - 10.5) / 2.958040, (18 - 10.5) / 2.958040,
+                                           loc=10.5, scale=2.958040).rvs() / 10
 
     @property
     def size(self):
