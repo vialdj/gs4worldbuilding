@@ -4,11 +4,12 @@ from enum import Enum
 from random import choices
 
 import numpy as np
+from scipy.stats import truncnorm
 
 
 class CompanionStar(Star):
 
-    _precedence = [*Star._precedence, 'separation', 'average_orbital_radius']
+    _precedence = [*Star._precedence, 'separation', 'eccentricity', 'average_orbital_radius']
 
     class Separation(float, Enum):
         """class Separation Enum from Orbital Separation Table with radius multiplier in AU"""
@@ -23,6 +24,13 @@ class CompanionStar(Star):
         self.separation = choices(list(self.Separation),
                                   weights=[.0926, .2824, .25, .2824, .0926],
                                   k=1)[0]
+
+    def random_eccentricity(self):
+        """consecutive sum of a 3d roll times over Stellar Mass Table"""
+        xa, xb = .0, .95
+        mu, sigma = .4954545454545455, .10522727272727272
+        a, b = (xa - mu) / sigma, (xb - mu) / sigma
+        self._eccentricity = truncnorm(a, b, mu, sigma).rvs()
 
     def random_average_orbital_radius(self):
         """roll of 2d multiplied by the separation category radius"""
@@ -55,9 +63,24 @@ class CompanionStar(Star):
 
     @property
     def eccentricity(self):
-        return None
+        """the companion orbit eccentricity"""
+        return self._eccentricity
+
+    @property
+    def average_orbital_radius_range(self):
+        """value range for average orbital radius"""
+        return type(self).Range(2 * self._separation.value, 12 * self._separation.value)
+
+    @property
+    def minimum_separation(self):
+        """the minimum separation in AU"""
+        return (1 - self.eccentricity) * self.average_orbital_radius
+
+    @property
+    def maximum_separation(self):
+        """the maximum separation in AU"""
+        return (1 + self.eccentricity) * self.average_orbital_radius
 
     def __init__(self, star_system, primary_star):
         super(CompanionStar, self).__init__(star_system)
         self._primary_star = primary_star
-
