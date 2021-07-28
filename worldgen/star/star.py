@@ -24,10 +24,11 @@ class Star(RandomizableModel):
     def random_seed_mass(self):
         """consecutive sum of a 3d roll times over Stellar Mass Table"""
         upper, lower = 2, .1
-        b = upper - lower
         mu = lower
-        sigma = .3164
-        self._seed_mass = truncexpon(b=b / sigma, scale=sigma, loc=mu).rvs()
+        sigma = .28605169340463465
+        b = (upper - lower) / sigma
+
+        self._seed_mass = truncexpon(b=b, loc=mu, scale=sigma).rvs()
 
     @staticmethod
     def __l_max(mass):
