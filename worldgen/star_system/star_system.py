@@ -1,6 +1,6 @@
 from .. import RandomizableModel
-from .. import Star
-from .. import CompanionStar
+from . import Star
+from . import CompanionStar
 
 from collections import namedtuple
 from enum import Enum
@@ -16,7 +16,7 @@ class StarSystem(RandomizableModel):
     population = namedtuple('Population', ['base', 'step_a', 'step_b'])
 
     class Population(population, Enum):
-        """class Population Enum from Stellar Age Table with base and steps in Ga"""
+        """class population Enum from Stellar Age Table with base and steps in Ga"""
         EXTREME_POPULATION_1 = (0, 0, 0)
         YOUNG_POPULATION_1 = (.1, .3, .05)
         INTERMEDIATE_POPULATION_1 = (2, .6, .1)
@@ -27,8 +27,8 @@ class StarSystem(RandomizableModel):
     def random_population(self):
         """sum of a 3d roll over Stellar Age Table populations categories"""
         self.population = random.choices(list(self.Population),
-                                         weights=[0.00463, 0.08797, 0.4074,
-                                                  0.4074, 0.08797, 0.00463],
+                                         weights=[.00463, .08797, .4074,
+                                                  .4074, .08797, .00463],
                                          k=1)[0]
 
     def random_age(self):

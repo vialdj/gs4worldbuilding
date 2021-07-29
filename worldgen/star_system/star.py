@@ -4,7 +4,7 @@ from .. import RandomizableModel
 
 from enum import Enum
 from math import sqrt
-from collections import namedtuple
+from random import choices
 
 import numpy as np
 from scipy.stats import truncexpon
@@ -13,13 +13,20 @@ from scipy.stats import truncexpon
 class Star(RandomizableModel):
     """the Star model on its main sequence"""
 
-    _precedence = ['seed_mass']
+    _precedence = ['seed_mass', 'gas_giant_arrangement']
 
     class Luminosity(Enum):
         V = 'Main sequence'
         IV = 'Subgiant'
         III = 'Giant'
         D = 'White dwarf'
+
+    class GasGiantArrangement(Enum):
+        """class arrangemeent category Enum from Gas Giant Arrangement table"""
+        NONE = 'No gas giant'
+        CONVENTIONAL = 'Conventional gas giant'
+        ECCENTRIC = 'Eccentric gas giant'
+        EPISTELLAR = 'Epistellar gas giant'
 
     def random_seed_mass(self):
         """consecutive sum of a 3d roll times over Stellar Mass Table"""
@@ -29,6 +36,13 @@ class Star(RandomizableModel):
         b = (upper - lower) / sigma
 
         self._seed_mass = truncexpon(b=b, loc=mu, scale=sigma).rvs()
+
+    def random_gas_giant_arrangement(self):
+        """sum of a 3d roll times over Gas Giant Arrangement Table"""
+        distribution = [.5, .24074, 0.16666, .0926]
+        self.gas_giant_arrangement = choices(list(self.GasGiantArrangement),
+                                             weights=distribution,
+                                             k=1)[0]
 
     @staticmethod
     def __l_max(mass):
@@ -91,6 +105,17 @@ class Star(RandomizableModel):
     @seed_mass.setter
     def seed_mass(self, value):
         self._set_ranged_property('seed_mass', value)
+
+    @property
+    def gas_giant_arrangement(self):
+        """gas giant arrangement category over Gas Giant Arrangement Table"""
+        return self._gas_giant_arrangement
+
+    @gas_giant_arrangement.setter
+    def gas_giant_arrangement(self, value):
+        if not isinstance(value, self.GasGiantArrangement):
+            raise ValueError('{} value type has to be {}'.format('gas_giant_arrangement', self.GasGiantArrangement))
+        self._gas_giant_arrangement = value
 
     @property
     def luminosity_class(self):

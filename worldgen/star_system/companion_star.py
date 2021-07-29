@@ -67,6 +67,15 @@ class CompanionStar(Star):
         return self._eccentricity
 
     @property
+    def eccentricity_range(self):
+        """value range for eccentricity"""
+        return type(self).Range(.0, .95)
+
+    @eccentricity.setter
+    def eccentricity(self, value):
+        self._set_ranged_property('eccentricity', value)
+
+    @property
     def average_orbital_radius_range(self):
         """value range for average orbital radius"""
         return type(self).Range(2 * self._separation.value, 12 * self._separation.value)
