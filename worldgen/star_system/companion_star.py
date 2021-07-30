@@ -1,3 +1,4 @@
+from worldgen.star_system.orbital_object import OrbitalObject
 from . import Star
 
 from enum import Enum
@@ -7,9 +8,10 @@ import numpy as np
 from scipy.stats import truncnorm
 
 
-class CompanionStar(Star):
+class CompanionStar(Star, OrbitalObject):
 
     _precedence = [*Star._precedence, 'separation', 'eccentricity', 'average_orbital_radius']
+    _eccentricity_range = Star.Range(0, .95)
 
     class Separation(float, Enum):
         """class Separation Enum from Orbital Separation Table with radius multiplier in AU"""
@@ -48,34 +50,6 @@ class CompanionStar(Star):
         self._separation = value
 
     @property
-    def average_orbital_radius(self):
-        """The average orbital radius to the primary star in AU"""
-        return self._average_orbital_radius
-
-    @property
-    def average_orbital_radius_range(self):
-        """value range for average orbital radius"""
-        return type(self).Range(2 * self._separation.value, 12 * self._separation.value)
-
-    @average_orbital_radius.setter
-    def average_orbital_radius(self, value):
-        self._set_ranged_property('average_orbital_radius', value)
-
-    @property
-    def eccentricity(self):
-        """the companion orbit eccentricity"""
-        return self._eccentricity
-
-    @property
-    def eccentricity_range(self):
-        """value range for eccentricity"""
-        return type(self).Range(.0, .95)
-
-    @eccentricity.setter
-    def eccentricity(self, value):
-        self._set_ranged_property('eccentricity', value)
-
-    @property
     def average_orbital_radius_range(self):
         """value range for average orbital radius"""
         return type(self).Range(2 * self._separation.value, 12 * self._separation.value)
@@ -90,6 +64,5 @@ class CompanionStar(Star):
         """the maximum separation in AU"""
         return (1 + self.eccentricity) * self.average_orbital_radius
 
-    def __init__(self, star_system, primary_star):
-        super(CompanionStar, self).__init__(star_system)
-        self._primary_star = primary_star
+    def __init__(self, star_system, parent_body):
+        super(CompanionStar, self).__init__(star_system=star_system, parent_body=parent_body)

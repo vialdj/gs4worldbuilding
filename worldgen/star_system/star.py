@@ -186,6 +186,6 @@ class Star(RandomizableModel):
              .35: 'M3', .3: 'M4', .25: 'M4', .2: 'M5', .15: 'M6', .1: 'M7'}
         return None if self.luminosity_class == type(self).Luminosity.D else d[list(filter(lambda x: x >= self.mass, sorted(d.keys())))[0]]
 
-    def __init__(self, star_system):
+    def __init__(self, star_system, **kw):
         self._star_system = star_system
         self.randomize()
