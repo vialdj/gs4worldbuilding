@@ -24,7 +24,7 @@ class CompanionStar(Star, OrbitalObject):
     def random_separation(self):
         """sum of a 3d roll over Orbital Separation Table"""
         self.separation = choices(list(self.Separation),
-                                  weights=[.0926, .2824, .25, .2824, .0926],
+                                  weights=self._separation_distribution,
                                   k=1)[0]
 
     def random_eccentricity(self):
@@ -43,11 +43,16 @@ class CompanionStar(Star, OrbitalObject):
         """separation category over Orbital Separation Table"""
         return self._separation
 
+    @property
+    def separation_range(self):
+        """ressource range class variable"""
+        return self._separation_range if hasattr(self, '_separation_range') else type(self).Range(self.Separation.VERY_CLOSE, self.Separation.DISTANT)
+
     @separation.setter
     def separation(self, value):
         if not isinstance(value, self.Separation):
             raise ValueError('{} value type has to be {}'.format('separation', self.Separation))
-        self._separation = value
+        self._set_ranged_property('separation', value)
 
     @property
     def average_orbital_radius_range(self):
@@ -64,5 +69,10 @@ class CompanionStar(Star, OrbitalObject):
         """the maximum separation in AU"""
         return (1 + self.eccentricity) * self.average_orbital_radius
 
-    def __init__(self, star_system, parent_body):
+    def __init__(self, star_system, parent_body, tertiary_star=False):
+        if tertiary_star:
+            self._separation_distribution = [0, .00462963, .041666667, .212962963, 0.740740741]
+            self._separation_range = type(self).Range(self.Separation.CLOSE, self.Separation.DISTANT)
+        else:
+            self._separation_distribution = [.0926, .2824, .25, .2824, .0926]
         super(CompanionStar, self).__init__(star_system=star_system, parent_body=parent_body)
