@@ -32,7 +32,7 @@ class Star(RandomizableModel):
         """consecutive sum of a 3d roll times over Stellar Mass Table"""
         upper, lower = 2, .1
         mu = lower
-        sigma = .28605169340463465
+        sigma = .376928361893875
         b = (upper - lower) / sigma
 
         self._seed_mass = truncexpon(b=b, loc=mu, scale=sigma).rvs()
