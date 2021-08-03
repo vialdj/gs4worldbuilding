@@ -30,7 +30,7 @@ class CompanionStar(Star, OrbitalObject):
     def random_eccentricity(self):
         """consecutive sum of a 3d roll times over Stellar Mass Table"""
         xa, xb = .0, .95
-        mu, sigma = .4954545454545455, .10522727272727272
+        mu, sigma = .516, .14421858410066296
         a, b = (xa - mu) / sigma, (xb - mu) / sigma
         self._eccentricity = truncnorm(a, b, mu, sigma).rvs()
 
