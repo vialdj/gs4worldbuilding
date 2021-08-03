@@ -153,6 +153,8 @@ class World(RandomizableModel):
 
     @ressource.setter
     def ressource(self, value):
+        if not isinstance(value, self.Ressource):
+            raise ValueError('{} value type has to be {}'.format('ressource', self.Ressource))
         self._set_ranged_property('ressource', value)
 
     @property
