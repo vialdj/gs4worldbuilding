@@ -28,8 +28,7 @@ class StarSystem(RandomizableModel):
     def random_population(self):
         """sum of a 3d roll over Stellar Age Table populations categories"""
         self.population = random.choices(list(self.Population),
-                                         weights=[.00463, .08797, .4074,
-                                                  .4074, .08797, .00463],
+                                         weights=self._population_distribution,
                                          k=1)[0]
 
     def random_age(self):
@@ -106,9 +105,14 @@ class StarSystem(RandomizableModel):
     def tertiary_star(self, value):
         self._tertiary_star = value
 
-    def __init__(self, open_cluster=False):
+    def __init__(self, open_cluster=False, garden_host=False):
         if open_cluster:
             self._stars_distribution = [.162037037, .578703704, .259259259]
         else:
             self._stars_distribution = [.5, .453703703, .046296297]
+        if garden_host:
+            self._population_distribution = [0, .166666667, 0.555555556, .277777778, 0, 0]
+        else:
+            self._population_distribution = [.00462963, .087962963, .407407407, .407407407, .087962963, .00462963]
+
         self.randomize()
