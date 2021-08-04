@@ -19,7 +19,8 @@ class World(RandomizableModel):
                    'temperature', 'density', 'diameter']
 
     class Climate(int, Enum):
-        """class Climate Enum from world Climate Table with temperature threshold in K"""
+        """class Climate Enum from world Climate Table with temperature
+threshold in K"""
         FROZEN = 0
         VERY_COLD = 244
         COLD = 255
@@ -61,10 +62,10 @@ class World(RandomizableModel):
 
     def random_ressource(self):
         """sum of a 3d roll times over default worlds Ressource Value Table"""
-        ressource_distribution = [0, 0, 0, .01852, .14352, .67592,
-                                  .14352, .01852, 0, 0, 0]
+        ressource_dist = [0, 0, 0, .01852, .14352, .67592,
+                          .14352, .01852, 0, 0, 0]
         self.ressource = choices(list(self.Ressource),
-                                 weights=ressource_distribution, k=1)[0]
+                                 weights=ressource_dist, k=1)[0]
 
     def random_temperature(self):
         """sum of a 3d-3 roll times step value add minimum"""
@@ -85,13 +86,16 @@ class World(RandomizableModel):
     def random_diameter(self):
         """roll of 2d-2 in range [Dmin, Dmax]"""
         if self.size is not None and self.core is not None:
-            self.diameter = (self.diameter_range.min + np.random.triangular(0, .5, 1) *
-                             (self.diameter_range.max - self.diameter_range.min))
+            self.diameter = (self.diameter_range.min +
+                             np.random.triangular(0, .5, 1) *
+                             (self.diameter_range.max -
+                              self.diameter_range.min))
 
     def random_volatile_mass(self):
         """sum of a 3d roll divided by 10"""
         if self.atmosphere is not None:
-            self.volatile_mass = truncnorm((3 - 10.5) / 2.958040, (18 - 10.5) / 2.958040,
+            self.volatile_mass = truncnorm((3 - 10.5) / 2.958040,
+                                           (18 - 10.5) / 2.958040,
                                            loc=10.5, scale=2.958040).rvs() / 10
 
     @property
@@ -129,8 +133,10 @@ class World(RandomizableModel):
 
     @property
     def volatile_mass(self):
-        """relative supply of gaseous elements to other worlds of the same type"""
-        return self._volatile_mass if hasattr(self, '_volatile_mass') else np.nan
+        """relative supply of gaseous elements to other worlds of
+the same type"""
+        return (self._volatile_mass if hasattr(self, '_volatile_mass')
+                else np.nan)
 
     @property
     def volatile_mass_range(self):
@@ -149,12 +155,16 @@ class World(RandomizableModel):
     @property
     def ressource_range(self):
         """ressource range class variable"""
-        return type(self)._ressource_range if hasattr(type(self), '_ressource_range') else type(self).Range(self.Ressource.VERY_POOR, self.Ressource.VERY_ABUNDANT)
+        return (type(self)._ressource_range
+                if hasattr(type(self), '_ressource_range')
+                else type(self).Range(self.Ressource.VERY_POOR,
+                                      self.Ressource.VERY_ABUNDANT))
 
     @ressource.setter
     def ressource(self, value):
         if not isinstance(value, self.Ressource):
-            raise ValueError('{} value type has to be {}'.format('ressource', self.Ressource))
+            raise ValueError('ressource value type has to be {}'
+                             .format(self.Ressource))
         self._set_ranged_property('ressource', value)
 
     @property
@@ -208,8 +218,10 @@ class World(RandomizableModel):
     @property
     def diameter_range(self):
         """computed value range for diameter"""
-        return (type(self).Range(sqrt(self.blackbody_temperature / self.density) * self.size.min,
-                                 sqrt(self.blackbody_temperature / self.density) * self.size.max)
+        return (type(self).Range(sqrt(self.blackbody_temperature /
+                                      self.density) * self.size.min,
+                                 sqrt(self.blackbody_temperature /
+                                      self.density) * self.size.max)
                 if self.density and self.size else None)
 
     @diameter.setter
@@ -249,17 +261,26 @@ class World(RandomizableModel):
                    (self.hydrosphere >= .9, 2)]
         atm = self.atmosphere
         if atm and atm.breathable:
-            filters.extend([(atm.pressure_category == Atmosphere.Pressure.VERY_THIN, 1),
-                            (atm.pressure_category == Atmosphere.Pressure.THIN, 2),
-                            (atm.pressure_category in [Atmosphere.Pressure.STANDARD, Atmosphere.Pressure.DENSE], 3),
-                            (atm.pressure_category in [Atmosphere.Pressure.VERY_DENSE, Atmosphere.Pressure.SUPER_DENSE], 1),
+            filters.extend([(atm.pressure_category ==
+                             Atmosphere.Pressure.VERY_THIN, 1),
+                            (atm.pressure_category ==
+                             Atmosphere.Pressure.THIN, 2),
+                            (atm.pressure_category in
+                             [Atmosphere.Pressure.STANDARD,
+                              Atmosphere.Pressure.DENSE], 3),
+                            (atm.pressure_category in
+                             [Atmosphere.Pressure.VERY_DENSE,
+                              Atmosphere.Pressure.SUPER_DENSE], 1),
                             (not issubclass(type(atm), Marginal), 1),
                             (self.climate == self.Climate.COLD, 1),
-                            (self.climate >= self.Climate.CHILLY and self.climate <= self.Climate.TROPICAL, 2),
+                            (self.climate >= self.Climate.CHILLY and
+                             self.climate <= self.Climate.TROPICAL, 2),
                             (self.climate == self.Climate.HOT, 1)])
         if atm and not atm.breathable:
-            filters.extend([(atm and not atm.breathable and atm.corrosive, -2),
-                            (atm and not atm.breathable and atm.corrosive, -1)])
+            filters.extend([(atm and not atm.breathable and
+                             atm.corrosive, -2),
+                            (atm and not atm.breathable and
+                             atm.corrosive, -1)])
         return sum(value if truth else 0 for truth, value in filters)
 
     @property
@@ -268,10 +289,13 @@ class World(RandomizableModel):
         return self.ressource + self.habitability
 
     def randomize(self):
-        if hasattr(type(self._atmosphere), 'randomize') and callable(getattr(type(self._atmosphere), 'randomize')):
+        if (hasattr(type(self._atmosphere), 'randomize') and
+            callable(getattr(type(self._atmosphere), 'randomize'))):
             self._atmosphere.randomize()
         super(World, self).randomize()
 
     def __init__(self):
-        self._atmosphere = self._atmosphere(self) if hasattr(type(self), '_atmosphere') else None
+        self._atmosphere = (self._atmosphere(self)
+                            if hasattr(type(self), '_atmosphere')
+                            else None)
         self.randomize()

@@ -17,7 +17,8 @@ class StarSystem(RandomizableModel):
     population = namedtuple('Population', ['base', 'step_a', 'step_b'])
 
     class Population(population, Enum):
-        """class population Enum from Stellar Age Table with base and steps in Ga"""
+        """class population Enum from Stellar Age Table with base and
+steps in Ga"""
         EXTREME_POPULATION_1 = (0, 0, 0)
         YOUNG_POPULATION_1 = (.1, .3, .05)
         INTERMEDIATE_POPULATION_1 = (2, .6, .1)
@@ -28,13 +29,15 @@ class StarSystem(RandomizableModel):
     def random_population(self):
         """sum of a 3d roll over Stellar Age Table populations categories"""
         self.population = random.choices(list(self.Population),
-                                         weights=self._population_distribution,
+                                         weights=self._population_dist,
                                          k=1)[0]
 
     def random_age(self):
         if (self.age_range.max - self.age_range.min) > 0:
-            self._age = self.population.base + (random.uniform(0, 5) * self.population.step_a +
-                                                random.uniform(0, 5) * self.population.step_b)
+            self._age = self.population.base + (random.uniform(0, 5) *
+                                                self.population.step_a +
+                                                random.uniform(0, 5) *
+                                                self.population.step_b)
         else:
             self._age = np.nan
 
@@ -47,7 +50,8 @@ class StarSystem(RandomizableModel):
     def age_range(self):
         """computed value range for age"""
         return type(self).Range(self.population.base, self.population.base +
-                                5 * self.population.step_a + 5 * self.population.step_b)
+                                5 * self.population.step_a +
+                                5 * self.population.step_b)
 
     @age.setter
     def age(self, value):
@@ -65,8 +69,9 @@ class StarSystem(RandomizableModel):
 
     def random_stars(self):
         self.primary_star = Star(self)
-        randomize = random.choices([self.__random_unary, self.__random_binary, self.__random_tertiary],
-                                   weights=self._stars_distribution,
+        randomize = random.choices([self.__random_unary, self.__random_binary,
+                                    self.__random_tertiary],
+                                   weights=self._stars_dist,
                                    k=1)[0]
         randomize()
 
@@ -78,7 +83,8 @@ class StarSystem(RandomizableModel):
     @population.setter
     def population(self, value):
         if not isinstance(value, self.Population):
-            raise ValueError('{} value type has to be {}'.format('population', self.Population))
+            raise ValueError('population value type has to be {}'
+                             .format(self.Population))
         self._population = value
 
     @property
@@ -91,7 +97,8 @@ class StarSystem(RandomizableModel):
 
     @property
     def secondary_star(self):
-        return self._secondary_star if hasattr(self, '_secondary_star') else None
+        return (self._secondary_star if hasattr(self, '_secondary_star')
+                else None)
 
     @secondary_star.setter
     def secondary_star(self, value):
@@ -107,12 +114,14 @@ class StarSystem(RandomizableModel):
 
     def __init__(self, open_cluster=False, garden_host=False):
         if open_cluster:
-            self._stars_distribution = [.162037037, .578703704, .259259259]
+            self._stars_dist = [.162037037, .578703704, .259259259]
         else:
-            self._stars_distribution = [.5, .453703703, .046296297]
+            self._stars_dist = [.5, .453703703, .046296297]
         if garden_host:
-            self._population_distribution = [0, .166666667, 0.555555556, .277777778, 0, 0]
+            self._population_dist = [0, .166666667, 0.555555556, .277777778, 0,
+                                     0]
         else:
-            self._population_distribution = [.00462963, .087962963, .407407407, .407407407, .087962963, .00462963]
+            self._population_dist = [.00462963, .087962963, .407407407,
+                                     .407407407, .087962963, .00462963]
 
         self.randomize()

@@ -20,7 +20,8 @@ class Model(object):
             raise AttributeError('can\'t set attribute, no {}_range found'
                                  .format(prop))
         if np.isnan(value):
-            raise ValueError('can\'t manually set {} value to nan'.format(prop))
+            raise ValueError('can\'t manually set {} value to nan'
+                             .format(prop))
         if value < rng.min or value > rng.max:
             raise ValueError('{} value out of range {}'
                              .format(prop, rng))
@@ -34,9 +35,10 @@ class Model(object):
             yield prop, getattr(self, prop)
 
     def __str__(self):
-        return ('{{class: {}, {}}}'.format(self.__class__.__name__,
-                                           ', '.join(['{}: {!s}'.format(prop, value)
-                                                     for prop, value in self])))
+        return ('{{class: {}, {}}}'
+                .format(self.__class__.__name__,
+                        ', '.join(['{}: {!s}'.format(prop, value)
+                                  for prop, value in self])))
 
 
 class RandomizableModel(Model):
@@ -46,7 +48,8 @@ class RandomizableModel(Model):
     locked = False
 
     def randomize(self):
-        """randomizes applicable properties values with precedence constraints"""
+        """randomizes applicable properties values with precedence
+constraints"""
         # randomizable properties
         if not self.locked:
             props = list(filter(lambda x: hasattr(self, 'random_{}'.format(x)),

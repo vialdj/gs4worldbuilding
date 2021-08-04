@@ -17,7 +17,8 @@ class Marginal():
 def chlorine_or_fluorine(atmosphere):
 
     class ChlorineOrFluorine(atmosphere, Marginal):
-        _toxicity = Atmosphere.Range(Atmosphere.Toxicity.HIGH, Atmosphere.Toxicity.LETHAL)
+        _toxicity = Atmosphere.Range(Atmosphere.Toxicity.HIGH,
+                                     Atmosphere.Toxicity.LETHAL)
         _corrosive = Atmosphere.Range(False, True)
 
     return ChlorineOrFluorine
@@ -69,7 +70,8 @@ def low_oxygen(atmosphere):
 def nitrogen_compounds(atmosphere):
 
     class NitrogenCompounds(atmosphere, Marginal):
-        _toxicity = Atmosphere.Range(Atmosphere.Toxicity.MILD, Atmosphere.Toxicity.HIGH)
+        _toxicity = Atmosphere.Range(Atmosphere.Toxicity.MILD,
+                                     Atmosphere.Toxicity.HIGH)
 
     return NitrogenCompounds
 
@@ -77,7 +79,8 @@ def nitrogen_compounds(atmosphere):
 def sulfur_compounds(atmosphere):
 
     class SulfurCompounds(atmosphere, Marginal):
-        _toxicity = Atmosphere.Range(Atmosphere.Toxicity.MILD, Atmosphere.Toxicity.HIGH)
+        _toxicity = Atmosphere.Range(Atmosphere.Toxicity.MILD,
+                                     Atmosphere.Toxicity.HIGH)
 
     return SulfurCompounds
 
@@ -85,7 +88,8 @@ def sulfur_compounds(atmosphere):
 def organic_toxins(atmosphere):
 
     class OrganicToxins(atmosphere, Marginal):
-        _toxicity = Atmosphere.Range(Atmosphere.Toxicity.MILD, Atmosphere.Toxicity.LETHAL)
+        _toxicity = Atmosphere.Range(Atmosphere.Toxicity.MILD,
+                                     Atmosphere.Toxicity.LETHAL)
 
     return OrganicToxins
 
@@ -109,21 +113,21 @@ provided marginal modifier or one at random"""
         if issubclass(type(self), Marginal):
             self.remove_marginal()
 
-        marginal_distribution = {
-            chlorine_or_fluorine: 0.01852,
-            high_carbon_dioxide: 0.07408,
-            high_oxygen: 0.06944,
-            inert_gases: 0.21296,
-            low_oxygen: 0.25,
-            nitrogen_compounds: 0.21296,
-            sulfur_compounds: 0.06944,
-            organic_toxins: 0.07408,
-            pollutants: 0.01852
+        marginal_dist = {
+            chlorine_or_fluorine: .01852,
+            high_carbon_dioxide: .07408,
+            high_oxygen: .06944,
+            inert_gases: .21296,
+            low_oxygen: .25,
+            nitrogen_compounds: .21296,
+            sulfur_compounds: .06944,
+            organic_toxins: .07408,
+            pollutants: .01852
         }
 
         if marginal_type is None:
-            marginal_type = choices(list(marginal_distribution.keys()),
-                                    weights=list(marginal_distribution
+            marginal_type = choices(list(marginal_dist.keys()),
+                                    weights=list(marginal_dist
                                                  .values()))[0]
 
         base = copy.copy(self)

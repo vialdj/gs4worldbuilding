@@ -1,5 +1,4 @@
-from worldgen.star_system import star
-from worldgen.star_system.orbital_object import OrbitalObject
+from . import OrbitalObject
 from . import Star
 
 from enum import Enum
@@ -11,10 +10,12 @@ from scipy.stats import truncnorm, truncexpon
 
 class CompanionStar(Star, OrbitalObject):
 
-    _precedence = [*Star._precedence, 'separation', 'eccentricity', 'average_orbital_radius']
+    _precedence = [*Star._precedence, 'separation', 'eccentricity',
+                   'average_orbital_radius']
 
     class Separation(float, Enum):
-        """class Separation Enum from Orbital Separation Table with radius multiplier in AU"""
+        """class Separation Enum from Orbital Separation Table with
+radius multiplier in AU"""
         VERY_CLOSE = .05
         CLOSE = .5
         MODERATE = 2
@@ -41,7 +42,7 @@ class CompanionStar(Star, OrbitalObject):
     def random_separation(self):
         """sum of a 3d6 roll over Orbital Separation Table"""
         self.separation = random.choices(list(self.Separation),
-                                         weights=self._separation_distribution,
+                                         weights=self._separation_dist,
                                          k=1)[0]
 
     @staticmethod
@@ -56,24 +57,30 @@ class CompanionStar(Star, OrbitalObject):
         return truncexpon(b, mu, sigma).rvs()
 
     def random_eccentricity(self):
-        """sum of a 3d6 roll over Stellar Orbital Eccentricity Table with modifiers if any"""
+        """sum of a 3d6 roll over Stellar Orbital Eccentricity Table with
+modifiers if any"""
         if self.separation == self.Separation.MODERATE:
-            eccentricity = self.__truncnorm_draw(0, .8, .4151, .16553546447815948)
+            eccentricity = self.__truncnorm_draw(0, .8, .4151,
+                                                 .16553546447815948)
         elif self.separation == self.Separation.CLOSE:
-            eccentricity = self.__truncnorm_draw(0, .7, .3055, .1839014681833726)
+            eccentricity = self.__truncnorm_draw(0, .7, .3055,
+                                                 .1839014681833726)
         elif self.separation == self.Separation.VERY_CLOSE:
             eccentricity = self.__truncexpon_draw(0, .6, .1819450191678794)
         else:
-            eccentricity = self.__truncnorm_draw(0, .95, .5204, .142456449485448)
+            eccentricity = self.__truncnorm_draw(0, .95, .5204,
+                                                 .142456449485448)
         self.eccentricity = eccentricity
 
     def random_average_orbital_radius(self):
         """roll of 2d6 multiplied by the separation category radius"""
-        self.average_orbital_radius = np.random.triangular(2, 7, 12) * self._separation.value
+        self.average_orbital_radius = (np.random.triangular(2, 7, 12) *
+                                       self._separation.value)
 
     @property
     def seed_mass_range(self):
-        """value range for mass adjusted so mass cannot be greater than parent body mass"""
+        """value range for mass adjusted so mass cannot be greater than parent
+body mass"""
         return type(self).Range(.1, self._parent_body.mass)
 
     @property
@@ -84,26 +91,31 @@ class CompanionStar(Star, OrbitalObject):
     @property
     def separation_range(self):
         """ressource range class variable"""
-        return self._separation_range if hasattr(self, '_separation_range') else type(self).Range(self.Separation.VERY_CLOSE, self.Separation.DISTANT)
+        return (self._separation_range if hasattr(self, '_separation_range')
+                else type(self).Range(self.Separation.VERY_CLOSE,
+                                      self.Separation.DISTANT))
 
     @separation.setter
     def separation(self, value):
         if not isinstance(value, self.Separation):
-            raise ValueError('{} value type has to be {}'.format('separation', self.Separation))
+            raise ValueError('separation value type must be {}'
+                             .format(self.Separation))
         self._set_ranged_property('separation', value)
 
     @property
     def eccentricity_range(self):
         """value range for eccentricity dependant on parent star separation"""
-        rngs = {self.Separation.MODERATE: Star.Range(0, .8),
-                self.Separation.CLOSE: Star.Range(0, .7),
-                self.Separation.VERY_CLOSE: Star.Range(0, .6)}
-        return rngs[self.separation] if self.separation in rngs.keys() else Star.Range(0, .95)
+        rngs = {self.Separation.MODERATE: type(self).Range(0, .8),
+                self.Separation.CLOSE: type(self).Range(0, .7),
+                self.Separation.VERY_CLOSE: type(self).Range(0, .6)}
+        return (rngs[self.separation] if self.separation in rngs.keys() else
+                type(self).Range(0, .95))
 
     @property
     def average_orbital_radius_range(self):
         """value range for average orbital radius"""
-        return type(self).Range(2 * self._separation.value, 12 * self._separation.value)
+        return type(self).Range(2 * self._separation.value, 12 *
+                                self._separation.value)
 
     @property
     def minimum_separation(self):
@@ -117,9 +129,11 @@ class CompanionStar(Star, OrbitalObject):
 
     def __init__(self, star_system, parent_body, tertiary_star=False):
         if tertiary_star:
-            self._separation_distribution = [0, .00462963, .041666667, .212962963, 0.740740741]
-            self._separation_range = type(self).Range(self.Separation.CLOSE, self.Separation.DISTANT)
+            self._separation_dist = [0, .00462963, .041666667, .212962963,
+                                     .740740741]
+            self._separation_range = type(self).Range(self.Separation.CLOSE,
+                                                      self.Separation.DISTANT)
         else:
-            self._separation_distribution = [.0926, .2824, .25, .2824, .0926]
+            self._separation_dist = [.0926, .2824, .25, .2824, .0926]
         OrbitalObject.__init__(self, parent_body)
         Star.__init__(self, star_system)

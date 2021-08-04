@@ -3,7 +3,6 @@ from . import Atmosphere
 from . import World
 
 from random import uniform
-from scipy.stats import truncnorm
 
 
 class StandardOcean(World):

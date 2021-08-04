@@ -79,18 +79,20 @@ class Star(RandomizableModel):
 
     @staticmethod
     def __temp_V(mass):
-        """temp in interval [3100, 8200] linearly through the form a * x + b)"""
+        """temp in interval [3100, 8200] linearly through the form a * x + b"""
         return 2684.21052632 * mass + 2831.57894737
 
     @staticmethod
     def __temp_III(mass):
-        """temp in interval [3000, 5000] linearly through the form a * x + b)"""
+        """temp in interval [3000, 5000] linearly through the form a * x + b"""
         return 1052.63157589 * mass + 2105.26315789
 
     @property
     def mass(self):
         """read-only mass in M☉ with applied modifiers"""
-        return .9 + ((self.seed_mass - .1) / 1.9) * .5 if self.luminosity_class == type(self).Luminosity.D else self.seed_mass
+        return (.9 + ((self.seed_mass - .1) / 1.9) * .5
+                if self.luminosity_class == type(self).Luminosity.D
+                else self.seed_mass)
 
     @property
     def seed_mass(self):
@@ -114,7 +116,8 @@ class Star(RandomizableModel):
     @gas_giant_arrangement.setter
     def gas_giant_arrangement(self, value):
         if not isinstance(value, self.GasGiantArrangement):
-            raise ValueError('{} value type has to be {}'.format('gas_giant_arrangement', self.GasGiantArrangement))
+            raise ValueError('gas giant arrangement value type must be {}'
+                             .format(self.GasGiantArrangement))
         self._gas_giant_arrangement = value
 
     @property
@@ -142,16 +145,22 @@ class Star(RandomizableModel):
             return type(self).__l_max(self.mass)
         if (np.isnan(type(self).__l_max(self.mass))):
             return type(self).__l_min(self.mass)
-        return (type(self).__l_min(self.mass) + (self._star_system.age / type(self).__m_span(self.mass)) *
-                (type(self).__l_max(self.mass) - type(self).__l_min(self.mass)))
+        return (type(self).__l_min(self.mass) +
+                (self._star_system.age / type(self).__m_span(self.mass)) *
+                (type(self).__l_max(self.mass) -
+                 type(self).__l_min(self.mass)))
 
     @property
     def temperature(self):
         """effective temperature in K"""
-        temp = type(self).__temp_III(self.mass) if self.luminosity_class == type(self).Luminosity.III else type(self).__temp_V(self.mass)
+        temp = (type(self).__temp_III(self.mass)
+                if self.luminosity_class == type(self).Luminosity.III
+                else type(self).__temp_V(self.mass))
         if (self.luminosity_class == type(self).Luminosity.IV):
-            return (temp - ((self._star_system.age - type(self).__m_span(self.mass)) /
-                    type(self).__s_span(self.mass)) * (temp - 4800))
+            return (temp - ((self._star_system.age -
+                             type(self).__m_span(self.mass)) /
+                            type(self).__s_span(self.mass)) *
+                    (temp - 4800))
         return temp
 
     @property
@@ -184,7 +193,9 @@ class Star(RandomizableModel):
              .95: 'G4', .9: 'G6', .85: 'G8', .8: 'K0', .75: 'K2', .7: 'K4',
              .65: 'K5', .6: 'K6', .55: 'K8', .5: 'M0', .45: 'M1', .4: 'M2',
              .35: 'M3', .3: 'M4', .25: 'M4', .2: 'M5', .15: 'M6', .1: 'M7'}
-        return None if self.luminosity_class == type(self).Luminosity.D else d[list(filter(lambda x: x >= self.mass, sorted(d.keys())))[0]]
+        return (None if self.luminosity_class == type(self).Luminosity.D
+                else d[list(filter(lambda x: x >= self.mass, sorted(d.keys())))
+                       [0]])
 
     def __init__(self, star_system):
         self._star_system = star_system
