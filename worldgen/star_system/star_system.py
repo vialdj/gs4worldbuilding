@@ -8,6 +8,7 @@ import random
 
 import numpy as np
 
+
 class StarSystem(RandomizableModel):
     """the StarSystem model"""
 
@@ -66,7 +67,7 @@ class StarSystem(RandomizableModel):
     def random_stars(self):
         self.primary_star = Star(self)
         randomize = random.choices([self.__random_unary, self.__random_binary, self.__random_tertiary],
-                                   weights=[.5, .4537, .0463],
+                                   weights=self._stars_distribution,
                                    k=1)[0]
         randomize()
 
@@ -105,5 +106,9 @@ class StarSystem(RandomizableModel):
     def tertiary_star(self, value):
         self._tertiary_star = value
 
-    def __init__(self):
+    def __init__(self, open_cluster=False):
+        if open_cluster:
+            self._stars_distribution = [.162037037, .578703704, .259259259]
+        else:
+            self._stars_distribution = [.5, .453703703, .046296297]
         self.randomize()
