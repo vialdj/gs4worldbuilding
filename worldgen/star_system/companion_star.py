@@ -44,11 +44,13 @@ class CompanionStar(Star, OrbitalObject):
                                          weights=self._separation_distribution,
                                          k=1)[0]
 
-    def __truncnorm_draw(self, lower, upper, mu, sigma):
+    @staticmethod
+    def __truncnorm_draw(lower, upper, mu, sigma):
         a, b = (lower - mu) / sigma, (upper - mu) / sigma
         return truncnorm(a, b, mu, sigma).rvs()
 
-    def __truncexpon_draw(self, lower, upper, sigma):
+    @staticmethod
+    def __truncexpon_draw(lower, upper, sigma):
         mu = lower
         b = (upper - lower) / sigma
         return truncexpon(b, mu, sigma).rvs()
@@ -89,6 +91,14 @@ class CompanionStar(Star, OrbitalObject):
         if not isinstance(value, self.Separation):
             raise ValueError('{} value type has to be {}'.format('separation', self.Separation))
         self._set_ranged_property('separation', value)
+
+    @property
+    def eccentricity_range(self):
+        """value range for eccentricity dependant on parent star separation"""
+        rngs = {self.Separation.MODERATE: Star.Range(0, .8),
+                self.Separation.CLOSE: Star.Range(0, .7),
+                self.Separation.VERY_CLOSE: Star.Range(0, .6)}
+        return rngs[self.separation] if self.separation in rngs.keys() else Star.Range(0, .95)
 
     @property
     def average_orbital_radius_range(self):
