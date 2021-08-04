@@ -2,6 +2,8 @@ from .. import Model
 
 
 class OrbitalObject(Model):
+    """the orbital object model"""
+    _eccentricity_range = Model.Range(0, 1)
 
     @property
     def average_orbital_radius(self):
@@ -27,4 +29,4 @@ class OrbitalObject(Model):
         self._set_ranged_property('eccentricity', value)
 
     def __init__(self, parent_body):
-        self.parent_body = parent_body
+        self._parent_body = parent_body

@@ -1,8 +1,9 @@
+from worldgen.star_system import star
 from worldgen.star_system.orbital_object import OrbitalObject
 from . import Star
 
 from enum import Enum
-from random import choices
+import random
 
 import numpy as np
 from scipy.stats import truncnorm
@@ -21,22 +22,44 @@ class CompanionStar(Star, OrbitalObject):
         WIDE = 10
         DISTANT = 50
 
+    def random_seed_mass(self):
+        """campanion star random mass procedure"""
+        mass = self._parent_body.mass
+        # roll 1d6 - 1
+        r = random.randint(0, 5)
+        if r >= 1:
+            # sum of nd6 roll
+            s = sum([random.randint(1, 6) for _ in range(r)])
+            for _ in range(s):
+                # count down on the stellar mass table
+                mass -= (.05 if mass <= 1.5 else .10)
+        # add noise to value
+        n = .025 if mass <= 1.5 else .05
+        mass += random.uniform(-n, n)
+        # mass in [.1, 2] range
+        self._seed_mass = min(max(.1, mass), 2)
+
     def random_separation(self):
-        """sum of a 3d roll over Orbital Separation Table"""
-        self.separation = choices(list(self.Separation),
-                                  weights=self._separation_distribution,
-                                  k=1)[0]
+        """sum of a 3d6 roll over Orbital Separation Table"""
+        self.separation = random.choices(list(self.Separation),
+                                         weights=self._separation_distribution,
+                                         k=1)[0]
 
     def random_eccentricity(self):
-        """consecutive sum of a 3d roll times over Stellar Mass Table"""
+        """consecutive sum of a 3d6 roll times over Stellar Mass Table"""
         xa, xb = .0, .95
         mu, sigma = .516, .14421858410066296
         a, b = (xa - mu) / sigma, (xb - mu) / sigma
         self._eccentricity = truncnorm(a, b, mu, sigma).rvs()
 
     def random_average_orbital_radius(self):
-        """roll of 2d multiplied by the separation category radius"""
+        """roll of 2d6 multiplied by the separation category radius"""
         self.average_orbital_radius = np.random.triangular(2, 7, 12) * self._separation.value
+
+    @property
+    def seed_mass_range(self):
+        """value range for mass adjusted so mass cannot be greater than parent body mass"""
+        return type(self).Range(.1, self._parent_body.mass)
 
     @property
     def separation(self):
@@ -75,4 +98,5 @@ class CompanionStar(Star, OrbitalObject):
             self._separation_range = type(self).Range(self.Separation.CLOSE, self.Separation.DISTANT)
         else:
             self._separation_distribution = [.0926, .2824, .25, .2824, .0926]
-        super(CompanionStar, self).__init__(star_system=star_system, parent_body=parent_body)
+        OrbitalObject.__init__(self, parent_body)
+        Star.__init__(self, star_system)
