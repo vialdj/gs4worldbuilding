@@ -128,7 +128,15 @@ body mass"""
         return (1 + self.eccentricity) * self.average_orbital_radius
 
     def __init__(self, star_system, parent_body, tertiary_star=False):
-        if tertiary_star:
+        if star_system.garden_host and tertiary_star:
+            self._separation_dist = [0, 0, 0, .01851851851853, .98148148148193]
+            self._separation_range = type(self).Range(self.Separation.WIDE,
+                                                      self.Separation.DISTANT)
+        elif star_system.garden_host:
+            self._separation_dist = [0, .0463, .11574, .33796, .5]
+            self._separation_range = type(self).Range(self.Separation.CLOSE,
+                                                      self.Separation.DISTANT)
+        elif tertiary_star:
             self._separation_dist = [0, .00462963, .041666667, .212962963,
                                      .740740741]
             self._separation_range = type(self).Range(self.Separation.CLOSE,

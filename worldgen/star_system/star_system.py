@@ -117,6 +117,7 @@ steps in Ga"""
         self._tertiary_star = value
 
     def __init__(self, open_cluster=False, garden_host=False):
+        self.garden_host = garden_host
         if open_cluster:
             self._stars_dist = [.162037037, .578703704, .259259259]
         else:
@@ -129,5 +130,4 @@ steps in Ga"""
         else:
             self._population_dist = [.00462963, .087962963, .407407407,
                                      .407407407, .087962963, .00462963]
-
         self.randomize()
