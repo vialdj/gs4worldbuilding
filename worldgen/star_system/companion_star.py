@@ -86,7 +86,7 @@ body mass"""
     @property
     def separation(self):
         """separation category over Orbital Separation Table"""
-        return self._separation
+        return self._get_ranged_property('separation')
 
     @property
     def separation_range(self):

@@ -35,7 +35,7 @@ class Star(RandomizableModel):
         sigma = .376928361893875
         b = (upper - lower) / sigma
 
-        self._seed_mass = truncexpon(b=b, loc=mu, scale=sigma).rvs()
+        self.seed_mass = truncexpon(b=b, loc=mu, scale=sigma).rvs()
 
     def random_gas_giant_arrangement(self):
         """sum of a 3d roll times over Gas Giant Arrangement Table"""
@@ -97,7 +97,7 @@ class Star(RandomizableModel):
     @property
     def seed_mass(self):
         """mass in M☉ without modifiers"""
-        return self._seed_mass
+        return self._get_ranged_property('seed_mass')
 
     @property
     def seed_mass_range(self):

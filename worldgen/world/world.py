@@ -135,7 +135,8 @@ threshold in K"""
     def volatile_mass(self):
         """relative supply of gaseous elements to other worlds of
 the same type"""
-        return (self._volatile_mass if hasattr(self, '_volatile_mass')
+        return (self._get_ranged_property('volatile_mass')
+                if hasattr(self, '_volatile_mass')
                 else np.nan)
 
     @property
@@ -150,7 +151,7 @@ the same type"""
     @property
     def ressource(self):
         """resource value on Resource Value Table"""
-        return self._ressource
+        return self._get_ranged_property('ressource')
 
     @property
     def ressource_range(self):
@@ -170,7 +171,7 @@ the same type"""
     @property
     def temperature(self):
         """average temperature in K"""
-        return self._temperature
+        return self._get_ranged_property('temperature')
 
     @property
     def temperature_range(self):
@@ -184,7 +185,9 @@ the same type"""
     @property
     def density(self):
         """density in d⊕"""
-        return self._density if hasattr(self, '_density') else np.nan
+        return (self._get_ranged_property('density')
+                if hasattr(self, '_density')
+                else np.nan)
 
     @property
     def density_range(self):
@@ -198,7 +201,9 @@ the same type"""
     @property
     def hydrosphere(self):
         """proportion of surface covered by liquid elements"""
-        return self._hydrosphere if hasattr(self, '_hydrosphere') else np.nan
+        return (self._get_ranged_property('hydrosphere')
+                if hasattr(self, '_hydrosphere')
+                else np.nan)
 
     @property
     def hydrosphere_range(self):
@@ -213,7 +218,9 @@ the same type"""
     @property
     def diameter(self):
         """diameter in D⊕"""
-        return self._diameter if hasattr(self, '_diameter') else np.nan
+        return (self._get_ranged_property('diameter')
+                if hasattr(self, '_diameter')
+                else np.nan)
 
     @property
     def diameter_range(self):

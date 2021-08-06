@@ -8,7 +8,7 @@ class OrbitalObject(Model):
     @property
     def average_orbital_radius(self):
         """The average orbital radius to the parent body in AU"""
-        return self._average_orbital_radius
+        return self._get_ranged_property('average_orbital_radius')
 
     @average_orbital_radius.setter
     def average_orbital_radius(self, value):
@@ -17,7 +17,7 @@ class OrbitalObject(Model):
     @property
     def eccentricity(self):
         """the orbital orbit eccentricity"""
-        return self._eccentricity
+        return self._get_ranged_property('eccentricity')
 
     @property
     def eccentricity_range(self):

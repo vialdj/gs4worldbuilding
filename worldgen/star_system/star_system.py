@@ -33,18 +33,14 @@ steps in Ga"""
                                          k=1)[0]
 
     def random_age(self):
-        if (self.age_range.max - self.age_range.min) > 0:
-            self._age = self.population.base + (random.uniform(0, 5) *
-                                                self.population.step_a +
-                                                random.uniform(0, 5) *
-                                                self.population.step_b)
-        else:
-            self._age = np.nan
+        self.age = (self.population.base +
+                    random.uniform(0, 5) * self.population.step_a +
+                    random.uniform(0, 5) * self.population.step_b)
 
     @property
     def age(self):
         """age in Ga"""
-        return self._age
+        return self._get_ranged_property('age')
 
     @property
     def age_range(self):
@@ -80,12 +76,20 @@ steps in Ga"""
         """population category over Stellar Age Table"""
         return self._population
 
+    @property
+    def population_range(self):
+        """population range class variable"""
+        return (type(self)._population_range
+                if hasattr(type(self), '_population_range')
+                else type(self).Range(self.Population.EXTREME_POPULATION_1,
+                                      self.Population.EXTREME_POPULATION_2))
+
     @population.setter
     def population(self, value):
         if not isinstance(value, self.Population):
             raise ValueError('population value type has to be {}'
                              .format(self.Population))
-        self._population = value
+        self._set_ranged_property('population', value)
 
     @property
     def primary_star(self):
@@ -120,6 +124,8 @@ steps in Ga"""
         if garden_host:
             self._population_dist = [0, .166666667, 0.555555556, .277777778, 0,
                                      0]
+            self._population_range = type(self).Range(self.Population.YOUNG_POPULATION_1,
+                                                      self.Population.OLD_POPULATION_1)
         else:
             self._population_dist = [.00462963, .087962963, .407407407,
                                      .407407407, .087962963, .00462963]
