@@ -127,21 +127,28 @@ body mass"""
         """the maximum separation in AU"""
         return (1 + self.eccentricity) * self.average_orbital_radius
 
-    def __init__(self, star_system, parent_body, tertiary_star=False):
-        if star_system.garden_host and tertiary_star:
-            self._separation_dist = [0, 0, 0, .01851851851853, .98148148148193]
-            self._separation_range = type(self).Range(self.Separation.WIDE,
-                                                      self.Separation.DISTANT)
-        elif star_system.garden_host:
-            self._separation_dist = [0, .0463, .11574, .33796, .5]
-            self._separation_range = type(self).Range(self.Separation.CLOSE,
-                                                      self.Separation.DISTANT)
-        elif tertiary_star:
-            self._separation_dist = [0, .00462963, .041666667, .212962963,
-                                     .740740741]
-            self._separation_range = type(self).Range(self.Separation.CLOSE,
-                                                      self.Separation.DISTANT)
+    def __init__(self, star_system, parent_body, tertiary_star=False,
+                 sub_companion=False):
+        if not sub_companion:
+            if star_system.garden_host and tertiary_star:
+                self._separation_dist = [0, 0, 0, .01851851851853,
+                                         .98148148148193]
+                self._separation_range = type(self).Range(self.Separation.WIDE,
+                                                          self.Separation.DISTANT)
+            elif star_system.garden_host:
+                self._separation_dist = [0, .0463, .11574, .33796, .5]
+                self._separation_range = type(self).Range(self.Separation.CLOSE,
+                                                          self.Separation.DISTANT)
+            elif tertiary_star:
+                self._separation_dist = [0, .00462963, .041666667, .212962963,
+                                         .740740741]
+                self._separation_range = type(self).Range(self.Separation.CLOSE,
+                                                          self.Separation.DISTANT)
+            else:
+                self._separation_dist = [.0926, .2824, .25, .2824, .0926]
         else:
-            self._separation_dist = [.0926, .2824, .25, .2824, .0926]
+            self._separation_dist = [.740740741, .212962963, .041666667, .00462963, 0]
+            self._separation_range = type(self).Range(self.Separation.VERY_CLOSE,
+                                                      self.Separation.WIDE)
         OrbitalObject.__init__(self, parent_body)
         Star.__init__(self, star_system)

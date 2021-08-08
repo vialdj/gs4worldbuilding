@@ -54,13 +54,21 @@ steps in Ga"""
         self._set_ranged_property('age', value)
 
     def random_stars(self):
+        """the system stars generation an arrangement procedure"""
         self.stars = [Star(self)]
+        # multiple star roll
         r = random.uniform(0, 1)
         if (r >= self._stars_dist[0] and
             r < self._stars_dist[0] + self._stars_dist[1]):
             self.stars.append(CompanionStar(self, self.primary_star))
         if r >= self._stars_dist[0] + self._stars_dist[1]:
             self.stars.append(CompanionStar(self, self.primary_star, True))
+        # sub-companion star rolls if any
+        for star in filter(lambda s: s.separation >=
+                           CompanionStar.Separation.DISTANT, self.stars[1:]):
+            if (random.uniform(0, 1) > .5):
+                self.stars.append(CompanionStar(self, star,
+                                                sub_companion=True))
 
     @property
     def population(self):
