@@ -36,8 +36,8 @@ radius multiplier in AU"""
         # add noise to value
         n = .025 if mass <= 1.5 else .05
         mass += random.uniform(-n, n)
-        # mass in [.1, 2] range
-        self.seed_mass = min(max(.1, mass), 2)
+        # mass in [.1, parent_body.mass] range
+        self.seed_mass = min(max(.1, mass), self._parent_body.mass)
 
     def random_separation(self):
         """sum of a 3d6 roll over Orbital Separation Table"""

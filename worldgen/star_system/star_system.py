@@ -53,23 +53,14 @@ steps in Ga"""
     def age(self, value):
         self._set_ranged_property('age', value)
 
-    def __random_unary(self):
-        pass
-
-    def __random_binary(self):
-        self.secondary_star = CompanionStar(self, self.primary_star)
-
-    def __random_tertiary(self):
-        self.secondary_star = CompanionStar(self, self.primary_star)
-        self.tertiary_star = CompanionStar(self, self.primary_star)
-
     def random_stars(self):
-        self.primary_star = Star(self)
-        randomize = random.choices([self.__random_unary, self.__random_binary,
-                                    self.__random_tertiary],
-                                   weights=self._stars_dist,
-                                   k=1)[0]
-        randomize()
+        self.stars = [Star(self)]
+        r = random.uniform(0, 1)
+        if (r >= self._stars_dist[0] and
+            r < self._stars_dist[0] + self._stars_dist[1]):
+            self.stars.append(CompanionStar(self, self.primary_star))
+        if r >= self._stars_dist[0] + self._stars_dist[1]:
+            self.stars.append(CompanionStar(self, self.primary_star, True))
 
     @property
     def population(self):
@@ -93,28 +84,33 @@ steps in Ga"""
 
     @property
     def primary_star(self):
-        return self._primary_star
+        return self.stars[0]
 
     @primary_star.setter
     def primary_star(self, value):
-        self._primary_star = value
+        self.stars[0] = value
 
     @property
     def secondary_star(self):
-        return (self._secondary_star if hasattr(self, '_secondary_star')
-                else None)
+        return self.stars[1] if len(self.stars) > 1 else None
 
     @secondary_star.setter
     def secondary_star(self, value):
-        self._secondary_star = value
+        if len(self.stars) > 1:
+            self.stars[1] = value
+        else:
+            self.stars.append(value)
 
     @property
     def tertiary_star(self):
-        return self._tertiary_star if hasattr(self, '_tertiary_star') else None
+        return self.stars[2] if len(self.stars) > 2 else None
 
     @tertiary_star.setter
     def tertiary_star(self, value):
-        self._tertiary_star = value
+        if len(self.stars) > 2:
+            self.stars[2] = value
+        else:
+            self.stars.append(value)
 
     def __init__(self, open_cluster=False, garden_host=False):
         self.garden_host = garden_host
