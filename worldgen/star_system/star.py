@@ -170,14 +170,16 @@ class Star(RandomizableModel):
         return (155000 * sqrt(self.luminosity)) / self.temperature ** 2
 
     @property
-    def inner_limit(self):
-        """inner limit in AU"""
-        return max(0.1 * self.mass, 0.01 * sqrt(self.luminosity))
+    def limits(self):
+        """inner and outer limit in AU"""
+        return type(self).Range(max(0.1 * self.mass,
+                                    0.01 * sqrt(self.luminosity)),
+                                40 * self.mass)
 
     @property
-    def outer_limit(self):
-        """outer limit in AU"""
-        return 40 * self.mass
+    def forbidden_zone(self):
+        """the forbidden zone limits in AU if any"""
+        return None
 
     @property
     def snow_line(self):
