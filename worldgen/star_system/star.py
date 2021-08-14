@@ -29,10 +29,12 @@ class Star(RandomizableModel):
         EPISTELLAR = 'Epistellar gas giant'
 
     def random_seed_mass(self):
-        """consecutive sum of a 3d roll times over Stellar Mass Table"""
-        upper, lower = 2, .1
+        """consecutive sum of a 3d roll times over Stellar Mass Table with
+modifier if applicable"""
+        upper, lower = (.6, 1.5) if self._star_system.garden_host else (2, .1)
         mu = lower
-        sigma = .376928361893875
+        sigma = (.37733756770297866 if self._star_system.garden_host
+                 else .376928361893875)
         b = (upper - lower) / sigma
 
         self.seed_mass = truncexpon(b=b, loc=mu, scale=sigma).rvs()
@@ -102,7 +104,9 @@ class Star(RandomizableModel):
     @property
     def seed_mass_range(self):
         """value range for mass"""
-        return type(self).Range(.1, 2)
+        return (type(self).Range(.6, 1.5)
+                if self._star_system.garden_host
+                else type(self).Range(.1, 2))
 
     @seed_mass.setter
     def seed_mass(self, value):
@@ -176,9 +180,20 @@ class Star(RandomizableModel):
                                     0.01 * sqrt(self.luminosity)),
                                 40 * self.mass)
 
+    @staticmethod
+    def __get_separation(self, companion):
+        parent_body = getattr(self, '_parent_body', None)
+        if parent_body == companion:
+            type(self).Range(getattr(self, 'minimum_separation', None),
+                             getattr(self, 'maximum_separation', None))
+        
     @property
     def forbidden_zone(self):
         """the forbidden zone limits in AU if any"""
+        separation = type(self).Range(getattr(self, 'minimum_separation', None),
+                                      getattr(self, 'maximum_separation', None))
+        if separation.min and separation.max:
+            return type(self).Range(separation.min / 3, separation.max * 3)
         return None
 
     @property
