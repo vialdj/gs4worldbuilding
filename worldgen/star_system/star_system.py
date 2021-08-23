@@ -1,3 +1,4 @@
+from worldgen.star_system import companion_star
 from .. import RandomizableModel
 from . import Star
 from . import CompanionStar
@@ -33,6 +34,8 @@ steps in Ga"""
                                          k=1)[0]
 
     def random_age(self):
+        """2 distinct rolls of 1d-1 times step-a and step-b added to base age
+from Stellar Age Table"""
         self.age = (self.population.base +
                     random.uniform(0, 5) * self.population.step_a +
                     random.uniform(0, 5) * self.population.step_b)
@@ -55,20 +58,25 @@ steps in Ga"""
 
     def random_stars(self):
         """the system stars generation an arrangement procedure"""
-        self.stars = [Star(self)]
+        primary_star = Star(self)
+        self.stars = [primary_star]
         # multiple star roll
         r = random.uniform(0, 1)
-        if (r >= self._stars_dist[0] and
-            r < self._stars_dist[0] + self._stars_dist[1]):
-            self.stars.append(CompanionStar(self, self.primary_star))
+        if (r >= self._stars_dist[0]):
+            companion = CompanionStar(self, self.primary_star)
+            primary_star._companions = [companion]
+            self.stars.append(companion)
         if r >= self._stars_dist[0] + self._stars_dist[1]:
-            self.stars.append(CompanionStar(self, self.primary_star, True))
+            companion = CompanionStar(self, self.primary_star, True)
+            primary_star._companions.append(companion)
+            self.stars.append(companion)
         # sub-companion star rolls if any
         for star in filter(lambda s: s.separation >=
                            CompanionStar.Separation.DISTANT, self.stars[1:]):
             if (random.uniform(0, 1) > .5):
-                self.stars.append(CompanionStar(self, star,
-                                                sub_companion=True))
+                companion = CompanionStar(self, star, sub_companion=True)
+                star._companions = [companion]
+                self.stars.append(companion)
 
     @property
     def population(self):
