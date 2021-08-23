@@ -4,10 +4,10 @@ from .. import RandomizableModel
 
 from enum import Enum
 from math import sqrt
-from random import choices
+from random import choices, uniform
 
 import numpy as np
-from scipy.stats import truncexpon
+from scipy.stats import truncexpon, truncnorm
 
 
 class Star(RandomizableModel):
@@ -186,7 +186,7 @@ modifier if applicable"""
         if parent_body == companion:
             type(self).Range(getattr(self, 'minimum_separation', None),
                              getattr(self, 'maximum_separation', None))
-        
+
     @property
     def forbidden_zone(self):
         """the forbidden zone limits in AU if any"""
@@ -213,6 +213,32 @@ modifier if applicable"""
         return (None if self.luminosity_class == type(self).Luminosity.D
                 else d[list(filter(lambda x: x >= self.mass, sorted(d.keys())))
                        [0]])
+
+    @property
+    def orbits(self):
+        """objects orbiting the star"""
+        return getattr(self, '_orbits', None)
+
+    def __random_first_gas_giant(self):
+        """generating an orbital radius given the proper gas giant
+arrangement"""
+        if self.gas_giant_arrangement == self.GasGiantArrangement.CONVENTIONAL:
+            # roll of 2d-2 * .05 + 1 multiplied by the snow line radius
+            return np.random.triangular(1, 1.25, 1.5) * self.snow_line
+        elif self.gas_giant_arrangement == self.GasGiantArrangement.ECCENTRIC:
+            # roll of 1d-1 * .125 multiplied by the snow line radius
+            return uniform(0, .625) * .125 * self.snow_line
+        # (EPISTELLAR) roll of 3d * .1 multiplied by the inner limit radius
+        return ((truncnorm((3 - 10.5) / 2.958040, (18 - 10.5) / 2.958040,
+                           loc=10.5, scale=2.958040).rvs() / 10) *
+                self.limits.min)
+
+    def generate_orbits(self):
+        """generate the stars planetary orbits"""
+        self._orbits = []
+        if self.gas_giant_arrangement != self.GasGiantArrangement.NONE:
+            # placing first gas giant if applicable
+            self._orbits.append(self.__random_first_gas_giant())
 
     def __init__(self, star_system):
         self._star_system = star_system
