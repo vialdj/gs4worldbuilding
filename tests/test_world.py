@@ -1,3 +1,4 @@
+from worldgen.world.atmosphere import Atmosphere
 import worldgen as w
 
 from worldgen.world.marginal_atmosphere import Marginal
@@ -16,6 +17,7 @@ def asteroid_belt():
 def large_ammonia():
     # returns a LargeAmmonia instance
     return w.LargeAmmonia()
+
 
 @pytest.fixture
 def large_greenhouse():
@@ -46,10 +48,12 @@ def large_ice():
     # returns a LargeIce instance
     return w.LargeIce()
 
+
 @pytest.fixture
 def standard_garden():
     # returns a StandardGarden instance
     return w.StandardGarden()
+
 
 @pytest.fixture
 def standard_greenhouse():
@@ -93,12 +97,42 @@ def test_set_diameter_raises_exception_on_no_range(asteroid_belt):
         asteroid_belt.volatile_mass = np.nan
 
 
-def test_set_marginal(standard_garden):
+def test_set_marginal_chlorine_or_fluorine(standard_garden):
     standard_garden.atmosphere.make_marginal(w.chlorine_or_fluorine)
     assert issubclass(type(standard_garden.atmosphere), Marginal)
-    assert standard_garden.atmosphere.toxicity == w.Model.Range(w.Atmosphere.Toxicity.HIGH,
-                                                                w.Atmosphere.Toxicity.LETHAL)
+    assert (standard_garden.atmosphere.toxicity ==
+            w.Model.Range(w.Atmosphere.Toxicity.HIGH,
+                          w.Atmosphere.Toxicity.LETHAL))
     assert standard_garden.atmosphere.corrosive
+
+
+def test_set_marginal_high_carbon_dioxyde(standard_garden):
+    standard_garden.atmosphere.make_marginal(w.high_carbon_dioxide)
+    assert issubclass(type(standard_garden.atmosphere), Marginal)
+    assert (standard_garden.atmosphere.toxicity ==
+            w.Model.Range(None, w.Atmosphere.Toxicity.MILD))
+    assert (standard_garden.atmosphere.pressure_category ==
+            w.Atmosphere.Pressure.VERY_DENSE)
+
+
+def test_set_marginal_high_oxygen(standard_garden):
+    categories = sorted(list(Atmosphere.Pressure),  key=lambda x: x.value)
+    p_id = categories.index(standard_garden.atmosphere.pressure_category)
+    standard_garden.atmosphere.make_marginal(w.high_oxygen)
+    assert issubclass(type(standard_garden.atmosphere), Marginal)
+    assert (standard_garden.atmosphere.toxicity ==
+            w.Model.Range(None, w.Atmosphere.Toxicity.MILD))
+    m_p_id = categories.index(standard_garden.atmosphere.pressure_category)
+    assert (m_p_id in [p_id + 1, len(categories) - 1])
+
+
+def test_set_marginal_low_oxygen(standard_garden):
+    categories = sorted(list(Atmosphere.Pressure), key=lambda x: x.value)
+    p_id = categories.index(standard_garden.atmosphere.pressure_category)
+    standard_garden.atmosphere.make_marginal(w.low_oxygen)
+    assert issubclass(type(standard_garden.atmosphere), Marginal)
+    m_p_id = categories.index(standard_garden.atmosphere.pressure_category)
+    assert (m_p_id in [p_id - 1, 0])
 
 
 def test_get_size_is_None(asteroid_belt):
@@ -167,8 +201,10 @@ def test_get_atmosphere(standard_greenhouse):
     assert ((standard_greenhouse.hydrosphere < .1 and
              standard_greenhouse.atmosphere.composition == ['CO2']) or
             (standard_greenhouse.hydrosphere >= .1 and
-             standard_greenhouse.atmosphere.composition == ['N2', 'H2O', 'O2']))
-    assert standard_greenhouse.atmosphere.toxicity == w.Atmosphere.Toxicity.LETHAL
+             (standard_greenhouse.atmosphere.composition ==
+              ['N2', 'H2O', 'O2'])))
+    assert (standard_greenhouse.atmosphere.toxicity ==
+            w.Atmosphere.Toxicity.LETHAL)
     assert standard_greenhouse.atmosphere.suffocating is True
     assert standard_greenhouse.atmosphere.corrosive is True
 
@@ -210,9 +246,12 @@ def test_get_absorption(asteroid_belt):
 
 
 def test_get_absorption(large_garden):
-    assert ((large_garden.hydrosphere < .2 and large_garden.absorption >= .95) or
-            (large_garden.hydrosphere < .5 and large_garden.absorption >= .92) or
-            (large_garden.hydrosphere < .90 and large_garden.absorption >= .88) or
+    assert ((large_garden.hydrosphere < .2 and
+             large_garden.absorption >= .95) or
+            (large_garden.hydrosphere < .5 and
+             large_garden.absorption >= .92) or
+            (large_garden.hydrosphere < .90 and
+             large_garden.absorption >= .88) or
             large_garden.absorption >= .84)
 
 
@@ -239,20 +278,20 @@ def test_get_blackbody_temperature(asteroid_belt):
 
 
 def test_get_climate(asteroid_belt):
-    lower = asteroid_belt.climate.value
+    lower = asteroid_belt.climate
     upper = np.inf
     for item in w.World.Climate:
-        if item.value > lower:
-            upper = item.value
+        if item > lower:
+            upper = item
     assert (asteroid_belt.temperature >= lower and
             asteroid_belt.temperature <= upper)
 
 
 def test_get_pressure_category(large_ammonia):
-    lower = large_ammonia.atmosphere.pressure_category.value
+    lower = large_ammonia.atmosphere.pressure_category
     upper = np.inf
     for item in w.Atmosphere.Pressure:
-        if item.value > lower:
-            upper = item.value
+        if item > lower:
+            upper = item
     assert (large_ammonia.atmosphere.pressure >= lower and
             large_ammonia.atmosphere.pressure <= upper)
