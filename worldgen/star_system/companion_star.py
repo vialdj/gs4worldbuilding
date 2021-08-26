@@ -1,11 +1,13 @@
+
 from . import OrbitalObject
 from . import Star
 
-from enum import Enum
 import random
+import enum
 
 import numpy as np
 from scipy.stats import truncnorm, truncexpon
+from ordered_enum.ordered_enum import ValueOrderedEnum
 
 
 class CompanionStar(Star, OrbitalObject):
@@ -13,7 +15,8 @@ class CompanionStar(Star, OrbitalObject):
     _precedence = [*Star._precedence, 'separation', 'eccentricity',
                    'average_orbital_radius']
 
-    class Separation(float, Enum):
+    @enum.unique
+    class Separation(float, ValueOrderedEnum):
         """class Separation Enum from Orbital Separation Table with
 radius multiplier in AU"""
         VERY_CLOSE = .05
@@ -114,8 +117,8 @@ body mass"""
     @property
     def average_orbital_radius_range(self):
         """value range for average orbital radius"""
-        return type(self).Range(2 * self._separation.value, 12 *
-                                self._separation.value)
+        return type(self).Range(2 * self._separation.value,
+                                12 * self._separation.value)
 
     @property
     def minimum_separation(self):

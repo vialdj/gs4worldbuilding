@@ -4,6 +4,8 @@ import copy
 
 from random import choices
 
+import numpy as np
+
 
 class Marginal():
     """the Marginal class to be inherited by concrete marginal modifiers"""
@@ -39,12 +41,15 @@ def high_carbon_dioxide(atmosphere):
 def high_oxygen(atmosphere):
 
     class HighOxygen(atmosphere, Marginal):
+        _toxicity = Atmosphere.Range(None, Atmosphere.Toxicity.MILD)
 
         @property
         def pressure_category(self):
-            idx = list(Atmosphere.Pressure).index(super().pressure_category)
-            idx = min(idx + 1, len(Atmosphere.Pressure) - 1)
-            return list(Atmosphere.Pressure)[idx]
+            categories = sorted(list(Atmosphere.Pressure),
+                                key=lambda x: x.value)           
+            idx = categories.index(super().pressure_category)
+            idx = min(idx + 1, len(categories) - 1)
+            return categories[idx]
 
     return HighOxygen
 
@@ -63,9 +68,11 @@ def low_oxygen(atmosphere):
 
         @property
         def pressure_category(self):
-            idx = list(Atmosphere.Pressure).index(super().pressure_category)
+            categories = sorted(list(Atmosphere.Pressure),
+                                key=lambda x: x.value)
+            idx = categories.index(super().pressure_category)
             idx = max(idx - 1, 0)
-            return list(Atmosphere.Pressure)[idx]
+            return categories[idx]
 
     return LowOxygen
 

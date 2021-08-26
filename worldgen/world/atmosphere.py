@@ -1,13 +1,16 @@
 from .. import Model
-from enum import Enum
+
+import enum
 
 import numpy as np
+from ordered_enum import ValueOrderedEnum
 
 
 class Atmosphere(Model):
     """the Atmosphere Model"""
 
-    class Pressure(float, Enum):
+    @enum.unique
+    class Pressure(float, ValueOrderedEnum):
         """class Pressure Enum from Atmospheric Pressure Categories Table"""
         TRACE = .0
         VERY_THIN = .01
@@ -17,7 +20,8 @@ class Atmosphere(Model):
         VERY_DENSE = 1.51
         SUPER_DENSE = 10
 
-    class Toxicity(Enum):
+    @enum.unique
+    class Toxicity(ValueOrderedEnum):
         """class Toxicity Enum from Toxicity Rules categories"""
         MILD = 0
         HIGH = 1
@@ -57,8 +61,8 @@ class Atmosphere(Model):
     def pressure_category(self):
         """atmospheric pressure implied by pressure match over
         Atmospheric Pressure Categories Table"""
-        return (list(filter(lambda x: self.pressure >= x.value,
-                            self.Pressure))[-1]
+        categories = sorted(list(self.Pressure), key=lambda x: x.value)
+        return (list(filter(lambda x: self.pressure >= x, categories))[-1]
                 if not np.isnan(self.pressure) else None)
 
     @property

@@ -5,10 +5,11 @@ from .marginal_atmosphere import Marginal
 from . import Atmosphere
 
 from random import choices
-from enum import Enum
 from math import sqrt, floor
+import enum
 
 from scipy.stats import truncnorm
+from ordered_enum import ValueOrderedEnum
 import numpy as np
 
 
@@ -18,7 +19,8 @@ class World(RandomizableModel):
     _precedence = ['ressource', 'hydrosphere', 'volatile_mass',
                    'temperature', 'density', 'diameter']
 
-    class Climate(int, Enum):
+    @enum.unique
+    class Climate(int, ValueOrderedEnum):
         """class Climate Enum from world Climate Table with temperature
 threshold in K"""
         FROZEN = 0
@@ -33,20 +35,20 @@ threshold in K"""
         VERY_HOT = 333
         INFERNAL = 344
 
-    class Size(RandomizableModel.Range, Enum):
+    class Size(RandomizableModel.Range, enum.Enum):
         """class Size Enum from Size Constraints Table"""
         TINY = (.004, .024)
         SMALL = (.024, .030)
         STANDARD = (.030, .065)
         LARGE = (.065, .091)
 
-    class Core(RandomizableModel.Range, Enum):
+    class Core(RandomizableModel.Range, enum.Enum):
         """class Core Enum from World Density Table"""
         ICY_CORE = (.3, .7)
         SMALL_IRON_CORE = (.6, 1)
         LARGE_IRON_CORE = (.8, 1.2)
 
-    class Ressource(int, Enum):
+    class Ressource(int, enum.Enum):
         """class Ressource Enum from Ressource Value Table"""
         WORTHLESS = -5
         VERY_SCANT = -4
@@ -257,8 +259,7 @@ the same type"""
     @property
     def climate(self):
         """climate implied by temperature match over World Climate Table"""
-        return list(filter(lambda x: self.temperature >= x.value,
-                           self.Climate))[-1]
+        return list(filter(lambda x: self.temperature >= x, self.Climate))[-1]
 
     @property
     def habitability(self):
