@@ -28,7 +28,10 @@ def high_carbon_dioxide(atmosphere):
 
     class HighCarbonDioxide(atmosphere, Marginal):
         _toxicity = Atmosphere.Range(None, Atmosphere.Toxicity.MILD)
-        _pressure_category = Atmosphere.Pressure.VERY_DENSE
+
+        @property
+        def pressure_category(self):
+            return Atmosphere.Pressure.VERY_DENSE
 
     return HighCarbonDioxide
 
