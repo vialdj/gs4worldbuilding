@@ -210,7 +210,7 @@ modifier if applicable"""
              .95: 'G4', .9: 'G6', .85: 'G8', .8: 'K0', .75: 'K2', .7: 'K4',
              .65: 'K5', .6: 'K6', .55: 'K8', .5: 'M0', .45: 'M1', .4: 'M2',
              .35: 'M3', .3: 'M4', .25: 'M4', .2: 'M5', .15: 'M6', .1: 'M7'}
-        return (None if self.luminosity_class == type(self).Luminosity.D
+        return ('D' if self.luminosity_class == type(self).Luminosity.D
                 else d[list(filter(lambda x: x >= self.mass, sorted(d.keys())))
                        [0]])
 
@@ -228,10 +228,26 @@ arrangement"""
         elif self.gas_giant_arrangement == self.GasGiantArrangement.ECCENTRIC:
             # roll of 1d-1 * .125 multiplied by the snow line radius
             return uniform(0, .625) * .125 * self.snow_line
-        # (EPISTELLAR) roll of 3d * .1 multiplied by the inner limit radius
-        return ((truncnorm((3 - 10.5) / 2.958040, (18 - 10.5) / 2.958040,
-                           loc=10.5, scale=2.958040).rvs() / 10) *
-                self.limits.min)
+        elif self.gas_giant_arrangement == self.GasGiantArrangement.EPISTELLAR:
+            # roll of 3d * .1 multiplied by the inner limit radius
+            return ((truncnorm((3 - 10.5) / 2.958040, (18 - 10.5) / 2.958040,
+                               loc=10.5, scale=2.958040).rvs() / 10) *
+                    self.limits.min)
+        return np.nan
+
+    def __random_orbital_object(self, outward=False):
+        """generating an orbital radius at a random spacing from previous
+object"""
+        lower, upper = 1.4, 2
+        mu, sigma = 1.6976, 0.1120457049600742
+
+        ratio = truncnorm((lower - mu) / sigma, (upper - mu) / sigma,
+                          loc=mu, scale=sigma).rvs()
+        orbit = (self._orbits[-1] * ratio if outward else
+                 self._orbits[-1] / ratio)
+        if orbit >= self.limits.min and orbit <= self.limits.max:
+            return orbit
+        return np.nan
 
     def generate_orbits(self):
         """generate the stars planetary orbits"""
@@ -239,6 +255,22 @@ arrangement"""
         if self.gas_giant_arrangement != self.GasGiantArrangement.NONE:
             # placing first gas giant if applicable
             self._orbits.append(self.__random_first_gas_giant())
+        else:
+            # divided outermost legal distance by roll of 1d * .05 + 1
+            self._orbits.append(self.limits.max / (uniform(0.05, 0.3) + 1))
+        while True:
+            # working the orbits inward
+            orbit = self.__random_orbital_object()
+            if orbit is np.nan:
+                break
+            self._orbits.append(orbit)
+        while True:
+            # working the orbits outward
+            orbit = self.__random_orbital_object(outward=True)
+            if orbit is np.nan:
+                break
+            self._orbits.append(orbit)
+        self._orbits.sort()
 
     def __init__(self, star_system):
         self._star_system = star_system
