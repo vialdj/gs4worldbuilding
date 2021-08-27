@@ -66,6 +66,12 @@ def standard_ammonia():
     return w.StandardAmmonia()
 
 
+@pytest.fixture
+def standard_ocean():
+    # returns a StandardOcean instance
+    return w.StandardOcean()
+
+
 def test_set_density_raises_exception_on_no_range(asteroid_belt):
     with pytest.raises(AttributeError):
         asteroid_belt.density = np.nan
@@ -224,6 +230,13 @@ def test_get_atmosphere(large_ocean):
     assert large_ocean.atmosphere.composition == ['He', 'N2']
     assert large_ocean.atmosphere.toxicity == w.Atmosphere.Toxicity.HIGH
     assert large_ocean.atmosphere.suffocating is True
+
+
+def test_get_atmosphere(standard_ocean):
+    assert standard_ocean.atmosphere.toxicity in [None,
+                                                  w.Atmosphere.Toxicity.MILD]
+    assert standard_ocean.atmosphere.composition == ['CO2', 'N2']
+    assert standard_ocean.atmosphere.suffocating is True
 
 
 def test_get_atmosphere(standard_greenhouse):
