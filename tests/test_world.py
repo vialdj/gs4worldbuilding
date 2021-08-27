@@ -1,4 +1,3 @@
-from worldgen.world.atmosphere import Atmosphere
 import worldgen as w
 
 from worldgen.world.marginal_atmosphere import Marginal
@@ -116,7 +115,7 @@ def test_set_marginal_high_carbon_dioxyde(standard_garden):
 
 
 def test_set_marginal_high_oxygen(standard_garden):
-    categories = sorted(list(Atmosphere.Pressure),  key=lambda x: x.value)
+    categories = sorted(list(w.Atmosphere.Pressure),  key=lambda x: x.value)
     p_id = categories.index(standard_garden.atmosphere.pressure_category)
     standard_garden.atmosphere.make_marginal(w.high_oxygen)
     assert issubclass(type(standard_garden.atmosphere), Marginal)
@@ -127,12 +126,42 @@ def test_set_marginal_high_oxygen(standard_garden):
 
 
 def test_set_marginal_low_oxygen(standard_garden):
-    categories = sorted(list(Atmosphere.Pressure), key=lambda x: x.value)
+    categories = sorted(list(w.Atmosphere.Pressure), key=lambda x: x.value)
     p_id = categories.index(standard_garden.atmosphere.pressure_category)
     standard_garden.atmosphere.make_marginal(w.low_oxygen)
     assert issubclass(type(standard_garden.atmosphere), Marginal)
     m_p_id = categories.index(standard_garden.atmosphere.pressure_category)
     assert (m_p_id in [p_id - 1, 0])
+
+
+def test_set_marginal_nitrogen_compounds(standard_garden):
+    standard_garden.atmosphere.make_marginal(w.nitrogen_compounds)
+    assert issubclass(type(standard_garden.atmosphere), Marginal)
+    assert (standard_garden.atmosphere.toxicity ==
+            w.Atmosphere.Range(w.Atmosphere.Toxicity.MILD,
+                             w.Atmosphere.Toxicity.HIGH))
+
+
+def test_set_marginal_sulfur_compounds(standard_garden):
+    standard_garden.atmosphere.make_marginal(w.sulfur_compounds)
+    assert issubclass(type(standard_garden.atmosphere), Marginal)
+    assert (standard_garden.atmosphere.toxicity ==
+            w.Atmosphere.Range(w.Atmosphere.Toxicity.MILD,
+                             w.Atmosphere.Toxicity.HIGH))
+
+
+def test_set_marginal_organic_toxins(standard_garden):
+    standard_garden.atmosphere.make_marginal(w.organic_toxins)
+    assert issubclass(type(standard_garden.atmosphere), Marginal)
+    assert (standard_garden.atmosphere.toxicity ==
+            w.Atmosphere.Range(w.Atmosphere.Toxicity.MILD,
+                             w.Atmosphere.Toxicity.LETHAL))
+
+
+def test_set_marginal_pollutants(standard_garden):
+    standard_garden.atmosphere.make_marginal(w.pollutants)
+    assert issubclass(type(standard_garden.atmosphere), Marginal)
+    assert (standard_garden.atmosphere.toxicity == w.Atmosphere.Toxicity.MILD)
 
 
 def test_get_size_is_None(asteroid_belt):
