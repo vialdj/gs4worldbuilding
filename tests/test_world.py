@@ -72,6 +72,12 @@ def standard_ocean():
     return w.StandardOcean()
 
 
+@pytest.fixture
+def small_ice():
+    # returns a SmallIce instance
+    return w.SmallIce()
+
+
 def test_set_density_raises_exception_on_no_range(asteroid_belt):
     with pytest.raises(AttributeError):
         asteroid_belt.density = np.nan
@@ -195,6 +201,11 @@ def test_get_hydrosphere(large_ammonia):
             large_ammonia.hydrosphere <= 1)
 
 
+def test_get_hydrosphere(small_ice):
+    assert (small_ice.hydrosphere >= .3 and
+            small_ice.hydrosphere <= .8)
+
+
 def test_get_diameter_is_nan(asteroid_belt):
     assert np.isnan(asteroid_belt.diameter)
 
@@ -230,6 +241,13 @@ def test_get_atmosphere(large_ocean):
     assert large_ocean.atmosphere.composition == ['He', 'N2']
     assert large_ocean.atmosphere.toxicity == w.Atmosphere.Toxicity.HIGH
     assert large_ocean.atmosphere.suffocating is True
+
+
+def test_get_atmosphere(small_ice):
+    assert small_ice.atmosphere.toxicity in [w.Atmosphere.Toxicity.MILD,
+                                             w.Atmosphere.Toxicity.HIGH]
+    assert small_ice.atmosphere.composition == ['N2', 'CH4']
+    assert small_ice.atmosphere.suffocating is True
 
 
 def test_get_atmosphere(standard_ocean):
