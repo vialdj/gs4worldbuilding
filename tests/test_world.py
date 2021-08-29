@@ -5,7 +5,6 @@ from worldgen.world.marginal_atmosphere import Marginal
 import pytest
 import numpy as np
 
-
 @pytest.fixture
 def asteroid_belt():
     # returns an AsteroidBelt instance
@@ -127,21 +126,21 @@ def test_set_marginal_high_carbon_dioxyde(standard_garden):
 
 
 def test_set_marginal_high_oxygen(standard_garden):
-    categories = sorted(list(w.Atmosphere.Pressure),  key=lambda x: x.value)
-    p_id = categories.index(standard_garden.atmosphere.pressure_category)
+    categories = sorted(list(w.Atmosphere.Pressure), key=lambda x: x.value)
     standard_garden.atmosphere.make_marginal(w.high_oxygen)
     assert issubclass(type(standard_garden.atmosphere), Marginal)
     assert (standard_garden.atmosphere.toxicity ==
             w.Model.Range(None, w.Atmosphere.Toxicity.MILD))
+    p_id = categories.index(standard_garden.atmosphere.base.pressure_category)
     m_p_id = categories.index(standard_garden.atmosphere.pressure_category)
     assert (m_p_id in [p_id + 1, len(categories) - 1])
 
 
 def test_set_marginal_low_oxygen(standard_garden):
     categories = sorted(list(w.Atmosphere.Pressure), key=lambda x: x.value)
-    p_id = categories.index(standard_garden.atmosphere.pressure_category)
     standard_garden.atmosphere.make_marginal(w.low_oxygen)
     assert issubclass(type(standard_garden.atmosphere), Marginal)
+    p_id = categories.index(standard_garden.atmosphere.base.pressure_category)
     m_p_id = categories.index(standard_garden.atmosphere.pressure_category)
     assert (m_p_id in [p_id - 1, 0])
 
