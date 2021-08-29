@@ -31,7 +31,7 @@ class Star(RandomizableModel):
     def random_seed_mass(self):
         """consecutive sum of a 3d roll times over Stellar Mass Table with
 modifier if applicable"""
-        upper, lower = (.6, 1.5) if self._star_system.garden_host else (2, .1)
+        upper, lower = (1.5, .6) if self._star_system.garden_host else (2, .1)
         mu = lower
         sigma = (.37733756770297866 if self._star_system.garden_host
                  else .376928361893875)
@@ -227,7 +227,7 @@ arrangement"""
             return np.random.triangular(1, 1.25, 1.5) * self.snow_line
         elif self.gas_giant_arrangement == self.GasGiantArrangement.ECCENTRIC:
             # roll of 1d-1 * .125 multiplied by the snow line radius
-            return uniform(0, .625) * .125 * self.snow_line
+            return uniform(0, .625) * self.snow_line
         elif self.gas_giant_arrangement == self.GasGiantArrangement.EPISTELLAR:
             # roll of 3d * .1 multiplied by the inner limit radius
             return ((truncnorm((3 - 10.5) / 2.958040, (18 - 10.5) / 2.958040,
@@ -241,10 +241,15 @@ object"""
         lower, upper = 1.4, 2
         mu, sigma = 1.6976, 0.1120457049600742
 
+        # transform last orbit given 3d roll over Orbital Spacing table
         ratio = truncnorm((lower - mu) / sigma, (upper - mu) / sigma,
                           loc=mu, scale=sigma).rvs()
-        orbit = (self._orbits[-1] * ratio if outward else
-                 self._orbits[-1] / ratio)
+        prev_orb = self._orbits[-1]
+        orbit = (prev_orb * ratio if outward else prev_orb / ratio)
+        if not outward and (prev_orb - orbit) < .15:
+            # TODO: should not clamp orbit at a distance of exactly .15
+            # but rather have it be at least .15
+            orbit = prev_orb - .15
         if orbit >= self.limits.min and orbit <= self.limits.max:
             return orbit
         return np.nan
@@ -264,14 +269,15 @@ object"""
             if orbit is np.nan:
                 break
             self._orbits.append(orbit)
+        self._orbits.sort()
         while True:
             # working the orbits outward
             orbit = self.__random_orbital_object(outward=True)
             if orbit is np.nan:
                 break
             self._orbits.append(orbit)
-        self._orbits.sort()
 
     def __init__(self, star_system):
         self._star_system = star_system
         self.randomize()
+    
