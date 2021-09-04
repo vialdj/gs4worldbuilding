@@ -77,6 +77,8 @@ def small_ice():
     return w.SmallIce()
 
 
+# Tests on exceptions raises
+
 def test_set_density_raises_exception_on_no_range(asteroid_belt):
     with pytest.raises(AttributeError):
         asteroid_belt.density = np.nan
@@ -105,6 +107,140 @@ def test_set_volatile_mass_raises_exception_on_no_range(asteroid_belt):
 def test_set_diameter_raises_exception_on_no_range(asteroid_belt):
     with pytest.raises(AttributeError):
         asteroid_belt.volatile_mass = np.nan
+
+# Tests on world derived properties
+
+
+def test_get_blackbody_temperature(standard_garden):
+    assert (standard_garden.blackbody_temperature == standard_garden.temperature /
+            standard_garden.absorption)
+
+
+def test_get_climate(standard_garden):
+    lower = standard_garden.climate
+    upper = np.inf
+    for item in w.World.Climate:
+        if item > lower:
+            upper = item
+    assert (standard_garden.temperature >= lower and
+            standard_garden.temperature <= upper)
+
+
+def test_get_pressure_category(standard_garden):
+    lower = standard_garden.atmosphere.pressure_category
+    upper = np.inf
+    for item in w.Atmosphere.Pressure:
+        if item > lower:
+            upper = item
+    assert (standard_garden.atmosphere.pressure >= lower and
+            standard_garden.atmosphere.pressure <= upper)
+
+
+# Tests on concrete world instances
+
+def test_asteroid_belt(asteroid_belt):
+    assert asteroid_belt.absorption == .97
+    assert (asteroid_belt.temperature >= 140 and
+            asteroid_belt.temperature <= 500)
+    assert asteroid_belt.atmosphere is None
+    assert np.isnan(asteroid_belt.mass)
+    assert np.isnan(asteroid_belt.gravity)
+    assert np.isnan(asteroid_belt.volatile_mass)
+    assert np.isnan(asteroid_belt.diameter)
+    assert np.isnan(asteroid_belt.hydrosphere)
+    assert np.isnan(asteroid_belt.greenhouse_factor)
+    assert np.isnan(asteroid_belt.pressure_factor)
+    assert asteroid_belt.core is None
+    assert asteroid_belt.size is None
+
+
+def test_small_ice(small_ice):
+    assert (small_ice.hydrosphere >= .3 and
+            small_ice.hydrosphere <= .8)
+    assert small_ice.atmosphere.toxicity in [w.Atmosphere.Toxicity.MILD,
+                                             w.Atmosphere.Toxicity.HIGH]
+    assert small_ice.atmosphere.composition == ['N2', 'CH4']
+    assert small_ice.atmosphere.suffocating is True
+
+
+def test_large_ice(large_ice):
+    assert large_ice.atmosphere.composition == ['He', 'N2']
+    assert large_ice.atmosphere.toxicity == w.Atmosphere.Toxicity.HIGH
+    assert large_ice.atmosphere.suffocating is True
+
+
+def test_standard_greenhouse(standard_greenhouse):
+    assert (standard_greenhouse.hydrosphere >= .0 and
+            standard_greenhouse.hydrosphere <= .5)
+    assert ((standard_greenhouse.hydrosphere < .1 and
+             standard_greenhouse.atmosphere.composition == ['CO2']) or
+            (standard_greenhouse.hydrosphere >= .1 and
+             (standard_greenhouse.atmosphere.composition ==
+              ['N2', 'H2O', 'O2'])))
+    assert (standard_greenhouse.atmosphere.toxicity ==
+            w.Atmosphere.Toxicity.LETHAL)
+    assert standard_greenhouse.atmosphere.suffocating is True
+    assert standard_greenhouse.atmosphere.corrosive is True
+
+
+def test_large_greenhouse(large_greenhouse):
+    assert ((large_greenhouse.hydrosphere < .1 and
+             large_greenhouse.atmosphere.composition == ['CO2']) or
+            (large_greenhouse.hydrosphere >= .1 and
+             large_greenhouse.atmosphere.composition == ['N2', 'H2O', 'O2']))
+    assert large_greenhouse.atmosphere.toxicity == w.Atmosphere.Toxicity.LETHAL
+    assert large_greenhouse.atmosphere.suffocating is True
+    assert large_greenhouse.atmosphere.corrosive is True
+
+
+def test_standard_ocean(standard_ocean):
+    assert (standard_ocean.hydrosphere >= .5 and
+            standard_ocean.hydrosphere <= 1)
+    assert standard_ocean.atmosphere.toxicity in [None,
+                                                  w.Atmosphere.Toxicity.MILD]
+    assert standard_ocean.atmosphere.composition == ['CO2', 'N2']
+    assert standard_ocean.atmosphere.suffocating is True
+
+
+def test_large_ocean(large_ocean):
+    assert large_ocean.atmosphere.composition == ['He', 'N2']
+    assert large_ocean.atmosphere.toxicity == w.Atmosphere.Toxicity.HIGH
+    assert large_ocean.atmosphere.suffocating is True
+
+
+def test_standard_ammonia(standard_ammonia):
+    assert standard_ammonia.atmosphere.composition == ['N2', 'NH3', 'CH4']
+    assert standard_ammonia.atmosphere.toxicity == w.Atmosphere.Toxicity.LETHAL
+    assert standard_ammonia.atmosphere.suffocating is True
+    assert standard_ammonia.atmosphere.corrosive is True
+
+
+def test_large_ammonia(large_ammonia):
+    assert large_ammonia.atmosphere.composition == ['He', 'NH3', 'CH4']
+    assert large_ammonia.atmosphere.toxicity == w.Atmosphere.Toxicity.LETHAL
+    assert large_ammonia.atmosphere.suffocating is True
+    assert large_ammonia.atmosphere.corrosive is True
+    assert large_ammonia.greenhouse_factor == .2
+    assert (large_ammonia.volatile_mass >= .3 and
+            large_ammonia.volatile_mass <= 1.8)
+    assert large_ammonia.size == w.World.Size.LARGE
+    assert large_ammonia.core == w.World.Core.ICY_CORE
+    assert (large_ammonia.hydrosphere >= .2 and
+            large_ammonia.hydrosphere <= 1)
+    assert large_ammonia.pressure_factor == 5
+
+
+def test_large_garden(large_garden):
+    assert ((large_garden.hydrosphere < .2 and
+             large_garden.absorption >= .95) or
+            (large_garden.hydrosphere < .5 and
+             large_garden.absorption >= .92) or
+            (large_garden.hydrosphere < .90 and
+             large_garden.absorption >= .88) or
+            large_garden.absorption >= .84)
+
+
+# Tests on marginal atmosphere modifiers
 
 
 def test_set_marginal_chlorine_or_fluorine(standard_garden):
@@ -150,7 +286,7 @@ def test_set_marginal_nitrogen_compounds(standard_garden):
     assert issubclass(type(standard_garden.atmosphere), Marginal)
     assert (standard_garden.atmosphere.toxicity ==
             w.Atmosphere.Range(w.Atmosphere.Toxicity.MILD,
-                             w.Atmosphere.Toxicity.HIGH))
+                               w.Atmosphere.Toxicity.HIGH))
 
 
 def test_set_marginal_sulfur_compounds(standard_garden):
@@ -158,7 +294,7 @@ def test_set_marginal_sulfur_compounds(standard_garden):
     assert issubclass(type(standard_garden.atmosphere), Marginal)
     assert (standard_garden.atmosphere.toxicity ==
             w.Atmosphere.Range(w.Atmosphere.Toxicity.MILD,
-                             w.Atmosphere.Toxicity.HIGH))
+                               w.Atmosphere.Toxicity.HIGH))
 
 
 def test_set_marginal_organic_toxins(standard_garden):
@@ -166,201 +302,10 @@ def test_set_marginal_organic_toxins(standard_garden):
     assert issubclass(type(standard_garden.atmosphere), Marginal)
     assert (standard_garden.atmosphere.toxicity ==
             w.Atmosphere.Range(w.Atmosphere.Toxicity.MILD,
-                             w.Atmosphere.Toxicity.LETHAL))
+                               w.Atmosphere.Toxicity.LETHAL))
 
 
 def test_set_marginal_pollutants(standard_garden):
     standard_garden.atmosphere.make_marginal(w.pollutants)
     assert issubclass(type(standard_garden.atmosphere), Marginal)
     assert (standard_garden.atmosphere.toxicity == w.Atmosphere.Toxicity.MILD)
-
-
-def test_get_size_is_None(asteroid_belt):
-    assert asteroid_belt.size is None
-
-
-def test_get_size(large_ammonia):
-    assert large_ammonia.size == w.World.Size.LARGE
-
-
-def test_get_core_is_None(asteroid_belt):
-    assert asteroid_belt.core is None
-
-
-def test_get_core(large_ammonia):
-    assert large_ammonia.core == w.World.Core.ICY_CORE
-
-
-def test_get_hydrosphere_is_nan(asteroid_belt):
-    assert np.isnan(asteroid_belt.hydrosphere)
-
-
-def test_get_hydrosphere(large_ammonia):
-    assert (large_ammonia.hydrosphere >= .2 and
-            large_ammonia.hydrosphere <= 1)
-
-
-def test_get_hydrosphere(small_ice):
-    assert (small_ice.hydrosphere >= .3 and
-            small_ice.hydrosphere <= .8)
-
-
-def test_get_hydrosphere(standard_greenhouse):
-    assert (standard_greenhouse.hydrosphere >= .0 and
-            standard_greenhouse.hydrosphre <= .5)
-
-
-def test_get_hydrosphere(standard_ocean):
-    assert (standard_ocean.hydrosphere >= .5 and
-            standard_ocean.hydrosphere <= 1)
-
-
-def test_get_diameter_is_nan(asteroid_belt):
-    assert np.isnan(asteroid_belt.diameter)
-
-
-def test_get_atmosphere_is_None(asteroid_belt):
-    assert asteroid_belt.atmosphere is None
-
-
-def test_get_atmosphere(large_ammonia):
-    assert large_ammonia.atmosphere.composition == ['He', 'NH3', 'CH4']
-    assert large_ammonia.atmosphere.toxicity == w.Atmosphere.Toxicity.LETHAL
-    assert large_ammonia.atmosphere.suffocating is True
-    assert large_ammonia.atmosphere.corrosive is True
-
-
-def test_get_atmosphere(large_greenhouse):
-    assert ((large_greenhouse.hydrosphere < .1 and
-             large_greenhouse.atmosphere.composition == ['CO2']) or
-            (large_greenhouse.hydrosphere >= .1 and
-             large_greenhouse.atmosphere.composition == ['N2', 'H2O', 'O2']))
-    assert large_greenhouse.atmosphere.toxicity == w.Atmosphere.Toxicity.LETHAL
-    assert large_greenhouse.atmosphere.suffocating is True
-    assert large_greenhouse.atmosphere.corrosive is True
-
-
-def test_get_atmosphere(large_ice):
-    assert large_ice.atmosphere.composition == ['He', 'N2']
-    assert large_ice.atmosphere.toxicity == w.Atmosphere.Toxicity.HIGH
-    assert large_ice.atmosphere.suffocating is True
-
-
-def test_get_atmosphere(large_ocean):
-    assert large_ocean.atmosphere.composition == ['He', 'N2']
-    assert large_ocean.atmosphere.toxicity == w.Atmosphere.Toxicity.HIGH
-    assert large_ocean.atmosphere.suffocating is True
-
-
-def test_get_atmosphere(small_ice):
-    assert small_ice.atmosphere.toxicity in [w.Atmosphere.Toxicity.MILD,
-                                             w.Atmosphere.Toxicity.HIGH]
-    assert small_ice.atmosphere.composition == ['N2', 'CH4']
-    assert small_ice.atmosphere.suffocating is True
-
-
-def test_get_atmosphere(standard_ocean):
-    assert standard_ocean.atmosphere.toxicity in [None,
-                                                  w.Atmosphere.Toxicity.MILD]
-    assert standard_ocean.atmosphere.composition == ['CO2', 'N2']
-    assert standard_ocean.atmosphere.suffocating is True
-
-
-def test_get_atmosphere(standard_greenhouse):
-    assert ((standard_greenhouse.hydrosphere < .1 and
-             standard_greenhouse.atmosphere.composition == ['CO2']) or
-            (standard_greenhouse.hydrosphere >= .1 and
-             (standard_greenhouse.atmosphere.composition ==
-              ['N2', 'H2O', 'O2'])))
-    assert (standard_greenhouse.atmosphere.toxicity ==
-            w.Atmosphere.Toxicity.LETHAL)
-    assert standard_greenhouse.atmosphere.suffocating is True
-    assert standard_greenhouse.atmosphere.corrosive is True
-
-
-def test_get_atmosphere(standard_ammonia):
-    assert standard_ammonia.atmosphere.composition == ['N2', 'NH3', 'CH4']
-    assert standard_ammonia.atmosphere.toxicity == w.Atmosphere.Toxicity.LETHAL
-    assert standard_ammonia.atmosphere.suffocating is True
-    assert standard_ammonia.atmosphere.corrosive is True
-
-
-def test_get_pressure_factor_is_nan(asteroid_belt):
-    assert np.isnan(asteroid_belt.pressure_factor)
-
-
-def test_get_pressure_factor(large_ammonia):
-    assert large_ammonia.pressure_factor == 5
-
-
-def test_get_greenhouse_factor_is_nan(asteroid_belt):
-    assert np.isnan(asteroid_belt.greenhouse_factor)
-
-
-def test_get_greenhouse_factor(large_ammonia):
-    assert large_ammonia.greenhouse_factor == .2
-
-
-def test_get_volatile_mass_is_nan(asteroid_belt):
-    assert np.isnan(asteroid_belt.volatile_mass)
-
-
-def test_get_volatile_mass(large_ammonia):
-    assert (large_ammonia.volatile_mass >= .3 and
-            large_ammonia.volatile_mass <= 1.8)
-
-
-def test_get_absorption(asteroid_belt):
-    assert asteroid_belt.absorption == .97
-
-
-def test_get_absorption(large_garden):
-    assert ((large_garden.hydrosphere < .2 and
-             large_garden.absorption >= .95) or
-            (large_garden.hydrosphere < .5 and
-             large_garden.absorption >= .92) or
-            (large_garden.hydrosphere < .90 and
-             large_garden.absorption >= .88) or
-            large_garden.absorption >= .84)
-
-
-def test_get_gravity_is_nan(asteroid_belt):
-    assert np.isnan(asteroid_belt.gravity)
-
-
-def test_get_mass_is_nan(asteroid_belt):
-    assert np.isnan(asteroid_belt.mass)
-
-
-def test_get_atmosphere_is_None(asteroid_belt):
-    assert asteroid_belt.atmosphere is None
-
-
-def test_get_temperature(asteroid_belt):
-    assert (asteroid_belt.temperature >= 140 and
-            asteroid_belt.temperature <= 500)
-
-
-def test_get_blackbody_temperature(asteroid_belt):
-    assert (asteroid_belt.blackbody_temperature == asteroid_belt.temperature /
-            .97)
-
-
-def test_get_climate(asteroid_belt):
-    lower = asteroid_belt.climate
-    upper = np.inf
-    for item in w.World.Climate:
-        if item > lower:
-            upper = item
-    assert (asteroid_belt.temperature >= lower and
-            asteroid_belt.temperature <= upper)
-
-
-def test_get_pressure_category(large_ammonia):
-    lower = large_ammonia.atmosphere.pressure_category
-    upper = np.inf
-    for item in w.Atmosphere.Pressure:
-        if item > lower:
-            upper = item
-    assert (large_ammonia.atmosphere.pressure >= lower and
-            large_ammonia.atmosphere.pressure <= upper)
