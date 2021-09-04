@@ -205,6 +205,16 @@ def test_get_hydrosphere(small_ice):
             small_ice.hydrosphere <= .8)
 
 
+def test_get_hydrosphere(standard_greenhouse):
+    assert (standard_greenhouse.hydrosphere >= .0 and
+            standard_greenhouse.hydrosphre <= .5)
+
+
+def test_get_hydrosphere(standard_ocean):
+    assert (standard_ocean.hydrosphere >= .5 and
+            standard_ocean.hydrosphere <= 1)
+
+
 def test_get_diameter_is_nan(asteroid_belt):
     assert np.isnan(asteroid_belt.diameter)
 
