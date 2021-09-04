@@ -10,7 +10,7 @@ class LargeIce(World):
     class LargeIceAtmosphere(Atmosphere):
         """the large ice atmosphere model"""
         _composition = ['He', 'N2']
-        _toxicity = Atmosphere.Toxicity.LETHAL
+        _toxicity = Atmosphere.Toxicity.HIGH
         _suffocating = True
 
     _temperature_range = World.Range(80, 230)
