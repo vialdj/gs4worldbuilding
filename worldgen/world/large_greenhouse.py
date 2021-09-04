@@ -11,10 +11,11 @@ class LargeGreenhouse(World):
         """The large greenhouse atmosphere model"""
         _toxicity = Atmosphere.Toxicity.LETHAL
         _suffocating = True
+        _corrosive = True
 
         @property
         def composition(self):
-            return ['CO2'] if self._world.hydrosphere < .1 else ['N2', 'H2O'
+            return ['CO2'] if self._world.hydrosphere < .1 else ['N2', 'H2O',
                                                                  'O2']
 
     _temperature_range = World.Range(500, 950)
