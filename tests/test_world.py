@@ -30,12 +30,6 @@ def large_garden():
 
 
 @pytest.fixture
-def large_ice():
-    # returns a LargeIce instance
-    return w.LargeIce()
-
-
-@pytest.fixture
 def large_ocean():
     # returns a LargeOcean instance
     return w.LargeOcean()
@@ -325,6 +319,30 @@ def test_large_ammonia(large_ammonia):
     assert large_ammonia.size == w.World.Size.LARGE
     assert (large_ammonia.density >= .3 and
             large_ammonia.density <= .7)
+
+
+def test_standard_garden(standard_garden):
+    assert ((standard_garden.hydrosphere < .2 and
+             standard_garden.absorption >= .95) or
+            (standard_garden.hydrosphere < .5 and
+             standard_garden.absorption >= .92) or
+            (standard_garden.hydrosphere < .90 and
+             standard_garden.absorption >= .88) or
+            standard_garden.absorption >= .84)
+    standard_garden.atmosphere.remove_marginal()
+    assert standard_garden.atmosphere.toxicity is None
+    assert standard_garden.atmosphere.composition == ['N2', 'O2']
+    assert standard_garden.atmosphere.suffocating is False
+    assert standard_garden.atmosphere.corrosive is False
+    assert standard_garden.atmosphere.breathable is True
+    assert (standard_garden.hydrosphere >= .5 and
+            standard_garden.hydrosphere <= 1)
+    assert standard_garden.greenhouse_factor == .16
+    assert standard_garden.pressure_factor == 1
+    assert standard_garden.core == w.World.Core.LARGE_IRON_CORE
+    assert standard_garden.size == w.World.Size.STANDARD
+    assert (standard_garden.density >= .8 and
+            standard_garden.density <= 1.2)
 
 
 def test_large_garden(large_garden):
