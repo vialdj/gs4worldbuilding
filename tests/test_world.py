@@ -71,6 +71,18 @@ def small_ice():
     return w.SmallIce()
 
 
+@pytest.fixture
+def standard_chthonian():
+    # returns a StandardChthonian instance
+    return w.StandardChthonian()
+
+
+@pytest.fixture
+def large_chthonian():
+    # returns a LargeChthonian instance
+    return w.LargeChthonian()
+
+
 # Tests on exceptions raises
 
 def test_set_density_raises_exception_on_no_range(asteroid_belt):
@@ -119,14 +131,14 @@ def test_get_climate(standard_garden):
             standard_garden.temperature <= upper)
 
 
-def test_get_pressure_category(standard_garden):
-    lower = standard_garden.atmosphere.pressure_category
+def test_get_pressure_category(standard_ocean):
+    lower = standard_ocean.atmosphere.pressure_category
     upper = np.inf
     for item in w.Atmosphere.Pressure:
         if item > lower:
             upper = item
-    assert (standard_garden.atmosphere.pressure >= lower and
-            standard_garden.atmosphere.pressure <= upper)
+    assert (standard_ocean.atmosphere.pressure >= lower and
+            standard_ocean.atmosphere.pressure <= upper)
 
 
 # Tests on concrete world instances
@@ -306,6 +318,8 @@ def test_standard_ammonia(standard_ammonia):
 
 def test_large_ammonia(large_ammonia):
     assert large_ammonia.absorption == .84
+    assert (large_ammonia.temperature >= 140 and
+            large_ammonia.temperature <= 215)
     assert large_ammonia.atmosphere.toxicity == w.Atmosphere.Toxicity.LETHAL
     assert large_ammonia.atmosphere.composition == ['He', 'NH3', 'CH4']
     assert large_ammonia.atmosphere.suffocating is True
@@ -329,6 +343,8 @@ def test_standard_garden(standard_garden):
             (standard_garden.hydrosphere < .90 and
              standard_garden.absorption >= .88) or
             standard_garden.absorption >= .84)
+    assert (standard_garden.temperature >= 250 and
+            standard_garden.temperature <= 340)
     standard_garden.atmosphere.remove_marginal()
     assert standard_garden.atmosphere.toxicity is None
     assert standard_garden.atmosphere.composition == ['N2', 'O2']
@@ -353,6 +369,8 @@ def test_large_garden(large_garden):
             (large_garden.hydrosphere < .90 and
              large_garden.absorption >= .88) or
             large_garden.absorption >= .84)
+    assert (large_garden.temperature >= 250 and
+            large_garden.temperature <= 340)
     large_garden.atmosphere.remove_marginal()
     assert large_garden.atmosphere.toxicity is None
     assert large_garden.atmosphere.composition == ['N2', 'O2', 'He', 'Ne',
@@ -368,6 +386,34 @@ def test_large_garden(large_garden):
     assert large_garden.size == w.World.Size.LARGE
     assert (large_garden.density >= .8 and
             large_garden.density <= 1.2)
+
+
+def test_standard_chthonian(standard_chthonian):
+    assert standard_chthonian.absorption == .97
+    assert (standard_chthonian.temperature >= 500 and
+            standard_chthonian.temperature <= 950)
+    assert standard_chthonian.atmosphere is None
+    assert np.isnan(standard_chthonian.greenhouse_factor)
+    assert np.isnan(standard_chthonian.pressure_factor)
+    assert np.isnan(standard_chthonian.hydrosphere)
+    assert standard_chthonian.core == w.World.Core.LARGE_IRON_CORE
+    assert standard_chthonian.size == w.World.Size.STANDARD
+    assert (standard_chthonian.density >= .8 and
+            standard_chthonian.density <= 1.2)
+
+
+def test_large_chthonian(large_chthonian):
+    assert large_chthonian.absorption == .97
+    assert (large_chthonian.temperature >= 500 and
+            large_chthonian.temperature <= 950)
+    assert large_chthonian.atmosphere is None
+    assert np.isnan(large_chthonian.greenhouse_factor)
+    assert np.isnan(large_chthonian.pressure_factor)
+    assert np.isnan(large_chthonian.hydrosphere)
+    assert large_chthonian.core == w.World.Core.LARGE_IRON_CORE
+    assert large_chthonian.size == w.World.Size.LARGE
+    assert (large_chthonian.density >= .8 and
+            large_chthonian.density <= 1.2)
 
 
 # Tests on marginal atmosphere modifiers
