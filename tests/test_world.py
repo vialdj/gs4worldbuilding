@@ -12,15 +12,9 @@ def asteroid_belt():
 
 
 @pytest.fixture
-def large_ammonia():
-    # returns a LargeAmmonia instance
-    return w.LargeAmmonia()
-
-
-@pytest.fixture
-def large_greenhouse():
-    # returns a LargeGreenhouse instance
-    return w.LargeGreenhouse()
+def standard_garden():
+    # returns a StandardGarden instance
+    return w.StandardGarden()
 
 
 @pytest.fixture
@@ -30,27 +24,15 @@ def large_garden():
 
 
 @pytest.fixture
-def large_ocean():
-    # returns a LargeOcean instance
-    return w.LargeOcean()
-
-
-@pytest.fixture
-def large_ice():
-    # returns a LargeIce instance
-    return w.LargeIce()
-
-
-@pytest.fixture
-def standard_garden():
-    # returns a StandardGarden instance
-    return w.StandardGarden()
-
-
-@pytest.fixture
 def standard_greenhouse():
     # returns a StandardGreenhouse instance
     return w.StandardGreenhouse()
+
+
+@pytest.fixture
+def large_greenhouse():
+    # returns a LargeGreenhouse instance
+    return w.LargeGreenhouse()
 
 
 @pytest.fixture
@@ -60,15 +42,45 @@ def standard_ammonia():
 
 
 @pytest.fixture
+def large_ammonia():
+    # returns a LargeAmmonia instance
+    return w.LargeAmmonia()
+
+
+@pytest.fixture
 def standard_ocean():
     # returns a StandardOcean instance
     return w.StandardOcean()
 
 
 @pytest.fixture
+def large_ocean():
+    # returns a LargeOcean instance
+    return w.LargeOcean()
+
+
+@pytest.fixture
+def tiny_ice():
+    # returns a TinyIce instance
+    return w.TinyIce()
+
+
+@pytest.fixture
 def small_ice():
     # returns a SmallIce instance
     return w.SmallIce()
+
+
+@pytest.fixture
+def standard_ice():
+    # returns a StandardIce instance
+    return w.StandardIce()
+
+
+@pytest.fixture
+def large_ice():
+    # returns a LargeIce instance
+    return w.LargeIce()
 
 
 @pytest.fixture
@@ -81,6 +93,36 @@ def standard_chthonian():
 def large_chthonian():
     # returns a LargeChthonian instance
     return w.LargeChthonian()
+
+
+@pytest.fixture
+def small_hadean():
+    # returns a SmallHadean instance
+    return w.SmallHadean()
+
+
+@pytest.fixture
+def standard_hadean():
+    # returns a StandardHadean instance
+    return w.StandardHadean()
+
+
+@pytest.fixture
+def tiny_rock():
+    # returns a TinyRock instance
+    return w.TinyRock()
+
+
+@pytest.fixture
+def small_rock():
+    # returns a SmallRock instance
+    return w.SmallRock()
+
+
+@pytest.fixture
+def tiny_sulfur():
+    # returns a TinySulfur instance
+    return w.TinySulfur()
 
 
 # Tests on exceptions raises
@@ -159,6 +201,21 @@ def test_asteroid_belt(asteroid_belt):
     assert asteroid_belt.size is None
 
 
+def test_tiny_ice(tiny_ice):
+    assert tiny_ice.absorption == .86
+    assert (tiny_ice.temperature >= 80 and
+            tiny_ice.temperature <= 140)
+    assert tiny_ice.atmosphere is None
+    assert np.isnan(tiny_ice.greenhouse_factor)
+    assert np.isnan(tiny_ice.pressure_factor)
+    assert np.isnan(tiny_ice.hydrosphere)
+    assert np.isnan(tiny_ice.hydrosphere)
+    assert tiny_ice.core is w.World.Core.ICY_CORE
+    assert tiny_ice.size is w.World.Size.TINY
+    assert (tiny_ice.density >= .3 and
+            tiny_ice.density <= .7)
+
+
 def test_small_ice(small_ice):
     assert small_ice.absorption == .93
     assert (small_ice.temperature >= 80 and
@@ -177,6 +234,26 @@ def test_small_ice(small_ice):
     assert small_ice.size is w.World.Size.SMALL
     assert (small_ice.density >= .3 and
             small_ice.density <= .7)
+
+
+def test_standard_ice(standard_ice):
+    assert standard_ice.absorption == .86
+    assert (standard_ice.temperature >= 80 and
+            standard_ice.temperature <= 230)
+    assert standard_ice.atmosphere.toxicity in [None,
+                                                w.Atmosphere.Toxicity.MILD]
+    assert standard_ice.atmosphere.composition == ['CO2', 'N2']
+    assert standard_ice.atmosphere.suffocating is True
+    assert standard_ice.atmosphere.corrosive is False
+    assert standard_ice.atmosphere.breathable is False
+    assert (standard_ice.hydrosphere >= 0 and
+            standard_ice.hydrosphere <= .2)
+    assert standard_ice.greenhouse_factor == .20
+    assert standard_ice.pressure_factor == 1
+    assert standard_ice.core is w.World.Core.LARGE_IRON_CORE
+    assert standard_ice.size is w.World.Size.STANDARD
+    assert (standard_ice.density >= .8 and
+            standard_ice.density <= 1.2)
 
 
 def test_large_ice(large_ice):
@@ -414,6 +491,76 @@ def test_large_chthonian(large_chthonian):
     assert large_chthonian.size == w.World.Size.LARGE
     assert (large_chthonian.density >= .8 and
             large_chthonian.density <= 1.2)
+
+
+def test_small_hadean(small_hadean):
+    assert small_hadean.absorption == .67
+    assert (small_hadean.temperature >= 50 and
+            small_hadean.temperature <= 80)
+    assert small_hadean.atmosphere is None
+    assert np.isnan(small_hadean.greenhouse_factor)
+    assert np.isnan(small_hadean.pressure_factor)
+    assert np.isnan(small_hadean.hydrosphere)
+    assert small_hadean.core == w.World.Core.ICY_CORE
+    assert small_hadean.size == w.World.Size.SMALL
+    assert (small_hadean.density >= .3 and
+            small_hadean.density <= .7)
+
+
+def test_standard_hadean(standard_hadean):
+    assert standard_hadean.absorption == .67
+    assert (standard_hadean.temperature >= 50 and
+            standard_hadean.temperature <= 80)
+    assert standard_hadean.atmosphere is None
+    assert np.isnan(standard_hadean.greenhouse_factor)
+    assert np.isnan(standard_hadean.pressure_factor)
+    assert np.isnan(standard_hadean.hydrosphere)
+    assert standard_hadean.core == w.World.Core.ICY_CORE
+    assert standard_hadean.size == w.World.Size.STANDARD
+    assert (standard_hadean.density >= .3 and
+            standard_hadean.density <= .7)
+
+
+def test_tiny_rock(tiny_rock):
+    assert tiny_rock.absorption == .97
+    assert (tiny_rock.temperature >= 140 and
+            tiny_rock.temperature <= 500)
+    assert tiny_rock.atmosphere is None
+    assert np.isnan(tiny_rock.greenhouse_factor)
+    assert np.isnan(tiny_rock.pressure_factor)
+    assert np.isnan(tiny_rock.hydrosphere)
+    assert tiny_rock.core == w.World.Core.SMALL_IRON_CORE
+    assert tiny_rock.size == w.World.Size.TINY
+    assert (tiny_rock.density >= .6 and
+            tiny_rock.density <= 1)
+
+
+def test_small_rock(small_rock):
+    assert small_rock.absorption == .96
+    assert (small_rock.temperature >= 140 and
+            small_rock.temperature <= 500)
+    assert small_rock.atmosphere is None
+    assert np.isnan(small_rock.greenhouse_factor)
+    assert np.isnan(small_rock.pressure_factor)
+    assert np.isnan(small_rock.hydrosphere)
+    assert small_rock.core == w.World.Core.SMALL_IRON_CORE
+    assert small_rock.size == w.World.Size.SMALL
+    assert (small_rock.density >= .6 and
+            small_rock.density <= 1)
+
+
+def test_tiny_sulfur(tiny_sulfur):
+    assert tiny_sulfur.absorption == .77
+    assert (tiny_sulfur.temperature >= 80 and
+            tiny_sulfur.temperature <= 140)
+    assert tiny_sulfur.atmosphere is None
+    assert np.isnan(tiny_sulfur.greenhouse_factor)
+    assert np.isnan(tiny_sulfur.pressure_factor)
+    assert np.isnan(tiny_sulfur.hydrosphere)
+    assert tiny_sulfur.core == w.World.Core.ICY_CORE
+    assert tiny_sulfur.size == w.World.Size.TINY
+    assert (tiny_sulfur.density >= .3 and
+            tiny_sulfur.density <= .7)
 
 
 # Tests on marginal atmosphere modifiers
