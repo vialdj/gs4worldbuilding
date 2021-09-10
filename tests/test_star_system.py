@@ -15,19 +15,37 @@ def garden_system():
 
 
 @pytest.fixture
+def red_giant_system():
+    # returns a StarSystem instance analog to the aldebaran system
+    system = w.StarSystem()
+    system.population = w.StarSystem.Population.OLD_POPULATION_1
+    system.age = 6.5
+    return system
+
+
+@pytest.fixture
 def G2V_garden_system(garden_system):
-    # returns a Star instance analog to the sun
+    # returns a Star instance analog to the Sun
     star = w.Star(garden_system)
     star.seed_mass = 1
     return star
 
 
-def test_get_luminosity_class(G2V_garden_system):
+@pytest.fixture
+def III(red_giant_system):
+    # returns a Star instance representing a red giant
+    star = w.Star(red_giant_system)
+    star.seed_mass = 1.13
+    return star
+
+
+def test_G2V_garden_system(G2V_garden_system):
     assert (G2V_garden_system.luminosity_class == w.Star.Luminosity.V)
-
-
-def test_get_spectral_type(G2V_garden_system):
     assert (G2V_garden_system.spectral_type == 'G2')
+
+
+def test_III(III):
+    assert (III.luminosity_class == w.Star.Luminosity.III)
 
 
 def test_set_seed_mass_raises_exception_on_out_of_range(G2V_garden_system):
