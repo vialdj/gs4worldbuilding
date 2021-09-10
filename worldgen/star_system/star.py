@@ -144,7 +144,7 @@ modifier if applicable"""
         if (self.luminosity_class == type(self).Luminosity.D):
             return .001
         if (self.luminosity_class == type(self).Luminosity.III):
-            type(self).__l_max(self.mass) * 25
+            return type(self).__l_max(self.mass) * 25
         if (self.luminosity_class == type(self).Luminosity.IV):
             return type(self).__l_max(self.mass)
         if (np.isnan(type(self).__l_max(self.mass))):
