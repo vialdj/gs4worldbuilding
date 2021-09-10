@@ -42,10 +42,13 @@ def III(red_giant_system):
 def test_G2V_garden_system(G2V_garden_system):
     assert (G2V_garden_system.luminosity_class == w.Star.Luminosity.V)
     assert (G2V_garden_system.spectral_type == 'G2')
+    assert (G2V_garden_system.temperature >= 3100 and
+            G2V_garden_system.temperature <= 8200)
 
 
 def test_III(III):
     assert (III.luminosity_class == w.Star.Luminosity.III)
+    assert (III.temperature >= 3000 and III.temperature <= 5000)
 
 
 def test_set_seed_mass_raises_exception_on_out_of_range(G2V_garden_system):
