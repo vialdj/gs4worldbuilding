@@ -13,6 +13,14 @@ def garden_system():
     system.age = 4.7
     return system
 
+@pytest.fixture
+def subgiant_system():
+    # returns a StarSystem instance analog to the procyon system
+    system = w.StarSystem()
+    system.population = w.StarSystem.Population.YOUNG_POPULATION_1
+    system.age = 1.37
+    return system
+
 
 @pytest.fixture
 def red_giant_system():
@@ -26,14 +34,23 @@ def red_giant_system():
 @pytest.fixture
 def G2V_garden_system(garden_system):
     # returns a Star instance analog to the Sun
+    # sol
     star = w.Star(garden_system)
     star.seed_mass = 1
     return star
 
+@pytest.fixture
+def IV(subgiant_system):
+    # returns a Star instance of the subgiant classification
+    # procyon
+    star = w.Star(subgiant_system)
+    star.seed_mass = 1.37
+    return star
 
 @pytest.fixture
 def III(red_giant_system):
-    # returns a Star instance representing a red giant
+    # returns a Star instance of the red giant classification
+    # aldebaran
     star = w.Star(red_giant_system)
     star.seed_mass = 1.13
     return star
@@ -44,6 +61,10 @@ def test_G2V_garden_system(G2V_garden_system):
     assert (G2V_garden_system.spectral_type == 'G2')
     assert (G2V_garden_system.temperature >= 3100 and
             G2V_garden_system.temperature <= 8200)
+
+
+def test_IV(IV):
+    assert (IV.luminosity_class == w.Star.Luminosity.IV)
 
 
 def test_III(III):
