@@ -30,6 +30,13 @@ def red_giant_system():
     system.age = 6.5
     return system
 
+@pytest.fixture
+def white_dwarf_system():
+    # returns a StarSystem instance analog to the van maanen system
+    system = w.StarSystem()
+    system.population = w.StarSystem.Population.INTERMEDIATE_POPULATION_1
+    system.age = 4.1
+    return system
 
 @pytest.fixture
 def G2V_garden_system(garden_system):
@@ -55,6 +62,15 @@ def III(red_giant_system):
     star.seed_mass = 1.13
     return star
 
+@pytest.fixture
+def D(white_dwarf_system):
+    # returns a Star instance of the white dwarf classification
+    # van maanen star
+    star = w.Star(white_dwarf_system)
+    # TODO: should be 2.6 instead of 2
+    star.seed_mass = 2
+    return star
+
 
 def test_G2V_garden_system(G2V_garden_system):
     assert (G2V_garden_system.luminosity_class == w.Star.Luminosity.V)
@@ -70,6 +86,11 @@ def test_IV(IV):
 def test_III(III):
     assert (III.luminosity_class == w.Star.Luminosity.III)
     assert (III.temperature >= 3000 and III.temperature <= 5000)
+
+
+def test_D(D):
+    assert (D.luminosity_class == w.Star.Luminosity.D)
+    # TODO: here mass should be tested at .67
 
 
 def test_set_seed_mass_raises_exception_on_out_of_range(G2V_garden_system):
