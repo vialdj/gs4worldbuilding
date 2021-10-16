@@ -84,7 +84,8 @@ modifiers if any"""
     def seed_mass_range(self):
         """value range for mass adjusted so mass cannot be greater than parent
 body mass"""
-        return type(self).Range(.1, self._parent_body.mass)
+        # TODO: enforce final mass range to be no more than parent mass (not seed mass)
+        return type(self).Range(.1, 2)
 
     @property
     def separation(self):
