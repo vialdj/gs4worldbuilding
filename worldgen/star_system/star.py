@@ -33,8 +33,7 @@ class Star(RandomizableModel):
 modifier if applicable"""
         upper, lower = (1.5, .6) if self._star_system.garden_host else (2, .1)
         mu = lower
-        sigma = (.37733756770297866 if self._star_system.garden_host
-                 else .376928361893875)
+        sigma = .26953477975949597 if self._star_system.garden_host else .3905806446817353
         b = (upper - lower) / sigma
 
         self.seed_mass = truncexpon(b=b, loc=mu, scale=sigma).rvs()
@@ -92,7 +91,7 @@ modifier if applicable"""
     @property
     def mass(self):
         """read-only mass in M☉ with applied modifiers"""
-        return (.9 + ((self.seed_mass - .1) / 1.9) * .5
+        return (.15 + ((self.seed_mass - .1) / 1.9) * 1.05
                 if self.luminosity_class == type(self).Luminosity.D
                 else self.seed_mass)
 
@@ -280,4 +279,3 @@ object"""
     def __init__(self, star_system):
         self._star_system = star_system
         self.randomize()
-    
