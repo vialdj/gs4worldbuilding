@@ -56,6 +56,21 @@ def van_maanen():
     system.stars[0].seed_mass = 2
     return system
 
+@pytest.fixture
+def alpha_centauri():
+    # returns a StarSystem instance analog to the alpha centauri system
+    system = w.StarSystem()
+    system.population = w.StarSystem.Population.INTERMEDIATE_POPULATION_1
+    system.age = 5
+    system.make_stars(3)
+    # Alpha Centauri A
+    system.stars[0].seed_mass = 1.1
+    # Alpha Centauri B
+    system.stars[1].seed_mass = .9
+    # Proxima Centauri
+    system.stars[2].seed_mass = .12
+    return system
+
 
 def test_sol(sol):
     assert (sol.stars[0].luminosity_class == w.Star.Luminosity.V)
@@ -79,6 +94,12 @@ def test_aldebaran(aldebaran):
 def test_van_maanen(van_maanen):
     assert (van_maanen.stars[0].luminosity_class == w.Star.Luminosity.D)
     # TODO: here mass should be tested at .67
+
+
+def test_alpha_centauri(alpha_centauri):
+    assert (alpha_centauri.stars[0].luminosity_class == w.Star.Luminosity.V)
+    assert (alpha_centauri.stars[1].luminosity_class == w.Star.Luminosity.V)
+    assert (alpha_centauri.stars[2].luminosity_class == w.Star.Luminosity.V)
 
 
 def test_set_seed_mass_raises_exception_on_out_of_range(sol):
