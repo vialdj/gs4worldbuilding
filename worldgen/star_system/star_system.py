@@ -56,21 +56,25 @@ from Stellar Age Table"""
     def age(self, value):
         self._set_ranged_property('age', value)
 
-    def random_stars(self):
-        """the system stars generation an arrangement procedure"""
+    def make_stars(self, n):
+        """the system stars generation and arrangement procedure"""
         primary_star = Star(self)
         self.stars = [primary_star]
-        # multiple star roll
-        r = random.uniform(0, 1)
-        if (r >= self._stars_dist[0]):
+        if n > 1:
             companion = CompanionStar(self, self.primary_star)
             primary_star._companions = [companion]
             self.stars.append(companion)
-        if r >= self._stars_dist[0] + self._stars_dist[1]:
+        if n > 2:
             companion = CompanionStar(self, self.primary_star, True)
             primary_star._companions.append(companion)
             self.stars.append(companion)
-        # sub-companion star rolls if any
+
+    def random_stars(self):
+        """the system randomization of stars"""
+        # multiple star roll
+        self.make_stars(random.choices([1, 2, 3], weights=self._stars_dist,
+                                       k=1)[0])
+        # sub-companion star rolls if allowed
         for star in filter(lambda s: s.separation >=
                            CompanionStar.Separation.DISTANT, self.stars[1:]):
             if (random.uniform(0, 1) > .5):
