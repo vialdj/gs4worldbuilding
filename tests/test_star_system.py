@@ -6,98 +6,86 @@ import numpy as np
 
 
 @pytest.fixture
-def garden_system():
+def sol():
     # returns a StarSystem instance analog to the solar system
     system = w.StarSystem(garden_host=True)
     system.population = w.StarSystem.Population.INTERMEDIATE_POPULATION_1
     system.age = 4.7
+    system.make_stars(1)
+    # Sol
+    system.stars[0].seed_mass = 1
     return system
 
 @pytest.fixture
-def subgiant_system():
+def procyon():
     # returns a StarSystem instance analog to the procyon system
     system = w.StarSystem()
     system.population = w.StarSystem.Population.YOUNG_POPULATION_1
     system.age = 1.37
+    system.make_stars(2)
+    # procyon A
+    system.stars[0].seed_mass = 1.37
+    # procyon B
+    # TODO: should be 2.56 instead of 2
+    system.stars[1].seed_mass = 2
+
     return system
 
 
 @pytest.fixture
-def red_giant_system():
-    # returns a StarSystem instance analog to the aldebaran system
+def aldebaran():
+    # returns a StarSystem instance analog to the Aldebaran's host system
     system = w.StarSystem()
     system.population = w.StarSystem.Population.OLD_POPULATION_1
     system.age = 6.5
+    system.make_stars(1)
+    # Aldebaran
+    system.stars[0].seed_mass = 1.13
+
     return system
 
 @pytest.fixture
-def white_dwarf_system():
-    # returns a StarSystem instance analog to the van maanen system
+def van_maanen():
+    # returns a StarSystem instance analog to the van maanen's star's host system
     system = w.StarSystem()
     system.population = w.StarSystem.Population.INTERMEDIATE_POPULATION_1
     system.age = 4.1
+    system.make_stars(1)
+    # van maanen star
+    # TODO: should be 2.6 instead of 2
+    system.stars[0].seed_mass = 2
     return system
 
-@pytest.fixture
-def G2V_garden_system(garden_system):
-    # returns a Star instance analog to the Sun
-    # sol
-    star = w.Star(garden_system)
-    star.seed_mass = 1
-    return star
 
-@pytest.fixture
-def IV(subgiant_system):
-    # returns a Star instance of the subgiant classification
-    # procyon
-    star = w.Star(subgiant_system)
-    star.seed_mass = 1.37
-    return star
-
-@pytest.fixture
-def III(red_giant_system):
-    # returns a Star instance of the red giant classification
-    # aldebaran
-    star = w.Star(red_giant_system)
-    star.seed_mass = 1.13
-    return star
-
-@pytest.fixture
-def D(white_dwarf_system):
-    # returns a Star instance of the white dwarf classification
-    # van maanen star
-    star = w.Star(white_dwarf_system)
-    # TODO: should be 2.6 instead of 2
-    star.seed_mass = 2
-    return star
+def test_sol(sol):
+    assert (sol.stars[0].luminosity_class == w.Star.Luminosity.V)
+    assert (sol.stars[0].spectral_type == 'G2')
+    assert (sol.stars[0].temperature >= 3100 and
+            sol.stars[0].temperature <= 8200)
 
 
-def test_G2V_garden_system(G2V_garden_system):
-    assert (G2V_garden_system.luminosity_class == w.Star.Luminosity.V)
-    assert (G2V_garden_system.spectral_type == 'G2')
-    assert (G2V_garden_system.temperature >= 3100 and
-            G2V_garden_system.temperature <= 8200)
+def test_procyon(procyon):
+    assert (procyon.stars[0].luminosity_class == w.Star.Luminosity.IV)
+    # TODO: here procyon B mass should be tested at .6
+    assert (procyon.stars[1].luminosity_class == w.Star.Luminosity.D)
 
 
-def test_IV(IV):
-    assert (IV.luminosity_class == w.Star.Luminosity.IV)
+def test_aldebaran(aldebaran):
+    assert (aldebaran.stars[0].luminosity_class == w.Star.Luminosity.III)
+    assert (aldebaran.stars[0].temperature >= 3000 and
+            aldebaran.stars[0].temperature <= 5000)
 
 
-def test_III(III):
-    assert (III.luminosity_class == w.Star.Luminosity.III)
-    assert (III.temperature >= 3000 and III.temperature <= 5000)
-
-
-def test_D(D):
-    assert (D.luminosity_class == w.Star.Luminosity.D)
+def test_van_maanen(van_maanen):
+    assert (van_maanen.stars[0].luminosity_class == w.Star.Luminosity.D)
     # TODO: here mass should be tested at .67
 
 
-def test_set_seed_mass_raises_exception_on_out_of_range(G2V_garden_system):
+def test_set_seed_mass_raises_exception_on_out_of_range(sol):
     with pytest.raises(ValueError):
-        G2V_garden_system.seed_mass = .5
+        sol.stars[0].seed_mass = .5
 
 
-def test_set_seed_mass_raises_exception_on_nan(G2V_garden_system):
+def test_set_seed_mass_raises_exception_on_nan(sol):
     with pytest.raises(ValueError):
-        G2V_garden_system.seed_mass = np.nan
+        sol.stars[0].seed_mass = np.nan
