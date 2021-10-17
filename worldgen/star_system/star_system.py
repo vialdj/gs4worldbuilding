@@ -59,28 +59,34 @@ from Stellar Age Table"""
     def make_stars(self, n):
         """the system stars generation and arrangement procedure"""
         primary_star = Star(self)
-        self.stars = [primary_star]
+        self._stars = [primary_star]
         if n > 1:
-            companion = CompanionStar(self, self.primary_star)
+            companion = CompanionStar(self, primary_star)
             primary_star._companions = [companion]
-            self.stars.append(companion)
+            self._stars.append(companion)
         if n > 2:
-            companion = CompanionStar(self, self.primary_star, True)
+            companion = CompanionStar(self, primary_star, True)
             primary_star._companions.append(companion)
-            self.stars.append(companion)
+            self._stars.append(companion)
+
+        # sub-companion star rolls if allowed
+        for star in filter(lambda s: s.separation >=
+                           CompanionStar.Separation.DISTANT, self._stars[1:]):
+            if (random.uniform(0, 1) > .5):
+                companion = CompanionStar(self, star, sub_companion=True)
+                star._companions = [companion]
+                self._stars.append(companion)
+
+        # TODO: cleanup alphabetical caps properties
+        for i in range(len(self._stars)):
+            setattr(type(self), chr(ord('A') + i),
+                    property(lambda self, i=i: self._stars[i]))
 
     def random_stars(self):
         """the system randomization of stars"""
         # multiple star roll
         self.make_stars(random.choices([1, 2, 3], weights=self._stars_dist,
                                        k=1)[0])
-        # sub-companion star rolls if allowed
-        for star in filter(lambda s: s.separation >=
-                           CompanionStar.Separation.DISTANT, self.stars[1:]):
-            if (random.uniform(0, 1) > .5):
-                companion = CompanionStar(self, star, sub_companion=True)
-                star._companions = [companion]
-                self.stars.append(companion)
 
     @property
     def population(self):
@@ -101,36 +107,6 @@ from Stellar Age Table"""
             raise ValueError('population value type has to be {}'
                              .format(self.Population))
         self._set_ranged_property('population', value)
-
-    @property
-    def primary_star(self):
-        return self.stars[0]
-
-    @primary_star.setter
-    def primary_star(self, value):
-        self.stars[0] = value
-
-    @property
-    def secondary_star(self):
-        return self.stars[1] if len(self.stars) > 1 else None
-
-    @secondary_star.setter
-    def secondary_star(self, value):
-        if len(self.stars) > 1:
-            self.stars[1] = value
-        else:
-            self.stars.append(value)
-
-    @property
-    def tertiary_star(self):
-        return self.stars[2] if len(self.stars) > 2 else None
-
-    @tertiary_star.setter
-    def tertiary_star(self, value):
-        if len(self.stars) > 2:
-            self.stars[2] = value
-        else:
-            self.stars.append(value)
 
     def __init__(self, open_cluster=False, garden_host=False):
         self.garden_host = garden_host
