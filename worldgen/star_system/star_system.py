@@ -4,9 +4,10 @@ from . import Star
 from . import CompanionStar
 
 from collections import namedtuple
-from enum import Enum
 import random
+import enum
 
+from ordered_enum import ValueOrderedEnum
 import numpy as np
 
 
@@ -15,9 +16,16 @@ class StarSystem(RandomizableModel):
 
     _precedence = ['population', 'age', 'stars']
 
+    @enum.unique
+    class MultipleStars(int, ValueOrderedEnum):
+        """class MultipleStars Enum"""
+        UNARY = 1
+        BINARY = 2
+        TERNARY = 3
+
     population = namedtuple('Population', ['base', 'step_a', 'step_b'])
 
-    class Population(population, Enum):
+    class Population(population, enum.Enum):
         """class population Enum from Stellar Age Table with base and
 steps in Ga"""
         EXTREME_POPULATION_1 = (0, 0, 0)
@@ -59,6 +67,11 @@ from Stellar Age Table"""
     def make_stars(self, n):
         """the system stars generation and arrangement procedure"""
         primary_star = Star(self)
+
+        if hasattr(self, '_stars'):
+            for i in range(len(self._stars)):
+                delattr(type(self), chr(ord('A') + i))
+
         self._stars = [primary_star]
         if n > 1:
             companion = CompanionStar(self, primary_star)
@@ -77,7 +90,6 @@ from Stellar Age Table"""
                 star._companions = [companion]
                 self._stars.append(companion)
 
-        # TODO: cleanup alphabetical caps properties
         for i in range(len(self._stars)):
             setattr(type(self), chr(ord('A') + i),
                     property(lambda self, i=i: self._stars[i]))

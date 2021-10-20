@@ -22,7 +22,7 @@ def procyon():
     system = w.StarSystem()
     system.population = w.StarSystem.Population.YOUNG_POPULATION_1
     system.age = 1.37
-    system.make_stars(2)
+    system.make_stars(w.StarSystem.MultipleStars.BINARY)
     # procyon A
     system.A.seed_mass = 1.37
     # procyon B
