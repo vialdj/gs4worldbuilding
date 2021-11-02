@@ -80,8 +80,10 @@ modifier if applicable"""
 
     @staticmethod
     def __temp_V(mass):
-        """temp in interval [3100, 8200] linearly through the form a * x + b"""
-        return 2684.21052632 * mass + 2831.57894737
+        """temp in interval [3100, 8200] as a forth-degree polynomial"""
+        return (1659.4884130666383 * mass ** 4 - 7449.958040879493 * mass ** 3
+                + 10805.399314976361 * mass ** 2 - 2568.323443806999 * mass
+                + 3296.2303340370468)
 
     @staticmethod
     def __temp_III(mass):
