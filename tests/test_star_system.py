@@ -73,12 +73,14 @@ def alpha_centauri():
 def test_sol(sol):
     assert (sol.A.luminosity_class == w.Star.Luminosity.V)
     assert (sol.A.spectral_type == 'G2')
-    assert (sol.A.temperature >= 3100 and
-            sol.A.temperature <= 8200)
+    assert (sol.A.temperature >= 5500 and
+            sol.A.temperature <= 6000)
 
 
 def test_procyon(procyon):
     assert (procyon.A.luminosity_class == w.Star.Luminosity.IV)
+    assert (procyon.A.temperature >= 6400 and
+            procyon.A.temperature <= 6900)
     # TODO: here procyon B mass should be tested at .6
     assert (procyon.B.luminosity_class == w.Star.Luminosity.D)
 
@@ -96,8 +98,14 @@ def test_van_maanen(van_maanen):
 
 def test_alpha_centauri(alpha_centauri):
     assert (alpha_centauri.A.luminosity_class == w.Star.Luminosity.V)
+    assert (alpha_centauri.A.temperature >= 5800 and
+            alpha_centauri.A.temperature <= 6300)
     assert (alpha_centauri.B.luminosity_class == w.Star.Luminosity.V)
+    assert (alpha_centauri.B.temperature >= 5200 and
+            alpha_centauri.B.temperature <= 5800)
     assert (alpha_centauri.C.luminosity_class == w.Star.Luminosity.V)
+    assert (alpha_centauri.C.temperature >= 3100 and
+            alpha_centauri.C.temperature <= 3200)
 
 
 def test_set_seed_mass_raises_exception_on_out_of_range(sol):
