@@ -122,6 +122,14 @@ body mass"""
                                 12 * self._separation.value)
 
     @property
+    def forbidden_zone(self):
+        """the forbidden zone limits in AU if any"""
+        if isinstance(self._companions[0], Star):
+            return type(self).Range(self.minimum_separation / 3,
+                                    self.maximum_separation * 3)
+        return super.forbidden_zone
+
+    @property
     def minimum_separation(self):
         """the minimum separation in AU"""
         return (1 - self.eccentricity) * self.average_orbital_radius

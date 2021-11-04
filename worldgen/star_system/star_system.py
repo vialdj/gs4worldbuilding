@@ -74,20 +74,27 @@ from Stellar Age Table"""
 
         self._stars = [primary_star]
         if n > 1:
-            companion = CompanionStar(self, primary_star)
-            primary_star._companions = [companion]
-            self._stars.append(companion)
+            secondary_star = CompanionStar(self, primary_star)
+            primary_star._companions = [secondary_star]
+            secondary_star._companions = [primary_star]
+            self._stars.append(secondary_star)
         if n > 2:
-            companion = CompanionStar(self, primary_star, True)
-            primary_star._companions.append(companion)
-            self._stars.append(companion)
+            teriary_star = CompanionStar(self, primary_star, True)
+            primary_star._companions.append(teriary_star)
+            # for the third component in a trinary star system
+            # the closest companion is the primary star of the system
+            teriary_star._companions = [primary_star, secondary_star]
+            secondary_star._companions.append(teriary_star)
+            self._stars.append(teriary_star)
 
         # sub-companion star rolls if allowed
         for star in filter(lambda s: s.separation >=
                            CompanionStar.Separation.DISTANT, self._stars[1:]):
             if (random.uniform(0, 1) > .5):
                 companion = CompanionStar(self, star, sub_companion=True)
-                star._companions = [companion]
+                # the two stars are closest companions
+                star._companions.insert(0, companion)
+                companion._companions = [star]
                 self._stars.append(companion)
 
         for i in range(len(self._stars)):

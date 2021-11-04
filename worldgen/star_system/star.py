@@ -33,7 +33,8 @@ class Star(RandomizableModel):
 modifier if applicable"""
         upper, lower = (1.5, .6) if self._star_system.garden_host else (2, .1)
         mu = lower
-        sigma = .26953477975949597 if self._star_system.garden_host else .3905806446817353
+        sigma = (.26953477975949597 if self._star_system.garden_host
+                 else .3905806446817353)
         b = (upper - lower) / sigma
 
         self.seed_mass = truncexpon(b=b, loc=mu, scale=sigma).rvs()
@@ -181,20 +182,12 @@ modifier if applicable"""
                                     0.01 * sqrt(self.luminosity)),
                                 40 * self.mass)
 
-    @staticmethod
-    def __get_separation(self, companion):
-        parent_body = getattr(self, '_parent_body', None)
-        if parent_body == companion:
-            type(self).Range(getattr(self, 'minimum_separation', None),
-                             getattr(self, 'maximum_separation', None))
-
     @property
     def forbidden_zone(self):
         """the forbidden zone limits in AU if any"""
-        separation = type(self).Range(getattr(self, 'minimum_separation', None),
-                                      getattr(self, 'maximum_separation', None))
-        if separation.min and separation.max:
-            return type(self).Range(separation.min / 3, separation.max * 3)
+        if (hasattr(self, '_companions') and len(self._companions) > 0):
+            return type(self).Range(self._companions[0].minimum_separation / 3,
+                                    self._companions[0].maximum_separation * 3)
         return None
 
     @property
