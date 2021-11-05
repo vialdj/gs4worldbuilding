@@ -1,5 +1,7 @@
 from .. import Model
 
+import numpy as np
+
 
 class OrbitalObject(Model):
     """the orbital object model"""
@@ -18,6 +20,23 @@ class OrbitalObject(Model):
     def eccentricity(self):
         """the orbital orbit eccentricity"""
         return self._get_ranged_property('eccentricity')
+
+    @property
+    def minimum_separation(self):
+        """the minimum separation in AU"""
+        return (1 - self.eccentricity) * self.average_orbital_radius
+
+    @property
+    def maximum_separation(self):
+        """the maximum separation in AU"""
+        return (1 + self.eccentricity) * self.average_orbital_radius
+
+    @property
+    def orbital_period(self):
+        """the orbital period in earth years"""
+        # watch out for unit of mass i.e. planets
+        np.sqrt(self.average_orbital_radius ** 3 /
+                (self.parent_body.mass + self.mass))
 
     @property
     def eccentricity_range(self):

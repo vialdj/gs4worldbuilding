@@ -129,16 +129,6 @@ body mass"""
                                     self.maximum_separation * 3)
         return super.forbidden_zone
 
-    @property
-    def minimum_separation(self):
-        """the minimum separation in AU"""
-        return (1 - self.eccentricity) * self.average_orbital_radius
-
-    @property
-    def maximum_separation(self):
-        """the maximum separation in AU"""
-        return (1 + self.eccentricity) * self.average_orbital_radius
-
     def __init__(self, star_system, parent_body, tertiary_star=False,
                  sub_companion=False):
         if not sub_companion:
