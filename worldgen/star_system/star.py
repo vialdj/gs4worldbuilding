@@ -229,7 +229,7 @@ arrangement"""
                     self.limits.min)
         return np.nan
 
-    def __random_orbital_object(self, outward=False):
+    def __random_orbital_object(self, limits, outward=False):
         """generating an orbital radius at a random spacing from previous
 object"""
         lower, upper = 1.4, 2
@@ -244,29 +244,43 @@ object"""
             # TODO: should not clamp orbit at a distance of exactly .15
             # but rather have it be at least .15
             orbit = prev_orb - .15
-        if orbit >= self.limits.min and orbit <= self.limits.max:
+        if orbit >= limits.min and orbit <= limits.max:
             return orbit
         return np.nan
 
     def generate_orbits(self):
         """generate the stars planetary orbits"""
         self._orbits = []
+
+        limits = self.limits
+        if self.forbidden_zone:
+            if (self.forbidden_zone.max > self.limits.max and
+                self.forbidden_zone.min > self.limits.min):
+                limits = type(self).Range(self.limits.min,
+                                          min(self.limits.max,
+                                              self.forbidden_zone.min))
+            elif (self.forbidden_zone.min < self.limits.min and
+                  self.forbidden_zone.max < self.limits.max):
+                limits = type(self).Range(max(self.limits.min,
+                                              self.forbidden_zone.max),
+                                          self.limits.max)
+
         if self.gas_giant_arrangement != self.GasGiantArrangement.NONE:
             # placing first gas giant if applicable
             self._orbits.append(self.__random_first_gas_giant())
         else:
             # divided outermost legal distance by roll of 1d * .05 + 1
-            self._orbits.append(self.limits.max / (uniform(0.05, 0.3) + 1))
+            self._orbits.append(limits.max / (uniform(0.05, 0.3) + 1))
         while True:
             # working the orbits inward
-            orbit = self.__random_orbital_object()
+            orbit = self.__random_orbital_object(limits)
             if orbit is np.nan:
                 break
             self._orbits.append(orbit)
         self._orbits.sort()
         while True:
             # working the orbits outward
-            orbit = self.__random_orbital_object(outward=True)
+            orbit = self.__random_orbital_object(limits, outward=True)
             if orbit is np.nan:
                 break
             self._orbits.append(orbit)
