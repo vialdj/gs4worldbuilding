@@ -5,7 +5,6 @@ from .marginal_atmosphere import Marginal
 from . import Atmosphere
 
 from random import choices
-from math import sqrt, floor
 import enum
 
 from scipy.stats import truncnorm
@@ -227,10 +226,10 @@ the same type"""
     @property
     def diameter_range(self):
         """computed value range for diameter"""
-        return (type(self).Range(sqrt(self.blackbody_temperature /
-                                      self.density) * self.size.min,
-                                 sqrt(self.blackbody_temperature /
-                                      self.density) * self.size.max)
+        return (type(self).Range(np.sqrt(self.blackbody_temperature /
+                                         self.density) * self.size.min,
+                                 np.sqrt(self.blackbody_temperature /
+                                         self.density) * self.size.max)
                 if self.density and self.size else None)
 
     @diameter.setter
@@ -238,13 +237,16 @@ the same type"""
         self._set_ranged_property('diameter', value)
 
     @property
+    def blackbody_correction(self):
+        return (self.absorption
+                if np.isnan([self.volatile_mass, self.greenhouse_factor]).any()
+                else self.absorption * (1 + self.volatile_mass *
+                                        self.greenhouse_factor))
+
+    @property
     def blackbody_temperature(self):
         """blackbody temperature in K"""
-        return (self.temperature / self.absorption
-                if np.isnan([self.volatile_mass, self.greenhouse_factor]).any()
-                else self.temperature / (self.absorption *
-                                         floor(1 + self.volatile_mass
-                                               * self.greenhouse_factor)))
+        return (self.temperature / self.blackbody_correction)
 
     @property
     def gravity(self):
