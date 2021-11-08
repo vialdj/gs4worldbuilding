@@ -1,14 +1,17 @@
-from .. import RandomizableModel
-from . import Atmosphere
-from . import World
+# -*- coding: utf-8 -*-
+
+from .. import model
+from . import Atmosphere, World
 
 from random import uniform
+
+from astropy import units as u
 
 
 class SmallIce(World):
     """the small ice world model"""
 
-    class SmallIceAtmosphere(Atmosphere, RandomizableModel):
+    class SmallIceAtmosphere(Atmosphere, model.RandomizableModel):
         """the small ice atmosphere model"""
         _composition = ['N2', 'CH4']
         _suffocating = True
@@ -20,12 +23,12 @@ class SmallIce(World):
             else:
                 self._toxicity = Atmosphere.Toxicity.HIGH
 
-    _temperature_range = World.Range(80, 140)
+    _temperature_bounds = model.bounds.QuantityBounds(80 * u.K, 140 * u.K)
     _size = World.Size.SMALL
     _core = World.Core.ICY_CORE
     _pressure_factor = 10
     _greenhouse_factor = .1
-    _hydrosphere_range = World.Range(.3, .8)
+    _hydrosphere_bounds = model.bounds.ValueBounds(.3, .8)
     _absorption = .93
     _atmosphere = SmallIceAtmosphere
 

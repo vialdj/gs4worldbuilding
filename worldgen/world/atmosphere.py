@@ -1,4 +1,6 @@
-from .. import Model
+# -*- coding: utf-8 -*-
+
+from .. import model
 
 import enum
 
@@ -6,7 +8,7 @@ import numpy as np
 from ordered_enum import ValueOrderedEnum
 
 
-class Atmosphere(Model):
+class Atmosphere(model.Model):
     """the Atmosphere Model"""
 
     @enum.unique
@@ -23,9 +25,10 @@ class Atmosphere(Model):
     @enum.unique
     class Toxicity(ValueOrderedEnum):
         """class Toxicity Enum from Toxicity Rules categories"""
-        MILD = 0
-        HIGH = 1
-        LETHAL = 2
+        NONE = 0
+        MILD = 1
+        HIGH = 2
+        LETHAL = 3
 
     @property
     def composition(self):

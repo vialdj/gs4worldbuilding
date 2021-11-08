@@ -1,16 +1,16 @@
 # -*- coding: utf-8 -*-
 
-from .. import RandomizableModel
+from .. import model
 
 from enum import Enum
-from math import sqrt
 from random import choices, uniform
 
 import numpy as np
 from scipy.stats import truncexpon, truncnorm
+from astropy import units as u
 
 
-class Star(RandomizableModel):
+class Star(model.RandomizableModel):
     """the Star model on its main sequence"""
 
     _precedence = ['seed_mass', 'gas_giant_arrangement']
@@ -31,13 +31,14 @@ class Star(RandomizableModel):
     def random_seed_mass(self):
         """consecutive sum of a 3d roll times over Stellar Mass Table with
 modifier if applicable"""
-        upper, lower = (1.5, .6) if self._star_system.garden_host else (2, .1)
+        upper, lower = (self.seed_mass_bounds.max.value,
+                        self.seed_mass_bounds.min.value)
         mu = lower
         sigma = (.26953477975949597 if self._star_system.garden_host
                  else .3905806446817353)
         b = (upper - lower) / sigma
 
-        self.seed_mass = truncexpon(b=b, loc=mu, scale=sigma).rvs()
+        self.seed_mass = truncexpon(b=b, loc=mu, scale=sigma).rvs() * u.M_sun
 
     def random_gas_giant_arrangement(self):
         """sum of a 3d roll times over Gas Giant Arrangement Table"""
@@ -49,85 +50,92 @@ modifier if applicable"""
     @staticmethod
     def __l_max(mass):
         """l_max fitted through the form a*x**b"""
-        if mass >= .45:
-            return 1.417549268949681 * mass ** 3.786542028176919
+        if mass >= .45 * u.M_sun:
+            return 1.417549268949681 * mass.value ** 3.786542028176919
         return np.nan
 
     @staticmethod
     def __l_min(mass):
         """l_min fitted through the form a*x**b"""
-        return 0.8994825154104518 * mass ** 4.182711149771404
+        return 0.8994825154104518 * mass.value ** 4.182711149771404
 
     @staticmethod
     def __m_span(mass):
         """m_span fitted through the form a*exp(b*x)+c"""
-        if mass >= .45:
-            return 355.25732733 * np.exp(-3.62394465 * mass) - 1.19842708
+        if mass >= .45 * u.M_sun:
+            return 355.25732733 * np.exp(-3.62394465 * mass.value) - 1.19842708
         return np.nan
 
     @staticmethod
     def __s_span(mass):
         """s_span fitted through the form a*exp(b*x)"""
-        if mass >= .95:
-            return 18.445568275396568 * np.exp(-2.471832533773299 * mass)
+        if mass >= .95 * u.M_sun:
+            return 18.445568275396568 * np.exp(-2.471832533773299 * mass.value)
         return np.nan
 
     @staticmethod
     def __g_span(mass):
         """g_span fitted through the form a*exp(b*x)"""
-        if mass >= .95:
-            return 11.045171731219448 * np.exp(-2.4574060414344223 * mass)
+        if mass >= .95 * u.M_sun:
+            return 11.045171731219448 * np.exp(-2.4574060414344223 * mass.value)
         return np.nan
 
     @staticmethod
     def __temp_V(mass):
         """temp in interval [3100, 8200] as a forth-degree polynomial"""
-        return (1659.4884130666383 * mass ** 4 - 7449.958040879493 * mass ** 3
-                + 10805.399314976361 * mass ** 2 - 2568.323443806999 * mass
+        return (1659.4884130666383 * mass.value ** 4 - 7449.958040879493 * mass.value ** 3
+                + 10805.399314976361 * mass.value ** 2 - 2568.323443806999 * mass.value
                 + 3296.2303340370468)
 
     @staticmethod
     def __temp_III(mass):
         """temp in interval [3000, 5000] linearly through the form a * x + b"""
-        return 1052.63157589 * mass + 2105.26315789
+        return 1052.63157589 * mass.value + 2105.26315789
 
     @property
-    def mass(self):
+    def mass(self) -> u.Quantity:
         """read-only mass in M☉ with applied modifiers"""
-        return (.15 + ((self.seed_mass - .1) / 1.9) * 1.05
+        return ((.15 + ((self.seed_mass.value - .1) / 1.9) * 1.05) * u.M_sun
                 if self.luminosity_class == type(self).Luminosity.D
                 else self.seed_mass)
 
     @property
-    def seed_mass(self):
+    def seed_mass(self) -> u.Quantity:
         """mass in M☉ without modifiers"""
-        return self._get_ranged_property('seed_mass')
+        return self._get_bounded_property('seed_mass') * u.M_sun
 
     @property
-    def seed_mass_range(self):
-        """value range for mass"""
-        return (type(self).Range(.6, 1.5)
+    def seed_mass_bounds(self) -> model.bounds.QuantityBounds:
+        """value range for mass in M☉"""
+        return (model.bounds.QuantityBounds(.6 * u.M_sun,
+                                            1.5 * u.M_sun)
                 if self._star_system.garden_host
-                else type(self).Range(.1, 2))
+                else model.bounds.QuantityBounds(.1 * u.M_sun,
+                                                 2 * u.M_sun))
 
     @seed_mass.setter
-    def seed_mass(self, value):
-        self._set_ranged_property('seed_mass', value)
+    def seed_mass(self, value: u.Quantity):
+        if not isinstance(value, u.Quantity):
+            raise ValueError('expected quantity type value')
+        if 'mass' not in value.unit.physical_type:
+            raise AttributeError('can\'t set seed_mass to value of %s physical type' %
+                                 value.unit.physical_type)
+        self._set_bounded_property('seed_mass', value)
 
     @property
-    def gas_giant_arrangement(self):
+    def gas_giant_arrangement(self) -> GasGiantArrangement:
         """gas giant arrangement category over Gas Giant Arrangement Table"""
         return self._gas_giant_arrangement
 
     @gas_giant_arrangement.setter
-    def gas_giant_arrangement(self, value):
+    def gas_giant_arrangement(self, value: GasGiantArrangement):
         if not isinstance(value, self.GasGiantArrangement):
             raise ValueError('gas giant arrangement value type must be {}'
                              .format(self.GasGiantArrangement))
         self._gas_giant_arrangement = value
 
     @property
-    def luminosity_class(self):
+    def luminosity_class(self) -> Luminosity:
         """the star luminosity class"""
         m_span = type(self).__m_span(self.seed_mass)
         s_span = type(self).__s_span(self.seed_mass) + m_span
@@ -141,24 +149,24 @@ modifier if applicable"""
         return type(self).Luminosity.V
 
     @property
-    def luminosity(self):
+    def luminosity(self) -> u.Quantity:
         """luminosity in L☉"""
         if (self.luminosity_class == type(self).Luminosity.D):
-            return .001
+            return .001 * u.L_sun
         if (self.luminosity_class == type(self).Luminosity.III):
-            return type(self).__l_max(self.mass) * 25
+            return type(self).__l_max(self.mass) * 25 * u.L_sun
         if (self.luminosity_class == type(self).Luminosity.IV):
-            return type(self).__l_max(self.mass)
+            return type(self).__l_max(self.mass) * u.L_sun
         if (np.isnan(type(self).__l_max(self.mass))):
-            return type(self).__l_min(self.mass)
+            return type(self).__l_min(self.mass) * u.L_sun
         return (type(self).__l_min(self.mass) +
                 (self._star_system.age / type(self).__m_span(self.mass)) *
                 (type(self).__l_max(self.mass) -
-                 type(self).__l_min(self.mass)))
+                 type(self).__l_min(self.mass))) * u.L_sun
 
     @property
-    def temperature(self):
-        """effective temperature in K"""
+    def temperature(self) -> u.Quantity:
+        """read-only effective temperature in K"""
         temp = (type(self).__temp_III(self.mass)
                 if self.luminosity_class == type(self).Luminosity.III
                 else type(self).__temp_V(self.mass))
@@ -166,34 +174,37 @@ modifier if applicable"""
             return (temp - ((self._star_system.age -
                              type(self).__m_span(self.mass)) /
                             type(self).__s_span(self.mass)) *
-                    (temp - 4800))
-        return temp
+                    (temp - 4800)) * u.K
+        return temp * u.K
 
     @property
-    def radius(self):
+    def radius(self) -> u.Quantity:
         """radius in AU"""
         # TODO: handle white dwarf luminosity class
-        return (155000 * sqrt(self.luminosity)) / self.temperature ** 2
+        return ((155000 * np.sqrt(self.luminosity.value)) /
+                self.temperature.value ** 2) * u.au
 
     @property
-    def limits(self):
+    def limits(self) -> model.bounds.QuantityBounds:
         """inner and outer limit in AU"""
-        return type(self).Range(max(0.1 * self.mass,
-                                    0.01 * sqrt(self.luminosity)),
-                                40 * self.mass)
+        return model.bounds.QuantityBounds(
+                max(0.1 * self.mass.value,
+                    0.01 * np.sqrt(self.luminosity.value)) * u.au,
+                40 * self.mass.value * u.au
+               )
 
     @property
-    def forbidden_zone(self):
+    def forbidden_zone(self) -> model.bounds.QuantityBounds:
         """the forbidden zone limits in AU if any"""
         if (hasattr(self, '_companions') and len(self._companions) > 0):
-            return type(self).Range(self._companions[0].minimum_separation / 3,
-                                    self._companions[0].maximum_separation * 3)
+            return model.bounds.QuantityBounds(self._companions[0].minimum_separation / 3,
+                                               self._companions[0].maximum_separation * 3)
         return None
 
     @property
-    def snow_line(self):
+    def snow_line(self) -> u.Quantity:
         """snow line in AU"""
-        return 4.85 * sqrt(self.luminosity)
+        return 4.85 * np.sqrt(self.luminosity.value) * u.au
 
     @property
     def spectral_type(self):
@@ -205,7 +216,7 @@ modifier if applicable"""
              .65: 'K5', .6: 'K6', .55: 'K8', .5: 'M0', .45: 'M1', .4: 'M2',
              .35: 'M3', .3: 'M4', .25: 'M4', .2: 'M5', .15: 'M6', .1: 'M7'}
         return ('D' if self.luminosity_class == type(self).Luminosity.D
-                else d[list(filter(lambda x: x >= self.mass, sorted(d.keys())))
+                else d[list(filter(lambda x: x * u.M_sun >= self.mass, sorted(d.keys())))
                        [0]])
 
     @property
@@ -240,10 +251,10 @@ object"""
                           loc=mu, scale=sigma).rvs()
         prev_orb = self._orbits[-1]
         orbit = (prev_orb * ratio if outward else prev_orb / ratio)
-        if not outward and (prev_orb - orbit) < .15:
+        if not outward and (prev_orb - orbit) < .15 * u.au:
             # TODO: should not clamp orbit at a distance of exactly .15
             # but rather have it be at least .15
-            orbit = prev_orb - .15
+            orbit = prev_orb - .15 * u.au
         if orbit >= limits.min and orbit <= limits.max:
             return orbit
         return np.nan
@@ -256,14 +267,16 @@ object"""
         if self.forbidden_zone:
             if (self.forbidden_zone.max > self.limits.max and
                 self.forbidden_zone.min > self.limits.min):
-                limits = type(self).Range(self.limits.min,
-                                          min(self.limits.max,
-                                              self.forbidden_zone.min))
+                limits = model.bounds.QuantityBounds(
+                            self.limits.min,
+                            min(self.limits.max, self.forbidden_zone.min)
+                         )
             elif (self.forbidden_zone.min < self.limits.min and
                   self.forbidden_zone.max < self.limits.max):
-                limits = type(self).Range(max(self.limits.min,
-                                              self.forbidden_zone.max),
-                                          self.limits.max)
+                limits = model.bounds.QuantityBounds(
+                            max(self.limits.min, self.forbidden_zone.max),
+                            self.limits.max
+                         )
 
         if self.gas_giant_arrangement != self.GasGiantArrangement.NONE:
             # placing first gas giant if applicable

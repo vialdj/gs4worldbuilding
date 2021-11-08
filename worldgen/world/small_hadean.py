@@ -1,10 +1,15 @@
+# -*- coding: utf-8 -*-
+
 from . import World
+from .. import model
+
+from astropy import units as u
 
 
 class SmallHadean(World):
     """The small hadean world model"""
 
-    _temperature_range = World.Range(50, 80)
+    _temperature_bounds = model.bounds.QuantityBounds(50 * u.K, 80 * u.K)
     _size = World.Size.SMALL
     _core = World.Core.ICY_CORE
     _absorption = .67

@@ -1,14 +1,17 @@
-from .. import RandomizableModel
-from . import Atmosphere
-from . import World
+# -*- coding: utf-8 -*-
+
+from .. import model
+from . import Atmosphere, World
 
 from random import uniform
+
+from astropy import units as u
 
 
 class StandardOcean(World):
     """the standard ocean world model"""
 
-    class StandardOceanAtmosphere(Atmosphere, RandomizableModel):
+    class StandardOceanAtmosphere(Atmosphere, model.RandomizableModel):
         """the standard ocean atmosphere model"""
         _composition = ['CO2', 'N2']
         _suffocating = True
@@ -21,12 +24,12 @@ class StandardOcean(World):
             else:
                 self._toxicity = None
 
-    _temperature_range = World.Range(250, 340)
+    _temperature_bounds = model.bounds.QuantityBounds(250 * u.K, 340 * u.K)
     _size = World.Size.STANDARD
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 1
     _greenhouse_factor = .16
-    _hydrosphere_range = World.Range(.5, 1)
+    _hydrosphere_bounds = model.bounds.ValueBounds(.5, 1)
     _atmosphere = StandardOceanAtmosphere
 
     def random_hydrosphere(self):

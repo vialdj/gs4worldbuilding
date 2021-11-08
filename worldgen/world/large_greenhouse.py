@@ -1,7 +1,11 @@
-from . import Atmosphere
-from . import World
+# -*- coding: utf-8 -*-
+
+from . import Atmosphere, World
+from .. import model
 
 import numpy as np
+
+from astropy import units as u
 
 
 class LargeGreenhouse(World):
@@ -18,12 +22,12 @@ class LargeGreenhouse(World):
             return ['CO2'] if self._world.hydrosphere < .1 else ['N2', 'H2O',
                                                                  'O2']
 
-    _temperature_range = World.Range(500, 950)
+    _temperature_bounds = model.bounds.QuantityBounds(500 * u.K, 950 * u.K)
     _size = World.Size.LARGE
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 500
     _greenhouse_factor = 2.0
-    _hydrosphere_range = World.Range(0, .5)
+    _hydrosphere_bounds = model.bounds.ValueBounds(0, .5)
     _absorption = .77
     _atmosphere = LargeGreenhouseAtmosphere
 

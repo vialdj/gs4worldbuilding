@@ -1,16 +1,19 @@
-from .. import RandomizableModel
+# -*- coding: utf-8 -*-
+
+from .. import model
 from .marginal_atmosphere import MarginalCandidate
-from . import Atmosphere
-from . import World
+from . import Atmosphere, World
 
 from random import uniform
+
+from astropy import units as u
 
 
 class LargeGarden(World):
     """The large garden world model"""
 
     class LargeGardenAtmosphere(Atmosphere, MarginalCandidate,
-                                RandomizableModel):
+                                model.RandomizableModel):
         """The large garden atmosphere model"""
         _composition = ['N2', 'O2', 'He', 'Ne', 'Ar', 'Kr', 'Xe']
 
@@ -19,12 +22,12 @@ class LargeGarden(World):
             if uniform(0, 1) < .375:
                 self.make_marginal()
 
-    _temperature_range = World.Range(250, 340)
+    _temperature_bounds = model.bounds.QuantityBounds(250 * u.K, 340 * u.K)
     _size = World.Size.LARGE
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 5
     _greenhouse_factor = .16
-    _hydrosphere_range = World.Range(.7, 1)
+    _hydrosphere_bounds = model.bounds.ValueBounds(.7, 1)
     _atmosphere = LargeGardenAtmosphere
 
     def random_hydrosphere(self):

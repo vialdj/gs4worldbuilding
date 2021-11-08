@@ -1,16 +1,18 @@
-from .. import RandomizableModel
-from . import Atmosphere
-from . import World
+# -*- coding: utf-8 -*-
 
-import numpy as np
+from .. import model
+from . import Atmosphere, World
 
 from random import uniform
+
+import numpy as np
+from astropy import units as u
 
 
 class StandardIce(World):
     """the standard ice world model"""
 
-    class StandardIceAtmosphere(Atmosphere, RandomizableModel):
+    class StandardIceAtmosphere(Atmosphere, model.RandomizableModel):
         """the standard ice atmosphere model"""
         _composition = ['CO2', 'N2']
         _suffocating = True
@@ -20,12 +22,12 @@ class StandardIce(World):
             if uniform(0, 1) < .7407:
                 self._toxicity = Atmosphere.Toxicity.MILD
 
-    _temperature_range = World.Range(80, 230)
+    _temperature_bounds = model.bounds.QuantityBounds(80 * u.K, 230 * u.K)
     _size = World.Size.STANDARD
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 1
     _greenhouse_factor = .2
-    _hydrosphere_range = World.Range(0, .2)
+    _hydrosphere_bounds = model.bounds.ValueBounds(0, .2)
     _absorption = .86
     _atmosphere = StandardIceAtmosphere
 

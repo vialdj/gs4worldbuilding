@@ -1,7 +1,11 @@
-from . import Atmosphere
-from . import World
+# -*- coding: utf-8 -*-
+
+from . import Atmosphere, World
+from .. import model
 
 import numpy as np
+
+from astropy import units as u
 
 
 class LargeIce(World):
@@ -13,12 +17,12 @@ class LargeIce(World):
         _toxicity = Atmosphere.Toxicity.HIGH
         _suffocating = True
 
-    _temperature_range = World.Range(80, 230)
+    _temperature_bounds = model.bounds.QuantityBounds(80 * u.K, 230 * u.K)
     _size = World.Size.LARGE
     _core = World.Core.LARGE_IRON_CORE
     _pressure_factor = 5
     _greenhouse_factor = .2
-    _hydrosphere_range = World.Range(0, .2)
+    _hydrosphere_bounds = model.bounds.ValueBounds(0, .2)
     _absorption = .86
     _atmosphere = LargeIceAtmosphere
 

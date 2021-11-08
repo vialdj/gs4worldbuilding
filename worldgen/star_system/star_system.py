@@ -1,5 +1,7 @@
-from worldgen.star_system import companion_star
-from .. import RandomizableModel
+# -*- coding: utf-8 -*-
+
+from .. import model
+from .. import units as u
 from . import Star
 from . import CompanionStar
 
@@ -11,7 +13,7 @@ from ordered_enum import ValueOrderedEnum
 import numpy as np
 
 
-class StarSystem(RandomizableModel):
+class StarSystem(model.RandomizableModel):
     """the StarSystem model"""
 
     _precedence = ['population', 'age', 'stars']
@@ -28,12 +30,12 @@ class StarSystem(RandomizableModel):
     class Population(population, enum.Enum):
         """class population Enum from Stellar Age Table with base and
 steps in Ga"""
-        EXTREME_POPULATION_1 = (0, 0, 0)
-        YOUNG_POPULATION_1 = (.1, .3, .05)
-        INTERMEDIATE_POPULATION_1 = (2, .6, .1)
-        OLD_POPULATION_1 = (5.6, .6, .1)
-        INTERMEDIATE_POPULATION_2 = (8, .6, .1)
-        EXTREME_POPULATION_2 = (10, .6, .1)
+        EXTREME_POPULATION_1 = (0 * u.Ga, 0 * u.Ga, 0 * u.Ga)
+        YOUNG_POPULATION_1 = (.1 * u.Ga, .3 * u.Ga, .05 * u.Ga)
+        INTERMEDIATE_POPULATION_1 = (2 * u.Ga, .6 * u.Ga, .1 * u.Ga)
+        OLD_POPULATION_1 = (5.6 * u.Ga, .6 * u.Ga, .1 * u.Ga)
+        INTERMEDIATE_POPULATION_2 = (8 * u.Ga, .6 * u.Ga, .1 * u.Ga)
+        EXTREME_POPULATION_2 = (10 * u.Ga, .6 * u.Ga, .1 * u.Ga)
 
     def random_population(self):
         """sum of a 3d roll over Stellar Age Table populations categories"""
@@ -51,18 +53,20 @@ from Stellar Age Table"""
     @property
     def age(self):
         """age in Ga"""
-        return self._get_ranged_property('age')
+        return self._get_bounded_property('age')
 
     @property
-    def age_range(self):
+    def age_bounds(self):
         """computed value range for age"""
-        return type(self).Range(self.population.base, self.population.base +
-                                5 * self.population.step_a +
-                                5 * self.population.step_b)
+        return model.bounds.QuantityBounds(
+            self.population.base,
+            self.population.base + 5 * self.population.step_a +
+            5 * self.population.step_b
+        )
 
     @age.setter
     def age(self, value):
-        self._set_ranged_property('age', value)
+        self._set_bounded_property('age', value)
 
     def make_stars(self, n):
         """the system stars generation and arrangement procedure"""
@@ -97,6 +101,10 @@ from Stellar Age Table"""
                 companion._companions = [star]
                 self._stars.append(companion)
 
+        # generates orbits around stars
+        for star in self._stars:
+            star.generate_orbits()
+
         for i in range(len(self._stars)):
             setattr(type(self), chr(ord('A') + i),
                     property(lambda self, i=i: self._stars[i]))
@@ -113,19 +121,22 @@ from Stellar Age Table"""
         return self._population
 
     @property
-    def population_range(self):
+    def population_bounds(self):
         """population range class variable"""
-        return (type(self)._population_range
-                if hasattr(type(self), '_population_range')
-                else type(self).Range(self.Population.EXTREME_POPULATION_1,
-                                      self.Population.EXTREME_POPULATION_2))
+        return (type(self)._population_bounds
+                if hasattr(type(self), '_population_bounds')
+                else model.bounds.ValueBounds(
+                                    self.Population.EXTREME_POPULATION_1,
+                                    self.Population.EXTREME_POPULATION_2
+                                  )
+                )
 
     @population.setter
     def population(self, value):
         if not isinstance(value, self.Population):
             raise ValueError('population value type has to be {}'
                              .format(self.Population))
-        self._set_ranged_property('population', value)
+        self._set_bounded_property('population', value)
 
     def __init__(self, open_cluster=False, garden_host=False):
         self.garden_host = garden_host
@@ -136,8 +147,10 @@ from Stellar Age Table"""
         if garden_host:
             self._population_dist = [0, .166666667, 0.555555556, .277777778, 0,
                                      0]
-            self._population_range = type(self).Range(self.Population.YOUNG_POPULATION_1,
-                                                      self.Population.OLD_POPULATION_1)
+            self._population_bounds = model.bounds.ValueBounds(
+                                        self.Population.YOUNG_POPULATION_1,
+                                        self.Population.OLD_POPULATION_1
+                                      )
         else:
             self._population_dist = [.00462963, .087962963, .407407407,
                                      .407407407, .087962963, .00462963]

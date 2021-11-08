@@ -1,7 +1,11 @@
-from . import Atmosphere
-from . import World
+# -*- coding: utf-8 -*-
+
+from . import Atmosphere, World
+from .. import model
 
 import numpy as np
+
+from astropy import units as u
 
 
 class LargeAmmonia(World):
@@ -14,12 +18,12 @@ class LargeAmmonia(World):
         _suffocating = True
         _corrosive = True
 
-    _temperature_range = World.Range(140, 215)
+    _temperature_bounds = model.bounds.QuantityBounds(140 * u.K, 215 * u.K)
     _size = World.Size.LARGE
     _core = World.Core.ICY_CORE
     _pressure_factor = 5
     _greenhouse_factor = .2
-    _hydrosphere_range = World.Range(.2, 1)
+    _hydrosphere_bounds = model.bounds.ValueBounds(.2, 1)
     _absorption = .84
     _atmosphere = LargeAmmoniaAtmosphere
 

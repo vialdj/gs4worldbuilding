@@ -1,10 +1,10 @@
+# -*- coding: utf-8 -*-
+
 from .atmosphere import Atmosphere
+from .. import model
 
 import copy
-
 from random import choices
-
-import numpy as np
 
 
 class Marginal():
@@ -19,9 +19,11 @@ class Marginal():
 def chlorine_or_fluorine(atmosphere):
 
     class ChlorineOrFluorine(atmosphere, Marginal):
-        _toxicity = Atmosphere.Range(Atmosphere.Toxicity.HIGH,
-                                     Atmosphere.Toxicity.LETHAL)
-        _corrosive = Atmosphere.Range(False, True)
+        _toxicity = model.bounds.ValueBounds(
+                        Atmosphere.Toxicity.HIGH,
+                        Atmosphere.Toxicity.LETHAL
+                    )
+        _corrosive = model.bounds.ValueBounds(False, True)
 
     return ChlorineOrFluorine
 
@@ -29,7 +31,10 @@ def chlorine_or_fluorine(atmosphere):
 def high_carbon_dioxide(atmosphere):
 
     class HighCarbonDioxide(atmosphere, Marginal):
-        _toxicity = Atmosphere.Range(None, Atmosphere.Toxicity.MILD)
+        _toxicity = model.bounds.ValueBounds(
+                        Atmosphere.Toxicity.NONE,
+                        Atmosphere.Toxicity.MILD
+                    )
 
         @property
         def pressure_category(self):
@@ -41,12 +46,15 @@ def high_carbon_dioxide(atmosphere):
 def high_oxygen(atmosphere):
 
     class HighOxygen(atmosphere, Marginal):
-        _toxicity = Atmosphere.Range(None, Atmosphere.Toxicity.MILD)
+        _toxicity = model.bounds.ValueBounds(
+                        Atmosphere.Toxicity.NONE,
+                        Atmosphere.Toxicity.MILD
+                    )
 
         @property
         def pressure_category(self):
             categories = sorted(list(Atmosphere.Pressure),
-                                key=lambda x: x.value)           
+                                key=lambda x: x.value)
             idx = categories.index(super().pressure_category)
             idx = min(idx + 1, len(categories) - 1)
             return categories[idx]
@@ -80,8 +88,10 @@ def low_oxygen(atmosphere):
 def nitrogen_compounds(atmosphere):
 
     class NitrogenCompounds(atmosphere, Marginal):
-        _toxicity = Atmosphere.Range(Atmosphere.Toxicity.MILD,
-                                     Atmosphere.Toxicity.HIGH)
+        _toxicity = model.bounds.ValueBounds(
+                        Atmosphere.Toxicity.MILD,
+                        Atmosphere.Toxicity.HIGH
+                    )
 
     return NitrogenCompounds
 
@@ -89,8 +99,10 @@ def nitrogen_compounds(atmosphere):
 def sulfur_compounds(atmosphere):
 
     class SulfurCompounds(atmosphere, Marginal):
-        _toxicity = Atmosphere.Range(Atmosphere.Toxicity.MILD,
-                                     Atmosphere.Toxicity.HIGH)
+        _toxicity = model.bounds.ValueBounds(
+                        Atmosphere.Toxicity.MILD,
+                        Atmosphere.Toxicity.HIGH
+                    )
 
     return SulfurCompounds
 
@@ -98,8 +110,10 @@ def sulfur_compounds(atmosphere):
 def organic_toxins(atmosphere):
 
     class OrganicToxins(atmosphere, Marginal):
-        _toxicity = Atmosphere.Range(Atmosphere.Toxicity.MILD,
-                                     Atmosphere.Toxicity.LETHAL)
+        _toxicity = model.bounds.ValueBounds(
+                        Atmosphere.Toxicity.MILD,
+                        Atmosphere.Toxicity.LETHAL
+                    )
 
     return OrganicToxins
 

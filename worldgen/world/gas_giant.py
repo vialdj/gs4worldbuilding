@@ -1,18 +1,20 @@
 # -*- coding: utf-8 -*-
 
+from worldgen.model import ValueBounds
 from . import World
-from .. import model
+from .. import QuantityBounds
 
 from random import choices
 
 from astropy import units as u
 
 
-class AsteroidBelt(World):
-    _temperature_bounds = model.bounds.QuantityBounds(140 * u.K, 500 * u.K)
+class GasGiant(World):
+    # TODO: this is not a correct model ! It's a placeholder
+    _temperature_bounds = QuantityBounds(140 * u.K, 500 * u.K)
     _absorption = .97
-    _ressource_bounds = model.bounds.ValueBounds(World.Resource.WORTHLESS,
-                                                 World.Resource.MOTHERLODE)
+    _ressource_bounds = ValueBounds(World.Resource.WORTHLESS,
+                                    World.Resource.MOTHERLODE)
 
     def random_ressource(self):
         """sum of a 3d roll times over default worlds Ressource Value Table"""
@@ -22,4 +24,4 @@ class AsteroidBelt(World):
                                  weights=ressource_dist, k=1)[0]
 
     def __init__(self):
-        super(AsteroidBelt, self).__init__()
+        super(GasGiant, self).__init__()

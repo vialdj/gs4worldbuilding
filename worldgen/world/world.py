@@ -1,53 +1,58 @@
 # -*- coding: utf-8 -*-
 
-from .. import RandomizableModel
+from astropy.units.equivalencies import temperature
+from astropy.units.quantity import Quantity
+from .. import model
+from ..units import d_earth
 from .marginal_atmosphere import Marginal
 from . import Atmosphere
 
 from random import choices
+from typing import List
 import enum
 
 from scipy.stats import truncnorm
 from ordered_enum import ValueOrderedEnum
+from astropy import units as u
 import numpy as np
 
 
-class World(RandomizableModel):
+class World(model.RandomizableModel):
     """the World Model"""
 
-    _precedence = ['ressource', 'hydrosphere', 'volatile_mass',
+    _precedence = ['resource', 'hydrosphere', 'volatile_mass',
                    'temperature', 'density', 'diameter']
 
     @enum.unique
-    class Climate(int, ValueOrderedEnum):
+    class Climate(u.Quantity, ValueOrderedEnum):
         """class Climate Enum from world Climate Table with temperature
 threshold in K"""
-        FROZEN = 0
-        VERY_COLD = 244
-        COLD = 255
-        CHILLY = 266
-        COOL = 278
-        NORMAL = 289
-        WARM = 300
-        TROPICAL = 311
-        HOT = 322
-        VERY_HOT = 333
-        INFERNAL = 344
+        FROZEN = 0 * u.K
+        VERY_COLD = 244 * u.K
+        COLD = 255 * u.K
+        CHILLY = 266 * u.K
+        COOL = 278 * u.K
+        NORMAL = 289 * u.K
+        WARM = 300 * u.K
+        TROPICAL = 311 * u.K
+        HOT = 322 * u.K
+        VERY_HOT = 333 * u.K
+        INFERNAL = 344 * u.K
 
-    class Size(RandomizableModel.Range, enum.Enum):
+    class Size(tuple, enum.Enum):
         """class Size Enum from Size Constraints Table"""
         TINY = (.004, .024)
         SMALL = (.024, .030)
         STANDARD = (.030, .065)
         LARGE = (.065, .091)
 
-    class Core(RandomizableModel.Range, enum.Enum):
+    class Core(tuple, enum.Enum):
         """class Core Enum from World Density Table"""
-        ICY_CORE = (.3, .7)
-        SMALL_IRON_CORE = (.6, 1)
-        LARGE_IRON_CORE = (.8, 1.2)
+        ICY_CORE = (.3 * d_earth, .7 * d_earth)
+        SMALL_IRON_CORE = (.6 * d_earth, 1 * d_earth)
+        LARGE_IRON_CORE = (.8 * d_earth, 1.2 * d_earth)
 
-    class Ressource(int, enum.Enum):
+    class Resource(int, enum.Enum):
         """class Ressource Enum from Ressource Value Table"""
         WORTHLESS = -5
         VERY_SCANT = -4
@@ -61,36 +66,36 @@ threshold in K"""
         VERY_RICH = 4
         MOTHERLODE = 5
 
-    def random_ressource(self):
+    def random_resource(self):
         """sum of a 3d roll times over default worlds Ressource Value Table"""
         ressource_dist = [0, 0, 0, .01852, .14352, .67592,
                           .14352, .01852, 0, 0, 0]
-        self.ressource = choices(list(self.Ressource),
-                                 weights=ressource_dist, k=1)[0]
+        self.resource = choices(list(self.Resource),
+                                weights=ressource_dist, k=1)[0]
 
     def random_temperature(self):
         """sum of a 3d-3 roll times step value add minimum"""
-        tmin = self.temperature_range.min
-        tmax = self.temperature_range.max
+        tmin = self.temperature_bounds.min.value
+        tmax = self.temperature_bounds.max.value
         roll = truncnorm((0 - 7.5) / 2.958040, (15 - 7.5) / 2.958040,
                          loc=7.5, scale=2.958040).rvs()
-        self.temperature = tmin + roll / 15 * (tmax - tmin)
+        self.temperature = (tmin + roll / 15 * (tmax - tmin)) * u.K
 
     def random_density(self):
         """sum of a 3d roll over World Density Table"""
         if self.core is not None:
-            self.density = (self.density_range.min + (self.density_range.max -
-                            self.density_range.min) *
+            self.density = (self.density_bounds.min + (self.density_bounds.max -
+                            self.density_bounds.min) *
                             truncnorm((0 - 0.376) / 0.2, (1 - 0.376) / 0.2,
                             loc=0.376, scale=0.2).rvs())
 
     def random_diameter(self):
         """roll of 2d-2 in range [Dmin, Dmax]"""
         if self.size is not None and self.core is not None:
-            self.diameter = (self.diameter_range.min +
+            self.diameter = (self.diameter_bounds.min +
                              np.random.triangular(0, .5, 1) *
-                             (self.diameter_range.max -
-                              self.diameter_range.min))
+                             (self.diameter_bounds.max -
+                              self.diameter_bounds.min))
 
     def random_volatile_mass(self):
         """sum of a 3d roll divided by 10"""
@@ -100,171 +105,174 @@ threshold in K"""
                                            loc=10.5, scale=2.958040).rvs() / 10
 
     @property
-    def size(self):
+    def size(self) -> Size:
         """size class variable"""
         return type(self)._size if hasattr(type(self), '_size') else None
 
     @property
-    def core(self):
+    def core(self) -> Core:
         """core class variable"""
         return type(self)._core if hasattr(type(self), '_core') else None
 
     @property
-    def pressure_factor(self):
+    def pressure_factor(self) -> float:
         """pressure factor class variable"""
         return (type(self)._pressure_factor
                 if hasattr(type(self), '_pressure_factor') else np.nan)
 
     @property
-    def greenhouse_factor(self):
+    def greenhouse_factor(self) -> float:
         """greenhouse_factor class variable"""
         return (type(self)._greenhouse_factor
                 if hasattr(type(self), '_greenhouse_factor') else np.nan)
 
     @property
-    def absorption(self):
+    def absorption(self) -> float:
         """absorption"""
         return type(self)._absorption
 
     @property
-    def atmosphere(self):
+    def atmosphere(self) -> List[str]:
         """key properties of the atmosphere"""
         return (self._atmosphere
                 if hasattr(self, '_atmosphere') else None)
 
     @property
-    def volatile_mass(self):
+    def volatile_mass(self) -> float:
         """relative supply of gaseous elements to other worlds of
 the same type"""
-        return (self._get_ranged_property('volatile_mass')
+        return (self._get_bounded_property('volatile_mass')
                 if hasattr(self, '_volatile_mass')
                 else np.nan)
 
     @property
-    def volatile_mass_range(self):
+    def volatile_mass_bounds(self) -> model.bounds.ValueBounds:
         """computed value range for volatile mass"""
-        return type(self).Range(.3, 1.8) if self.atmosphere else None
+        return model.bounds.ValueBounds(.3, 1.8) if self.atmosphere else None
 
     @volatile_mass.setter
-    def volatile_mass(self, value):
-        self._set_ranged_property('volatile_mass', value)
+    def volatile_mass(self, value: float):
+        self._set_bounded_property('volatile_mass', value)
 
     @property
-    def ressource(self):
+    def resource(self) -> Resource:
         """resource value on Resource Value Table"""
-        return self._get_ranged_property('ressource')
+        return self._get_bounded_property('resource')
 
     @property
-    def ressource_range(self):
-        """ressource range class variable"""
-        return (type(self)._ressource_range
-                if hasattr(type(self), '_ressource_range')
-                else type(self).Range(self.Ressource.VERY_POOR,
-                                      self.Ressource.VERY_ABUNDANT))
+    def resource_bounds(self) -> model.bounds.ValueBounds:
+        """resource range class variable"""
+        return (type(self)._ressource_bounds
+                if hasattr(type(self), '_ressource_bounds')
+                else model.bounds.ValueBounds(self.Resource.VERY_POOR,
+                                              self.Resource.VERY_ABUNDANT))
 
-    @ressource.setter
-    def ressource(self, value):
-        if not isinstance(value, self.Ressource):
-            raise ValueError('ressource value type has to be {}'
-                             .format(self.Ressource))
-        self._set_ranged_property('ressource', value)
+    @resource.setter
+    def resource(self, value: Resource):
+        if not isinstance(value, self.Resource):
+            raise ValueError('resource value type has to be {}'
+                             .format(self.Resource))
+        self._set_bounded_property('resource', value)
 
     @property
-    def temperature(self):
+    def temperature(self) -> u.Quantity:
         """average temperature in K"""
-        return self._get_ranged_property('temperature')
+        return self._get_bounded_property('temperature') * u.K
 
     @property
-    def temperature_range(self):
-        """temperature range class variable"""
-        return type(self)._temperature_range
+    def temperature_bounds(self) -> model.bounds.QuantityBounds:
+        """temperature range static class variable in K"""
+        return type(self)._temperature_bounds
 
     @temperature.setter
-    def temperature(self, value):
-        self._set_ranged_property('temperature', value)
+    def temperature(self, value: u.Quantity):
+        if not isinstance(value, u.Quantity):
+            raise ValueError('expected quantity type value')
+        if 'temperature' not in value.unit.physical_type:
+            raise ValueError('can\'t set temperature to value of %s physical type' %
+                             value.unit.physical_type)
+        self._set_bounded_property('temperature', value.to(u.K))
 
     @property
-    def density(self):
+    def density(self) -> u.Quantity:
         """density in d⊕"""
-        return (self._get_ranged_property('density')
+        return (self._get_bounded_property('density')
                 if hasattr(self, '_density')
                 else np.nan)
 
     @property
-    def density_range(self):
+    def density_bounds(self) -> model.bounds.QuantityBounds:
         """value range for density"""
-        return type(self)._core.value if hasattr(type(self), '_core') else None
+        return model.bounds.QuantityBounds(*self.core.value) if self.core else None
 
     @density.setter
-    def density(self, value):
-        self._set_ranged_property('density', value)
+    def density(self, value: u.Quantity):
+        self._set_bounded_property('density', value)
 
     @property
-    def hydrosphere(self):
+    def hydrosphere(self) -> float:
         """proportion of surface covered by liquid elements"""
-        return (self._get_ranged_property('hydrosphere')
+        return (self._get_bounded_property('hydrosphere')
                 if hasattr(self, '_hydrosphere')
                 else np.nan)
 
     @property
-    def hydrosphere_range(self):
+    def hydrosphere_bounds(self) -> model.bounds.ValueBounds:
         """hydrosphere value range class variable"""
-        return (type(self)._hydrosphere_range
-                if hasattr(type(self), '_hydrosphere_range') else None)
+        return (type(self)._hydrosphere_bounds
+                if hasattr(type(self), '_hydrosphere_bounds') else None)
 
     @hydrosphere.setter
-    def hydrosphere(self, value):
-        self._set_ranged_property('hydrosphere', value)
+    def hydrosphere(self, value) -> float:
+        self._set_bounded_property('hydrosphere', value)
 
     @property
-    def diameter(self):
+    def diameter(self) -> u.Quantity:
         """diameter in D⊕"""
-        return (self._get_ranged_property('diameter')
+        return (self._get_bounded_property('diameter')
                 if hasattr(self, '_diameter')
                 else np.nan)
 
     @property
-    def diameter_range(self):
+    def diameter_bounds(self) -> model.bounds.QuantityBounds:
         """computed value range for diameter"""
-        return (type(self).Range(np.sqrt(self.blackbody_temperature /
-                                         self.density) * self.size.min,
-                                 np.sqrt(self.blackbody_temperature /
-                                         self.density) * self.size.max)
+        return (model.bounds.QuantityBounds(np.sqrt(self.blackbody_temperature / self.density) * self.size[0],
+                               np.sqrt(self.blackbody_temperature / self.density) * self.size[1])
                 if self.density and self.size else None)
 
     @diameter.setter
-    def diameter(self, value):
-        self._set_ranged_property('diameter', value)
+    def diameter(self, value: u.Quantity):
+        self._set_bounded_property('diameter', value)
 
     @property
-    def blackbody_correction(self):
+    def blackbody_correction(self) -> float:
         return (self.absorption
                 if np.isnan([self.volatile_mass, self.greenhouse_factor]).any()
                 else self.absorption * (1 + self.volatile_mass *
                                         self.greenhouse_factor))
 
     @property
-    def blackbody_temperature(self):
+    def blackbody_temperature(self) -> u.Quantity:
         """blackbody temperature in K"""
         return (self.temperature / self.blackbody_correction)
 
     @property
-    def gravity(self):
+    def gravity(self) -> u.Quantity:
         """surface gravity in G⊕"""
         return self.density * self.diameter
 
     @property
-    def mass(self):
+    def mass(self) -> u.Quantity:
         """mass in M⊕"""
         return self.density * self.diameter**3
 
     @property
-    def climate(self):
+    def climate(self) -> Climate:
         """climate implied by temperature match over World Climate Table"""
         return list(filter(lambda x: self.temperature >= x, self.Climate))[-1]
 
     @property
-    def habitability(self):
+    def habitability(self) -> int:
         """the habitability score"""
         filters = [(self.hydrosphere >= .1 and self.hydrosphere < .6, 1),
                    (self.hydrosphere >= .6 and self.hydrosphere < .9, 2),
@@ -294,9 +302,9 @@ the same type"""
         return sum(value if truth else 0 for truth, value in filters)
 
     @property
-    def affinity(self):
+    def affinity(self) -> int:
         """the affinity score"""
-        return self.ressource + self.habitability
+        return self.resource + self.habitability
 
     def randomize(self):
         if (hasattr(type(self._atmosphere), 'randomize') and
