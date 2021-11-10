@@ -121,10 +121,25 @@ body mass"""
                 model.bounds.ValueBounds(0, .95))
 
     @property
+    def average_orbital_radius(self) -> u.Quantity:
+        """The average orbital radius to the parent body in AU"""
+        return self._get_bounded_property('average_orbital_radius') * u.au
+
+    @property
     def average_orbital_radius_bounds(self) -> model.bounds.QuantityBounds:
         """value range for average orbital radius"""
         return model.bounds.QuantityBounds(2 * self.separation.value * u.au,
                                            12 * self.separation.value * u.au)
+
+    @average_orbital_radius.setter
+    def average_orbital_radius(self, value):
+        if not isinstance(value, u.Quantity):
+            raise ValueError('expected quantity type value')
+        if 'length' not in value.unit.physical_type:
+            raise ValueError('can\'t set average orbital radius to value of %s physical type' %
+                             value.unit.physical_type)
+        self._set_bounded_property('average_orbital_radius', value)
+
 
     @property
     def forbidden_zone(self) -> model.bounds.QuantityBounds:

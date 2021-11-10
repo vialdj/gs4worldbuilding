@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from .. import model
+from . import make_world
+from .. import model, World
 
 from enum import Enum
 from random import choices, uniform
@@ -219,11 +220,6 @@ modifier if applicable"""
                 else d[list(filter(lambda x: x * u.M_sun >= self.mass, sorted(d.keys())))
                        [0]])
 
-    @property
-    def orbits(self):
-        """objects orbiting the star"""
-        return getattr(self, '_orbits', None)
-
     def __random_first_gas_giant(self):
         """generating an orbital radius given the proper gas giant
 arrangement"""
@@ -240,9 +236,8 @@ arrangement"""
                     self.limits.min)
         return np.nan
 
-    def __random_orbital_object(self, limits, outward=False):
-        """generating an orbital radius at a random spacing from previous
-object"""
+    def __random_orbit(self, limits, outward=False):
+        """generating an orbital radius at a random spacing from previous"""
         lower, upper = 1.4, 2
         mu, sigma = 1.6976, 0.1120457049600742
 
@@ -259,8 +254,8 @@ object"""
             return orbit
         return np.nan
 
-    def generate_orbits(self):
-        """generate the stars planetary orbits"""
+    def __generate_orbits(self):
+        """star planetary orbits generation procedure"""
         self._orbits = []
 
         limits = self.limits
@@ -286,17 +281,25 @@ object"""
             self._orbits.append(limits.max / (uniform(0.05, 0.3) + 1))
         while True:
             # working the orbits inward
-            orbit = self.__random_orbital_object(limits)
+            orbit = self.__random_orbit(limits)
             if orbit is np.nan:
                 break
             self._orbits.append(orbit)
         self._orbits.sort()
         while True:
             # working the orbits outward
-            orbit = self.__random_orbital_object(limits, outward=True)
+            orbit = self.__random_orbit(limits, outward=True)
             if orbit is np.nan:
                 break
             self._orbits.append(orbit)
+
+    def make_worlds(self):
+        self.__generate_orbits()
+        self._worlds = []
+        for i in range(0, len(self._orbits)):
+            self._worlds.append(make_world(self, self._orbits[i], World.Size.STANDARD))
+            setattr(type(self), chr(ord('b') + i),
+                    property(lambda self, i=i: self._worlds[i]))
 
     def __init__(self, star_system):
         self._star_system = star_system
