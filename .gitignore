@@ -1,7 +1,4 @@
-worldgen/__pycache__/*
-worldgen/world/__pycache__/*
-worldgen/star/__pycache__/*
-tests/__pycache__/*
+*.pyc
 .vscode
 htmlcov/*
 .coverage
