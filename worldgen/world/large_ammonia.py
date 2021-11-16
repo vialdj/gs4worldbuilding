@@ -3,8 +3,6 @@
 from . import Atmosphere, World
 from .. import model
 
-import numpy as np
-
 from astropy import units as u
 
 
@@ -29,7 +27,7 @@ class LargeAmmonia(World):
 
     def random_hydrosphere(self):
         """roll of 2d capped at 10 and divided by 10"""
-        self.hydrosphere = min(np.random.triangular(0.2, .7, 1.2), 1)
+        self.hydrosphere = min(roll2d() / 10, 1)
 
     def __init__(self):
         super(LargeAmmonia, self).__init__()

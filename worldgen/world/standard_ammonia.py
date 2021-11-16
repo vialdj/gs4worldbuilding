@@ -28,7 +28,7 @@ class StandardAmmonia(World):
 
     def random_hydrosphere(self):
         """roll of 2d maximum at 10 and divided by 10"""
-        self.hydrosphere = min(np.random.triangular(0.2, .7, 1.2), 1)
+        self.hydrosphere = min(roll2d() / 10, 1)
 
     def __init__(self):
         super(StandardAmmonia, self).__init__()

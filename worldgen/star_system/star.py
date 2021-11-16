@@ -2,12 +2,12 @@
 
 from . import make_world
 from .. import model, World
+from ..random import roll3d, truncnorm_draw
 
 from enum import Enum
 from random import choices, uniform
 
 import numpy as np
-from scipy.stats import truncexpon, truncnorm
 from astropy import units as u
 
 
@@ -32,14 +32,10 @@ class Star(model.RandomizableModel):
     def random_seed_mass(self):
         """consecutive sum of a 3d roll times over Stellar Mass Table with
 modifier if applicable"""
-        upper, lower = (self.seed_mass_bounds.max.value,
-                        self.seed_mass_bounds.min.value)
-        mu = lower
-        sigma = (.26953477975949597 if self._star_system.garden_host
-                 else .3905806446817353)
-        b = (upper - lower) / sigma
-
-        self.seed_mass = truncexpon(b=b, loc=mu, scale=sigma).rvs() * u.M_sun
+        self.seed_mass = truncexpon_draw(self.seed_mass_bounds.min.value,
+                                         self.seed_mass_bounds.max.value,
+                                         (.26953477975949597 if self._star_system.garden_host
+                                          else .3905806446817353))
 
     def random_gas_giant_arrangement(self):
         """sum of a 3d roll times over Gas Giant Arrangement Table"""
@@ -225,25 +221,19 @@ modifier if applicable"""
 arrangement"""
         if self.gas_giant_arrangement == self.GasGiantArrangement.CONVENTIONAL:
             # roll of 2d-2 * .05 + 1 multiplied by the snow line radius
-            return np.random.triangular(1, 1.25, 1.5) * self.snow_line
+            return roll2d(-2) * .05 * self.snow_line
         elif self.gas_giant_arrangement == self.GasGiantArrangement.ECCENTRIC:
             # roll of 1d-1 * .125 multiplied by the snow line radius
             return uniform(0, .625) * self.snow_line
         elif self.gas_giant_arrangement == self.GasGiantArrangement.EPISTELLAR:
             # roll of 3d * .1 multiplied by the inner limit radius
-            return ((truncnorm((3 - 10.5) / 2.958040, (18 - 10.5) / 2.958040,
-                               loc=10.5, scale=2.958040).rvs() / 10) *
-                    self.limits.min)
+            return roll3d() / 10 * self.limits.min
         return np.nan
 
     def __random_orbit(self, limits, outward=False):
         """generating an orbital radius at a random spacing from previous"""
-        lower, upper = 1.4, 2
-        mu, sigma = 1.6976, 0.1120457049600742
-
         # transform last orbit given 3d roll over Orbital Spacing table
-        ratio = truncnorm((lower - mu) / sigma, (upper - mu) / sigma,
-                          loc=mu, scale=sigma).rvs()
+        ratio = truncnorm_draw(1.4, 2, 1.6976, 0.1120457049600742)
         prev_orb = self._orbits[-1]
         orbit = (prev_orb * ratio if outward else prev_orb / ratio)
         if not outward and (prev_orb - orbit) < .15 * u.au:

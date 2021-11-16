@@ -33,7 +33,7 @@ class StandardGreenhouse(World):
 
     def random_hydrosphere(self):
         """roll of 2d-7 minimum at 0 and divided by 10"""
-        self.hydrosphere = max(np.random.triangular(-.5, 0, .5), 0)
+        self.hydrosphere = max(roll2d(-7) / 10, 0)
 
     def __init__(self):
         super(StandardGreenhouse, self).__init__()

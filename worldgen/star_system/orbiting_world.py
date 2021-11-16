@@ -6,6 +6,7 @@ from .. import (World,
                 SmallHadean, SmallIce, SmallRock,
                 StandardHadean, StandardIce, StandardOcean, StandardGreenhouse, StandardChthonian,
                 LargeIce, LargeOcean, LargeGreenhouse, LargeChthonian)
+from ..random import truncnorm_draw
 
 import numpy as np
 from astropy import units as u
@@ -50,16 +51,10 @@ def orbiting_world(world_type):
         _precedence = [*[p for p in World._precedence if p != 'temperature'],
                        'eccentricity']
 
-        @staticmethod
-        def __truncnorm_draw(lower, upper, mu, sigma):
-            a, b = (lower - mu) / sigma, (upper - mu) / sigma
-            return truncnorm(a, b, mu, sigma).rvs()
-
         def random_eccentricity(self):
             """sum of a 3d6 roll over Planetary Orbital Eccentricity Table with
     modifiers if any"""
-            self.eccentricity = self.__truncnorm_draw(0, .8, .20445,
-                                                      .1492906477311958)
+            self.eccentricity = truncnorm_draw(0, .8, .20445, .1492906477311958)
 
         @property
         def blackbody_temperature(self) -> u.Quantity:

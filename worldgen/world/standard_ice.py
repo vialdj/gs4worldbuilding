@@ -33,7 +33,7 @@ class StandardIce(World):
 
     def random_hydrosphere(self):
         """roll of 2d-10 minimum at 0 and divided by 10"""
-        self.hydrosphere = max(np.random.triangular(-.8, -.3, .2), 0)
+        self.hydrosphere = max(roll2d(-10) / 10, 0)
 
     def __init__(self):
         super(StandardIce, self).__init__()

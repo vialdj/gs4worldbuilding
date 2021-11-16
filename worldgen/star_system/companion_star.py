@@ -1,16 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from re import S
-
-from scipy.stats.stats import mode
 from . import OrbitalObject, Star
 from .. import model
+from ..random import truncnorm_draw, truncexpon_draw, roll2d
 
 import random
 import enum
 
 import numpy as np
-from scipy.stats import truncnorm, truncexpon
 from ordered_enum.ordered_enum import ValueOrderedEnum
 from astropy import units as u
 
@@ -53,37 +50,23 @@ radius multiplier in AU"""
                                          weights=self._separation_dist,
                                          k=1)[0]
 
-    @staticmethod
-    def __truncnorm_draw(lower, upper, mu, sigma):
-        a, b = (lower - mu) / sigma, (upper - mu) / sigma
-        return truncnorm(a, b, mu, sigma).rvs()
-
-    @staticmethod
-    def __truncexpon_draw(lower, upper, sigma):
-        mu = lower
-        b = (upper - lower) / sigma
-        return truncexpon(b, mu, sigma).rvs()
 
     def random_eccentricity(self):
         """sum of a 3d6 roll over Stellar Orbital Eccentricity Table with
 modifiers if any"""
-        if self.separation == self.Separation.MODERATE:
-            eccentricity = self.__truncnorm_draw(0, .8, .4151,
-                                                 .16553546447815948)
-        elif self.separation == self.Separation.CLOSE:
-            eccentricity = self.__truncnorm_draw(0, .7, .3055,
-                                                 .1839014681833726)
-        elif self.separation == self.Separation.VERY_CLOSE:
-            eccentricity = self.__truncexpon_draw(0, .6, .1819450191678794)
-        else:
-            eccentricity = self.__truncnorm_draw(0, .95, .5204,
-                                                 .142456449485448)
-        self.eccentricity = eccentricity
+        match self.separation:
+            case self.Separation.MODERATE:
+                self.eccentricity = truncnorm_draw(0, .8, .4151, .16553546447815948)
+            case self.Separation.CLOSE:
+                self.eccentricity = truncnorm_draw(0, .7, .3055, .1839014681833726)
+            case self.Separation.VERY_CLOSE:
+                self.eccentricity = truncexpon_draw(0, .6, .1819450191678794)
+            case _:
+                self.ecccentricity = truncnorm_draw(0, .95, .5204, .142456449485448)
 
     def random_average_orbital_radius(self):
         """roll of 2d6 multiplied by the separation category radius"""
-        self.average_orbital_radius = (np.random.triangular(2, 7, 12) *
-                                       self.separation.value * u.au)
+        self.average_orbital_radius = roll2d() * self.separation.value * u.au)
 
     @property
     def seed_mass_bounds(self) -> model.bounds.QuantityBounds:

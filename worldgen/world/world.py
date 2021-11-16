@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from astropy.units.equivalencies import temperature
-from astropy.units.quantity import Quantity
 from .. import model
 from ..units import d_earth
+from ..random import roll3d
 from .marginal_atmosphere import Marginal
 from . import Atmosphere
 
@@ -77,32 +76,25 @@ threshold in K"""
         """sum of a 3d-3 roll times step value add minimum"""
         tmin = self.temperature_bounds.min.value
         tmax = self.temperature_bounds.max.value
-        roll = truncnorm((0 - 7.5) / 2.958040, (15 - 7.5) / 2.958040,
-                         loc=7.5, scale=2.958040).rvs()
+        roll = roll3d(-3)
         self.temperature = (tmin + roll / 15 * (tmax - tmin)) * u.K
 
     def random_density(self):
         """sum of a 3d roll over World Density Table"""
         if self.core is not None:
             self.density = (self.density_bounds.min + (self.density_bounds.max -
-                            self.density_bounds.min) *
-                            truncnorm((0 - 0.376) / 0.2, (1 - 0.376) / 0.2,
-                            loc=0.376, scale=0.2).rvs())
+                            self.density_bounds.min) * truncnorm_draw(1, 0, .376, .2))
 
     def random_diameter(self):
         """roll of 2d-2 in range [Dmin, Dmax]"""
         if self.size is not None and self.core is not None:
-            self.diameter = (self.diameter_bounds.min +
-                             np.random.triangular(0, .5, 1) *
-                             (self.diameter_bounds.max -
-                              self.diameter_bounds.min))
+            self.diameter = (self.diameter_bounds.min + (roll2d(-2) / 10) *
+                             (self.diameter_bounds.max - self.diameter_bounds.min))
 
     def random_volatile_mass(self):
         """sum of a 3d roll divided by 10"""
         if self.atmosphere is not None:
-            self.volatile_mass = truncnorm((3 - 10.5) / 2.958040,
-                                           (18 - 10.5) / 2.958040,
-                                           loc=10.5, scale=2.958040).rvs() / 10
+            self.volatile_mass = roll3d() / 10
 
     @property
     def size(self) -> Size:
