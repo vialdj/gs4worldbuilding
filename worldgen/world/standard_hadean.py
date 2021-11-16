@@ -12,5 +12,5 @@ class StandardHadean(World):
     _core = World.Core.ICY_CORE
     _absorption = .67
 
-    def __init__(self):
-        super(StandardHadean, self).__init__()
+    def __init__(self, **kw):
+        super(StandardHadean, self).__init__(**kw)

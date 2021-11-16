@@ -31,5 +31,5 @@ class StandardAmmonia(World):
         """roll of 2d maximum at 10 and divided by 10"""
         self.hydrosphere = min(roll2d() / 10, 1)
 
-    def __init__(self):
-        super(StandardAmmonia, self).__init__()
+    def __init__(self, **kw):
+        super(StandardAmmonia, self).__init__(**kw)

@@ -14,5 +14,5 @@ class SmallRock(World):
     _core = World.Core.SMALL_IRON_CORE
     _absorption = .96
 
-    def __init__(self):
-        super(SmallRock, self).__init__()
+    def __init__(self, **kw):
+        super(SmallRock, self).__init__(**kw)

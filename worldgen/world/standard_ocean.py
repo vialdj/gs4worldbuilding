@@ -44,5 +44,5 @@ through a * x ** 3 + b * x ** 2 + c * x + d"""
                 1.2000000000000057 * self.hydrosphere ** 2 -
                 0.6475000000000023 * self.hydrosphere + 1.0375000000000003)
 
-    def __init__(self):
-        super(StandardOcean, self).__init__()
+    def __init__(self, **kw):
+        super(StandardOcean, self).__init__(**kw)

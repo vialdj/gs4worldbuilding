@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from . import OrbitalObject, Star
+from . import Orbit, Star
 from .. import model
 from ..random import truncnorm_draw, truncexpon_draw, roll2d
 
@@ -12,10 +12,61 @@ from ordered_enum.ordered_enum import ValueOrderedEnum
 from astropy import units as u
 
 
-class CompanionStar(Star, OrbitalObject):
+class CompanionStar(Star):
+    """The companion star model"""
 
-    _precedence = [*Star._precedence, 'separation', 'eccentricity',
-                   'average_orbital_radius']
+    class CompanionStarOrbit(Orbit):
+        """The companion star orbit model"""
+
+        _precedence = [*Orbit._precedence, 'radius']
+        
+        def random_eccentricity(self):
+            """sum of a 3d6 roll over Stellar Orbital Eccentricity Table with
+            modifiers if any"""
+            if self._body.separation == CompanionStar.Separation.MODERATE:
+                self.eccentricity = truncnorm_draw(0, .8, .4151, .16553546447815948)
+            elif self._body.separation == CompanionStar.Separation.CLOSE:
+                self.eccentricity = truncnorm_draw(0, .7, .3055, .1839014681833726)
+            elif self._body.separation == CompanionStar.Separation.VERY_CLOSE:
+                self.eccentricity = truncexpon_draw(0, .6, .1819450191678794)
+            else:
+                self.eccentricity = truncnorm_draw(0, .95, .5204, .142456449485448)
+
+        def random_radius(self):
+            """roll of 2d6 multiplied by the separation category radius"""
+            self.radius = roll2d() * self._body.separation.value * u.au
+
+        
+        @property
+        def eccentricity_bounds(self) -> model.bounds.ValueBounds:
+            """value range for eccentricity dependent separation"""
+            rngs = {CompanionStar.Separation.MODERATE: model.bounds.ValueBounds(0, .8),
+                    CompanionStar.Separation.CLOSE: model.bounds.ValueBounds(0, .7),
+                    CompanionStar.Separation.VERY_CLOSE: model.bounds.ValueBounds(0, .6)}
+            return (rngs[self._body.separation] if self._body.separation in rngs.keys() else
+                    model.bounds.ValueBounds(0, .95))
+        
+        @property
+        def radius(self) -> u.Quantity:
+            """The average orbital radius to the parent body in AU"""
+            return self._get_bounded_property('radius') * u.au
+
+        @property
+        def radius_bounds(self) -> model.bounds.QuantityBounds:
+            """value range for average orbital radius"""
+            return model.bounds.QuantityBounds(2 * self._body.separation.value * u.au,
+                                               12 * self._body.separation.value * u.au)
+
+        @radius.setter
+        def radius(self, value):
+            if not isinstance(value, u.Quantity):
+                raise ValueError('expected quantity type value')
+            if 'length' not in value.unit.physical_type:
+                raise ValueError('can\'t set radius to value of %s physical type' %
+                                value.unit.physical_type)
+            self._set_bounded_property('radius', value)
+
+    _precedence = [*Star._precedence, 'separation']
 
     @enum.unique
     class Separation(u.Quantity, ValueOrderedEnum):
@@ -50,23 +101,6 @@ radius multiplier in AU"""
                                          weights=self._separation_dist,
                                          k=1)[0]
 
-
-    def random_eccentricity(self):
-        """sum of a 3d6 roll over Stellar Orbital Eccentricity Table with
-modifiers if any"""
-        if self.separation == self.Separation.MODERATE:
-            self.eccentricity = truncnorm_draw(0, .8, .4151, .16553546447815948)
-        elif self.separation == self.Separation.CLOSE:
-            self.eccentricity = truncnorm_draw(0, .7, .3055, .1839014681833726)
-        elif self.separation == self.Separation.VERY_CLOSE:
-            self.eccentricity = truncexpon_draw(0, .6, .1819450191678794)
-        else:
-            self.ecccentricity = truncnorm_draw(0, .95, .5204, .142456449485448)
-
-    def random_average_orbital_radius(self):
-        """roll of 2d6 multiplied by the separation category radius"""
-        self.average_orbital_radius = roll2d() * self.separation.value * u.au
-
     @property
     def seed_mass_bounds(self) -> model.bounds.QuantityBounds:
         """value range for mass adjusted so mass cannot be greater than parent
@@ -94,45 +128,22 @@ body mass"""
         self._set_bounded_property('separation', value)
 
     @property
-    def eccentricity_bounds(self) -> model.bounds.ValueBounds:
-        """value range for eccentricity dependant on parent star separation"""
-        rngs = {self.Separation.MODERATE: model.bounds.ValueBounds(0, .8),
-                self.Separation.CLOSE: model.bounds.ValueBounds(0, .7),
-                self.Separation.VERY_CLOSE: model.bounds.ValueBounds(0, .6)}
-        return (rngs[self.separation] if self.separation in rngs.keys() else
-                model.bounds.ValueBounds(0, .95))
-
-    @property
-    def average_orbital_radius(self) -> u.Quantity:
-        """The average orbital radius to the parent body in AU"""
-        return self._get_bounded_property('average_orbital_radius') * u.au
-
-    @property
-    def average_orbital_radius_bounds(self) -> model.bounds.QuantityBounds:
-        """value range for average orbital radius"""
-        return model.bounds.QuantityBounds(2 * self.separation.value * u.au,
-                                           12 * self.separation.value * u.au)
-
-    @average_orbital_radius.setter
-    def average_orbital_radius(self, value):
-        if not isinstance(value, u.Quantity):
-            raise ValueError('expected quantity type value')
-        if 'length' not in value.unit.physical_type:
-            raise ValueError('can\'t set average orbital radius to value of %s physical type' %
-                             value.unit.physical_type)
-        self._set_bounded_property('average_orbital_radius', value)
-
-
-    @property
     def forbidden_zone(self) -> model.bounds.QuantityBounds:
         """the forbidden zone limits in AU if any"""
         if isinstance(self._companions[0], Star):
-            return model.bounds.QuantityBounds(self.minimum_separation / 3,
-                                               self.maximum_separation * 3)
+            return model.bounds.QuantityBounds(self._orbit.min_separation / 3,
+                                               self._orbit.max_separation * 3)
         return super.forbidden_zone
+
+    @property
+    def orbit(self) -> CompanionStarOrbit:
+        """the CompanionStar orbit around its parent body"""
+        return self._orbit
 
     def __init__(self, star_system, parent_body, tertiary_star=False,
                  sub_companion=False):
+        self._parent_body = parent_body
+ 
         if not sub_companion:
             if star_system.garden_host and tertiary_star:
                 self._separation_dist = [0, 0, 0, .01851851851853,
@@ -163,5 +174,7 @@ body mass"""
                                         self.Separation.VERY_CLOSE,
                                         self.Separation.WIDE
                                       )
-        OrbitalObject.__init__(self, parent_body)
         Star.__init__(self, star_system)
+
+        self._orbit = type(self).CompanionStarOrbit(parent_body, self)
+        self._orbit.randomize()

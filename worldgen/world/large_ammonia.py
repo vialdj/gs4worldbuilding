@@ -30,5 +30,5 @@ class LargeAmmonia(World):
         """roll of 2d capped at 10 and divided by 10"""
         self.hydrosphere = min(roll2d() / 10, 1)
 
-    def __init__(self):
-        super(LargeAmmonia, self).__init__()
+    def __init__(self, **kw):
+        super(LargeAmmonia, self).__init__(**kw)

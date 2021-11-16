@@ -29,5 +29,5 @@ class LargeIce(World):
         """roll of 2d-10 minimum at 0 and divided by 10"""
         self.hydrosphere = max(roll2d(-10) / 10, 0)
 
-    def __init__(self):
-        super(LargeIce, self).__init__()
+    def __init__(self, **kw):
+        super(LargeIce, self).__init__(**kw)

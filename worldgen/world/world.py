@@ -154,8 +154,8 @@ the same type"""
     @property
     def resource_bounds(self) -> model.bounds.ValueBounds:
         """resource range class variable"""
-        return (type(self)._ressource_bounds
-                if hasattr(type(self), '_ressource_bounds')
+        return (type(self)._resource_bounds
+                if hasattr(type(self), '_resource_bounds')
                 else model.bounds.ValueBounds(self.Resource.VERY_POOR,
                                               self.Resource.VERY_ABUNDANT))
 
@@ -304,8 +304,41 @@ the same type"""
             self._atmosphere.randomize()
         super(World, self).randomize()
 
-    def __init__(self):
+    def __init__(self, orbit=None):
+
+        self._orbit = orbit
         self._atmosphere = (self._atmosphere(self)
                             if hasattr(type(self), '_atmosphere')
                             else None)
+        
+        if orbit:
+            world = self
+            world.__class__ = OrbitingWorld
+    
         self.randomize()
+
+
+class OrbitingWorld(World):
+    """the orbiting world extended model"""
+    _precedence = [p for p in World._precedence if p != 'temperature']
+
+    """def random_eccentricity(self):
+        sum of a 3d6 roll over Planetary Orbital Eccentricity Table with
+        modifiers if any
+        self.eccentricity = truncnorm_draw(0, .8, .20445, .1492906477311958)"""
+
+    @property
+    def blackbody_temperature(self) -> u.Quantity:
+        """blackbody temperature in K from orbit"""
+        return (278 * np.power(self._orbit._parent_body.luminosity.value, (1 / 4))
+                / np.sqrt(self._orbit.radius.value)) * u.K
+
+    @property
+    def temperature(self):
+        """average temperature in K"""
+        return (self.blackbody_temperature.value *
+                self.blackbody_correction) * u.K
+
+    @temperature.setter
+    def temperature(self, _):
+        raise AttributeError('can\'t set overriden attribute')

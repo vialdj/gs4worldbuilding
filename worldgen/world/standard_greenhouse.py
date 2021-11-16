@@ -36,5 +36,5 @@ class StandardGreenhouse(World):
         """roll of 2d-7 minimum at 0 and divided by 10"""
         self.hydrosphere = max(roll2d(-7) / 10, 0)
 
-    def __init__(self):
-        super(StandardGreenhouse, self).__init__()
+    def __init__(self, **kw):
+        super(StandardGreenhouse, self).__init__(**kw)

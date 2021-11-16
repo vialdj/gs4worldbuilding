@@ -14,5 +14,5 @@ class LargeChthonian(World):
     _core = World.Core.LARGE_IRON_CORE
     _absorption = .97
 
-    def __init__(self):
-        super(LargeChthonian, self).__init__()
+    def __init__(self, **kw):
+        super(LargeChthonian, self).__init__(**kw)

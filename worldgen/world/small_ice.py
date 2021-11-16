@@ -36,5 +36,5 @@ class SmallIce(World):
         """roll of 1d+2 divided by 10"""
         self.hydrosphere = uniform(.3, .8)
 
-    def __init__(self):
-        super(SmallIce, self).__init__()
+    def __init__(self, **kw):
+        super(SmallIce, self).__init__(**kw)

@@ -12,5 +12,5 @@ class TinyIce(World):
     _core = World.Core.ICY_CORE
     _absorption = .86
 
-    def __init__(self):
-        super(TinyIce, self).__init__()
+    def __init__(self, **kw):
+        super(TinyIce, self).__init__(**kw)

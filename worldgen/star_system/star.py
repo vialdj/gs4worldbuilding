@@ -137,11 +137,11 @@ modifier if applicable"""
         m_span = type(self).__m_span(self.seed_mass)
         s_span = type(self).__s_span(self.seed_mass) + m_span
         g_span = type(self).__g_span(self.seed_mass) + s_span
-        if (not np.isnan(g_span) and self._star_system.age > g_span):
+        if (not np.isnan(g_span) and self._star_system.age.value > g_span):
             return type(self).Luminosity.D
-        elif (not np.isnan(s_span) and self._star_system.age > s_span):
+        elif (not np.isnan(s_span) and self._star_system.age.value > s_span):
             return type(self).Luminosity.III
-        elif (not np.isnan(m_span) and self._star_system.age > m_span):
+        elif (not np.isnan(m_span) and self._star_system.age.value > m_span):
             return type(self).Luminosity.IV
         return type(self).Luminosity.V
 
@@ -157,7 +157,7 @@ modifier if applicable"""
         if (np.isnan(type(self).__l_max(self.mass))):
             return type(self).__l_min(self.mass) * u.L_sun
         return (type(self).__l_min(self.mass) +
-                (self._star_system.age / type(self).__m_span(self.mass)) *
+                (self._star_system.age.value / type(self).__m_span(self.mass)) *
                 (type(self).__l_max(self.mass) -
                  type(self).__l_min(self.mass))) * u.L_sun
 
@@ -194,8 +194,10 @@ modifier if applicable"""
     def forbidden_zone(self) -> model.bounds.QuantityBounds:
         """the forbidden zone limits in AU if any"""
         if (hasattr(self, '_companions') and len(self._companions) > 0):
-            return model.bounds.QuantityBounds(self._companions[0].minimum_separation / 3,
-                                               self._companions[0].maximum_separation * 3)
+            return model.bounds.QuantityBounds(
+                    self._companions[0].orbit.min_separation / 3,
+                    self._companions[0].orbit.min_separation * 3
+                   )
         return None
 
     @property
@@ -215,81 +217,6 @@ modifier if applicable"""
         return ('D' if self.luminosity_class == type(self).Luminosity.D
                 else d[list(filter(lambda x: x * u.M_sun >= self.mass, sorted(d.keys())))
                        [0]])
-
-    def __random_first_gas_giant(self):
-        """generating an orbital radius given the proper gas giant
-arrangement"""
-        if self.gas_giant_arrangement == self.GasGiantArrangement.CONVENTIONAL:
-            # roll of 2d-2 * .05 + 1 multiplied by the snow line radius
-            return roll2d(-2) * .05 * self.snow_line
-        elif self.gas_giant_arrangement == self.GasGiantArrangement.ECCENTRIC:
-            # roll of 1d-1 * .125 multiplied by the snow line radius
-            return uniform(0, .625) * self.snow_line
-        elif self.gas_giant_arrangement == self.GasGiantArrangement.EPISTELLAR:
-            # roll of 3d * .1 multiplied by the inner limit radius
-            return roll3d() / 10 * self.limits.min
-        return np.nan
-
-    def __random_orbit(self, limits, outward=False):
-        """generating an orbital radius at a random spacing from previous"""
-        # transform last orbit given 3d roll over Orbital Spacing table
-        ratio = truncnorm_draw(1.4, 2, 1.6976, 0.1120457049600742)
-        prev_orb = self._orbits[-1]
-        orbit = (prev_orb * ratio if outward else prev_orb / ratio)
-        if not outward and (prev_orb - orbit) < .15 * u.au:
-            # TODO: should not clamp orbit at a distance of exactly .15
-            # but rather have it be at least .15
-            orbit = prev_orb - .15 * u.au
-        if orbit >= limits.min and orbit <= limits.max:
-            return orbit
-        return np.nan
-
-    def __generate_orbits(self):
-        """star planetary orbits generation procedure"""
-        self._orbits = []
-
-        limits = self.limits
-        if self.forbidden_zone:
-            if (self.forbidden_zone.max > self.limits.max and
-                self.forbidden_zone.min > self.limits.min):
-                limits = model.bounds.QuantityBounds(
-                            self.limits.min,
-                            min(self.limits.max, self.forbidden_zone.min)
-                         )
-            elif (self.forbidden_zone.min < self.limits.min and
-                  self.forbidden_zone.max < self.limits.max):
-                limits = model.bounds.QuantityBounds(
-                            max(self.limits.min, self.forbidden_zone.max),
-                            self.limits.max
-                         )
-
-        if self.gas_giant_arrangement != self.GasGiantArrangement.NONE:
-            # placing first gas giant if applicable
-            self._orbits.append(self.__random_first_gas_giant())
-        else:
-            # divided outermost legal distance by roll of 1d * .05 + 1
-            self._orbits.append(limits.max / (uniform(0.05, 0.3) + 1))
-        while True:
-            # working the orbits inward
-            orbit = self.__random_orbit(limits)
-            if orbit is np.nan:
-                break
-            self._orbits.append(orbit)
-        self._orbits.sort()
-        while True:
-            # working the orbits outward
-            orbit = self.__random_orbit(limits, outward=True)
-            if orbit is np.nan:
-                break
-            self._orbits.append(orbit)
-
-    def make_worlds(self):
-        self.__generate_orbits()
-        self._worlds = []
-        for i in range(0, len(self._orbits)):
-            self._worlds.append(make_world(self, self._orbits[i], World.Size.STANDARD))
-            setattr(type(self), chr(ord('b') + i),
-                    property(lambda self, i=i: self._worlds[i]))
 
     def __init__(self, star_system):
         self._star_system = star_system

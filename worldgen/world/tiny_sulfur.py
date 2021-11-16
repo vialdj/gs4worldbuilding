@@ -12,5 +12,5 @@ class TinySulfur(World):
     _core = World.Core.ICY_CORE
     _absorption = .77
 
-    def __init__(self):
-        super(TinySulfur, self).__init__()
+    def __init__(self, **kw):
+        super(TinySulfur, self).__init__(**kw)

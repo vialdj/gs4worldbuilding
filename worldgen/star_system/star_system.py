@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 
 from .. import model
-from .. import units as u
 from . import Star
 from . import CompanionStar
 
@@ -10,6 +9,7 @@ import random
 import enum
 
 from ordered_enum import ValueOrderedEnum
+from astropy import units as u
 
 
 class StarSystem(model.RandomizableModel):
@@ -50,9 +50,9 @@ from Stellar Age Table"""
                     random.uniform(0, 5) * self.population.step_b)
 
     @property
-    def age(self):
+    def age(self) -> u.Quantity:
         """age in Ga"""
-        return self._get_bounded_property('age')
+        return self._get_bounded_property('age') * u.Ga
 
     @property
     def age_bounds(self):
@@ -65,7 +65,12 @@ from Stellar Age Table"""
 
     @age.setter
     def age(self, value):
-        self._set_bounded_property('age', value)
+        if not isinstance(value, u.Quantity):
+            raise ValueError('expected quantity type value')
+        if 'time' not in value.unit.physical_type:
+            raise ValueError('can\'t set age to value of %s physical type' %
+                             value.unit.physical_type)
+        self._set_bounded_property('age', value.to(u.Ga))
 
     def make_stars(self, n):
         """the system stars generation and arrangement procedure"""
@@ -100,9 +105,9 @@ from Stellar Age Table"""
                 companion._companions = [star]
                 self._stars.append(companion)
 
-        # populate stars orbits
+        """ # populate stars orbits
         for star in self._stars:
-            star.make_worlds()
+            star.make_worlds()"""
 
         for i in range(len(self._stars)):
             setattr(type(self), chr(ord('A') + i),
@@ -115,7 +120,7 @@ from Stellar Age Table"""
                                        k=1)[0])
 
     @property
-    def population(self):
+    def population(self) -> Population:
         """population category over Stellar Age Table"""
         return self._population
 

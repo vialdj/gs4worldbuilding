@@ -12,7 +12,7 @@ class AsteroidBelt(World):
     _temperature_bounds = model.bounds.QuantityBounds(140 * u.K, 500 * u.K)
     _absorption = .97
     _resource_bounds = model.bounds.ValueBounds(World.Resource.WORTHLESS,
-                                                 World.Resource.MOTHERLODE)
+                                                World.Resource.MOTHERLODE)
 
     def random_resource(self):
         """sum of a 3d roll times over default worlds Ressource Value Table"""

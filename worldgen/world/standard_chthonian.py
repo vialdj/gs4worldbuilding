@@ -14,5 +14,5 @@ class StandardChthonian(World):
     _core = World.Core.LARGE_IRON_CORE
     _absorption = .97
 
-    def __init__(self):
-        super(StandardChthonian, self).__init__()
+    def __init__(self, **kw):
+        super(StandardChthonian, self).__init__(**kw)

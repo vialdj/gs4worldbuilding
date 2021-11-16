@@ -12,5 +12,5 @@ class TinyRock(World):
     _core = World.Core.SMALL_IRON_CORE
     _absorption = .97
 
-    def __init__(self):
-        super(TinyRock, self).__init__()
+    def __init__(self, **kw):
+        super(TinyRock, self).__init__(**kw)
