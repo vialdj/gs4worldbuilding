@@ -2,6 +2,7 @@
 
 from .. import model
 from . import Atmosphere, World
+from ..random import roll2d
 
 from random import uniform
 

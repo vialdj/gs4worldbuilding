@@ -2,7 +2,7 @@
 
 from .. import model
 from ..units import d_earth
-from ..random import roll3d
+from ..random import roll2d, roll3d, truncnorm_draw
 from .marginal_atmosphere import Marginal
 from . import Atmosphere
 
@@ -83,7 +83,7 @@ threshold in K"""
         """sum of a 3d roll over World Density Table"""
         if self.core is not None:
             self.density = (self.density_bounds.min + (self.density_bounds.max -
-                            self.density_bounds.min) * truncnorm_draw(1, 0, .376, .2))
+                            self.density_bounds.min) * truncnorm_draw(0, 1, .376, .2))
 
     def random_diameter(self):
         """roll of 2d-2 in range [Dmin, Dmax]"""

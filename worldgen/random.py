@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import numpy as np
-from scipy.stats import truncnorm
+from scipy.stats import truncnorm, truncexpon
 
 
 def truncnorm_draw(lower, upper, mu, sigma):

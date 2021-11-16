@@ -10,7 +10,6 @@ import random
 import enum
 
 from ordered_enum import ValueOrderedEnum
-import numpy as np
 
 
 class StarSystem(model.RandomizableModel):

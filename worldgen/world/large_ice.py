@@ -2,6 +2,7 @@
 
 from . import Atmosphere, World
 from .. import model
+from ..random import roll2d
 
 from astropy import units as u
 

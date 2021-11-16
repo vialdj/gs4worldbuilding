@@ -2,7 +2,7 @@
 
 from . import make_world
 from .. import model, World
-from ..random import roll3d, truncnorm_draw
+from ..random import roll2d, roll3d, truncnorm_draw, truncexpon_draw
 
 from enum import Enum
 from random import choices, uniform
@@ -35,7 +35,7 @@ modifier if applicable"""
         self.seed_mass = truncexpon_draw(self.seed_mass_bounds.min.value,
                                          self.seed_mass_bounds.max.value,
                                          (.26953477975949597 if self._star_system.garden_host
-                                          else .3905806446817353))
+                                          else .3905806446817353)) * u.M_sun
 
     def random_gas_giant_arrangement(self):
         """sum of a 3d roll times over Gas Giant Arrangement Table"""
