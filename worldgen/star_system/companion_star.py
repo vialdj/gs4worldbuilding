@@ -54,19 +54,18 @@ radius multiplier in AU"""
     def random_eccentricity(self):
         """sum of a 3d6 roll over Stellar Orbital Eccentricity Table with
 modifiers if any"""
-        match self.separation:
-            case self.Separation.MODERATE:
-                self.eccentricity = truncnorm_draw(0, .8, .4151, .16553546447815948)
-            case self.Separation.CLOSE:
-                self.eccentricity = truncnorm_draw(0, .7, .3055, .1839014681833726)
-            case self.Separation.VERY_CLOSE:
-                self.eccentricity = truncexpon_draw(0, .6, .1819450191678794)
-            case _:
-                self.ecccentricity = truncnorm_draw(0, .95, .5204, .142456449485448)
+        if self.separation == self.Separation.MODERATE:
+            self.eccentricity = truncnorm_draw(0, .8, .4151, .16553546447815948)
+        elif self.separation == self.Separation.CLOSE:
+            self.eccentricity = truncnorm_draw(0, .7, .3055, .1839014681833726)
+        elif self.separation == self.Separation.VERY_CLOSE:
+            self.eccentricity = truncexpon_draw(0, .6, .1819450191678794)
+        else:
+            self.ecccentricity = truncnorm_draw(0, .95, .5204, .142456449485448)
 
     def random_average_orbital_radius(self):
         """roll of 2d6 multiplied by the separation category radius"""
-        self.average_orbital_radius = roll2d() * self.separation.value * u.au)
+        self.average_orbital_radius = roll2d() * self.separation.value * u.au
 
     @property
     def seed_mass_bounds(self) -> model.bounds.QuantityBounds:
