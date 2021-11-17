@@ -65,6 +65,12 @@ class CompanionStar(Star):
                 raise ValueError('can\'t set radius to value of %s physical type' %
                                 value.unit.physical_type)
             self._set_bounded_property('radius', value)
+    
+        def __init__(self, parent_body, body):
+            self._body = body
+            self._parent_body = parent_body
+
+            self.randomize()
 
     _precedence = [*Star._precedence, 'separation']
 

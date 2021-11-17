@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from . import make_world
-from .. import model, World
-from ..random import roll2d, roll3d, truncnorm_draw, truncexpon_draw
+from .. import model
+from ..random import truncexpon_draw
 
 from enum import Enum
-from random import choices, uniform
+from random import choices
 
 import numpy as np
 from astropy import units as u
@@ -168,7 +167,7 @@ modifier if applicable"""
                 if self.luminosity_class == type(self).Luminosity.III
                 else type(self).__temp_V(self.mass))
         if (self.luminosity_class == type(self).Luminosity.IV):
-            return (temp - ((self._star_system.age -
+            return (temp - ((self._star_system.age.value -
                              type(self).__m_span(self.mass)) /
                             type(self).__s_span(self.mass)) *
                     (temp - 4800)) * u.K
@@ -203,7 +202,7 @@ modifier if applicable"""
     @property
     def snow_line(self) -> u.Quantity:
         """snow line in AU"""
-        return 4.85 * np.sqrt(self.luminosity.value) * u.au
+        return 4.85 * np.sqrt(self.__l_min(self.seed_mass)) * u.au
 
     @property
     def spectral_type(self):

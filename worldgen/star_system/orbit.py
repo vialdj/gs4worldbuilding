@@ -58,9 +58,9 @@ class Orbit(model.RandomizableModel):
                        self._body.mass.to(u.M_sun).value)) * u.a
 
 
-    def __init__(self, parent_body, body=None):
-        if body:
-            self._body = body
+    def __init__(self, parent_body, body, radius):
+        self._body = body
         self._parent_body = parent_body
+        self.radius = radius
 
         self.randomize()
