@@ -2,6 +2,7 @@
 
 from .. import model
 from ..random import truncexpon_draw
+from .populate_star import populate_star
 
 from enum import Enum
 from random import choices
@@ -216,6 +217,12 @@ modifier if applicable"""
         return ('D' if self.luminosity_class == type(self).Luminosity.D
                 else d[list(filter(lambda x: x * u.M_sun >= self.mass, sorted(d.keys())))
                        [0]])
+
+    def populate(self):
+        self._worlds = populate_star(self)
+        for i in range(0, len(self._worlds)):
+            setattr(type(self), chr(ord('b') + i),
+                    property(lambda self, i=i: self._worlds[i]))
 
     def __init__(self, star_system):
         self._star_system = star_system

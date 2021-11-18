@@ -1,4 +1,4 @@
-import worldgen as w
+import worldgen.world as w
 from worldgen.model.bounds import ValueBounds
 
 from worldgen.world.marginal_atmosphere import Marginal

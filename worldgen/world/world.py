@@ -2,7 +2,7 @@
 
 from .. import model
 from ..units import d_earth
-from ..random import roll2d, roll3d, truncnorm_draw
+from ..random import roll2d6, roll3d6, truncnorm_draw
 from .marginal_atmosphere import Marginal
 from . import Atmosphere
 
@@ -66,62 +66,62 @@ threshold in K"""
         MOTHERLODE = 5
 
     def random_resource(self):
-        """sum of a 3d roll times over default worlds Ressource Value Table"""
+        """sum of a 3d6 roll times over default worlds Ressource Value Table"""
         ressource_dist = [0, 0, 0, .01852, .14352, .67592,
                           .14352, .01852, 0, 0, 0]
         self.resource = choices(list(self.Resource),
                                 weights=ressource_dist, k=1)[0]
 
     def random_temperature(self):
-        """sum of a 3d-3 roll times step value add minimum"""
+        """sum of a 3d6-3 roll times step value add minimum"""
         tmin = self.temperature_bounds.min.value
         tmax = self.temperature_bounds.max.value
-        roll = roll3d(-3)
+        roll = roll3d6(-3, continuous=True)
         self.temperature = (tmin + roll / 15 * (tmax - tmin)) * u.K
 
     def random_density(self):
-        """sum of a 3d roll over World Density Table"""
+        """sum of a 3d6 roll over World Density Table"""
         if self.core is not None:
             self.density = (self.density_bounds.min + (self.density_bounds.max -
                             self.density_bounds.min) * truncnorm_draw(0, 1, .376, .2))
 
     def random_diameter(self):
-        """roll of 2d-2 in range [Dmin, Dmax]"""
+        """roll of 2d6-2 in range [Dmin, Dmax]"""
         if self.size is not None and self.core is not None:
-            self.diameter = (self.diameter_bounds.min + (roll2d(-2) / 10) *
+            self.diameter = (self.diameter_bounds.min + (roll2d6(-2, continuous=True) / 10) *
                              (self.diameter_bounds.max - self.diameter_bounds.min))
 
     def random_volatile_mass(self):
-        """sum of a 3d roll divided by 10"""
+        """sum of a 3d6 roll divided by 10"""
         if self.atmosphere is not None:
-            self.volatile_mass = roll3d() / 10
+            self.volatile_mass = roll3d6(continuous=True) / 10
 
     @property
     def size(self) -> Size:
         """size class variable"""
-        return type(self)._size if hasattr(type(self), '_size') else None
+        return self._size if hasattr(self, '_size') else None
 
     @property
     def core(self) -> Core:
         """core class variable"""
-        return type(self)._core if hasattr(type(self), '_core') else None
+        return self._core if hasattr(self, '_core') else None
 
     @property
     def pressure_factor(self) -> float:
         """pressure factor class variable"""
-        return (type(self)._pressure_factor
-                if hasattr(type(self), '_pressure_factor') else np.nan)
+        return (self._pressure_factor
+                if hasattr(self, '_pressure_factor') else np.nan)
 
     @property
     def greenhouse_factor(self) -> float:
         """greenhouse_factor class variable"""
-        return (type(self)._greenhouse_factor
-                if hasattr(type(self), '_greenhouse_factor') else np.nan)
+        return (self._greenhouse_factor
+                if hasattr(self, '_greenhouse_factor') else np.nan)
 
     @property
     def absorption(self) -> float:
         """absorption"""
-        return type(self)._absorption
+        return self._absorption
 
     @property
     def atmosphere(self) -> List[str]:
@@ -154,8 +154,8 @@ the same type"""
     @property
     def resource_bounds(self) -> model.bounds.ValueBounds:
         """resource range class variable"""
-        return (type(self)._resource_bounds
-                if hasattr(type(self), '_resource_bounds')
+        return (self._resource_bounds
+                if hasattr(self, '_resource_bounds')
                 else model.bounds.ValueBounds(self.Resource.VERY_POOR,
                                               self.Resource.VERY_ABUNDANT))
 
@@ -174,7 +174,7 @@ the same type"""
     @property
     def temperature_bounds(self) -> model.bounds.QuantityBounds:
         """temperature range static class variable in K"""
-        return type(self)._temperature_bounds
+        return self._temperature_bounds
 
     @temperature.setter
     def temperature(self, value: u.Quantity):
@@ -211,8 +211,8 @@ the same type"""
     @property
     def hydrosphere_bounds(self) -> model.bounds.ValueBounds:
         """hydrosphere value range class variable"""
-        return (type(self)._hydrosphere_bounds
-                if hasattr(type(self), '_hydrosphere_bounds') else None)
+        return (self._hydrosphere_bounds
+                if hasattr(self, '_hydrosphere_bounds') else None)
 
     @hydrosphere.setter
     def hydrosphere(self, value) -> float:
@@ -256,7 +256,7 @@ the same type"""
     @property
     def mass(self) -> u.Quantity:
         """mass in M⊕"""
-        return self.density * self.diameter**3
+        return self.density * self.diameter**3 * u.M_earth
 
     @property
     def climate(self) -> Climate:
@@ -308,37 +308,43 @@ the same type"""
 
         self._orbit = orbit
         self._atmosphere = (self._atmosphere(self)
-                            if hasattr(type(self), '_atmosphere')
+                            if hasattr(self, '_atmosphere')
                             else None)
         
         if orbit:
+            if not orbit._body:
+                orbit._body = self
             world = self
-            world.__class__ = OrbitingWorld
+            world.__class__ = orbiting_world(type(self))
     
         self.randomize()
 
 
-class OrbitingWorld(World):
-    """the orbiting world extended model"""
-    _precedence = [p for p in World._precedence if p != 'temperature']
+def orbiting_world(world):
 
-    """def random_eccentricity(self):
-        sum of a 3d6 roll over Planetary Orbital Eccentricity Table with
-        modifiers if any
-        self.eccentricity = truncnorm_draw(0, .8, .20445, .1492906477311958)"""
+    class OrbitingWorld(world):
+        """the orbiting world extended model"""
+        _precedence = [p for p in World._precedence if p != 'temperature']
 
-    @property
-    def blackbody_temperature(self) -> u.Quantity:
-        """blackbody temperature in K from orbit"""
-        return (278 * np.power(self._orbit._parent_body.luminosity.value, (1 / 4))
-                / np.sqrt(self._orbit.radius.value)) * u.K
+        @property
+        def blackbody_temperature(self) -> u.Quantity:
+            """blackbody temperature in K from orbit"""
+            return (278 * np.power(self._orbit._parent_body.luminosity.value, (1 / 4))
+                    / np.sqrt(self._orbit.radius.value)) * u.K
 
-    @property
-    def temperature(self):
-        """average temperature in K"""
-        return (self.blackbody_temperature.value *
-                self.blackbody_correction) * u.K
+        @property
+        def temperature(self):
+            """average temperature in K"""
+            return (self.blackbody_temperature.value *
+                    self.blackbody_correction) * u.K
 
-    @temperature.setter
-    def temperature(self, _):
-        raise AttributeError('can\'t set overriden attribute')
+        @temperature.setter
+        def temperature(self, _):
+            raise AttributeError('can\'t set overriden attribute')
+
+        @property
+        def orbit(self):
+            """the world orbit around its parent body"""
+            return self._orbit
+
+    return OrbitingWorld

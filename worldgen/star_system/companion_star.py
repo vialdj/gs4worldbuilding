@@ -2,7 +2,7 @@
 
 from . import Orbit, Star
 from .. import model
-from ..random import truncnorm_draw, truncexpon_draw, roll2d
+from ..random import truncnorm_draw, truncexpon_draw, roll2d6
 
 import random
 import enum
@@ -34,7 +34,7 @@ class CompanionStar(Star):
 
         def random_radius(self):
             """roll of 2d6 multiplied by the separation category radius"""
-            self.radius = roll2d() * self._body.separation.value * u.au
+            self.radius = roll2d6(continuous=True) * self._body.separation.value * u.au
 
         
         @property

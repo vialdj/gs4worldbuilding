@@ -1,5 +1,5 @@
 from . import model
-from .world import *
+from . import world
 from .star_system import *
 from . import constants
 from . import units

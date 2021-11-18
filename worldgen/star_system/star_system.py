@@ -105,9 +105,9 @@ from Stellar Age Table"""
                 companion._companions = [star]
                 self._stars.append(companion)
 
-        """ # populate stars orbits
+        # populate stars orbits
         for star in self._stars:
-            star.make_worlds()"""
+            star.populate()
 
         for i in range(len(self._stars)):
             setattr(type(self), chr(ord('A') + i),

@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 
+from random import randint
+
 import numpy as np
 from scipy.stats import truncnorm, truncexpon
 
@@ -13,15 +15,20 @@ def truncexpon_draw(lower, upper, sigma):
     b = (upper - lower) / sigma
     return truncexpon(b, mu, sigma).rvs()
 
-def roll2d(modifier=0):
-    left = 2 + modifier
-    right = 12 + modifier
-    mode = (left + right) / 2
-    return np.random.triangular(left, mode, right)
+def roll2d6(modifier=0, continuous=False):
+    if continuous:
+        left = 2 + modifier
+        right = 12 + modifier
+        mode = (left + right) / 2
+        return np.random.triangular(left, mode, right)
+    else:
+        return sum(np.random.randint(1, 6, 2)) + modifier
 
-def roll3d(modifier=0):
-    lower = 3 + modifier
-    upper = 18 + modifier
-    mu = ((upper - lower) / 2) + lower
-
-    return truncnorm_draw(lower, upper, mu, sigma=2.958040)
+def roll3d6(modifier=0, continuous=False):
+    if continuous:
+        lower = 3 + modifier
+        upper = 18 + modifier
+        mu = ((upper - lower) / 2) + lower
+        return truncnorm_draw(lower, upper, mu, sigma=2.958040)
+    else:
+        return sum(np.random.randint(1, 6, 3)) + modifier

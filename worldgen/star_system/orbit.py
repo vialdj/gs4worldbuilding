@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .. import model
+from .. import model, random
 
 import numpy as np
 from astropy import units as u
@@ -11,7 +11,7 @@ class Orbit(model.RandomizableModel):
     
     _precedence = ['eccentricity']
 
-    _eccentricity_bounds = model.bounds.ValueBounds(0, 1)
+    _eccentricity_bounds = model.bounds.ValueBounds(0, .8)
 
     @property
     def radius(self) -> u.Quantity:
@@ -36,6 +36,11 @@ class Orbit(model.RandomizableModel):
     def eccentricity_bounds(self) -> model.bounds.ValueBounds:
         """value range for eccentricity"""
         return self._eccentricity_bounds
+    
+    def random_eccentricity(self):
+        """sum of a 3d6 roll over Planetary Orbital Eccentricity Table with
+        modifiers if any"""
+        self.eccentricity = random.truncnorm_draw(0, .8, .20295, .15273767544387992)
 
     @eccentricity.setter
     def eccentricity(self, value: float):
@@ -58,7 +63,7 @@ class Orbit(model.RandomizableModel):
                        self._body.mass.to(u.M_sun).value)) * u.a
 
 
-    def __init__(self, parent_body, body, radius):
+    def __init__(self, parent_body, radius, body=None):
         self._body = body
         self._parent_body = parent_body
         self.radius = radius

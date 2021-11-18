@@ -1,9 +1,7 @@
 from .. import model, world
-from ..random import roll2d, roll3d, truncnorm_draw
-from .star import Star
-from .small_gas_giant import SmallGasGiant
-from .medium_gas_giant import MediumGasGiant
-from .large_gas_giant import LargeGasGiant
+from ..random import roll2d6, roll3d6, truncnorm_draw
+from .orbit import Orbit
+from .gas_giant import SmallGasGiant, MediumGasGiant, LargeGasGiant
 
 from random import uniform, choices
 
@@ -12,18 +10,18 @@ from astropy import units as u
 
 from worldgen.star_system import gas_giant
 
-def make_fgg_radius(star: Star):
+def make_fgg_radius(star):
     """generates a float representing an orbital radius given the proper
     gas giant arrangement"""
-    if star.gas_giant_arrangement == Star.GasGiantArrangement.CONVENTIONAL:
+    if star.gas_giant_arrangement == type(star).GasGiantArrangement.CONVENTIONAL:
         # roll of 2d-2 * .05 + 1 multiplied by the snow line radius
-        return (roll2d(-2) * .05 + 1) * star.snow_line.value
-    elif star.gas_giant_arrangement == Star.GasGiantArrangement.ECCENTRIC:
+        return (roll2d6(-2, continuous=True) * .05 + 1) * star.snow_line.value
+    elif star.gas_giant_arrangement == type(star).GasGiantArrangement.ECCENTRIC:
         # roll of 1d-1 * .125 multiplied by the snow line radius
         return uniform(0, .625) * star.snow_line.value
-    elif star.gas_giant_arrangement == Star.GasGiantArrangement.EPISTELLAR:
+    elif star.gas_giant_arrangement == type(star).GasGiantArrangement.EPISTELLAR:
         # roll of 3d * .1 multiplied by the inner limit radius
-        return roll3d() / 10 * star.limits.min.value
+        return roll3d6(continuous=True) / 10 * star.limits.min.value
     return np.nan
     
 def make_radius(limits, previous_radius, outward=False):
@@ -63,7 +61,7 @@ def make_radii(star):
                      )
 
     # place first radius
-    if star.gas_giant_arrangement != star.GasGiantArrangement.NONE:
+    if star.gas_giant_arrangement != type(star).GasGiantArrangement.NONE:
         # placing first gas giant if applicable
         fgg_radius = make_fgg_radius(star)
         radii.append(fgg_radius)
@@ -109,16 +107,16 @@ def make_gas_giants(star, radii, fbsl_radius):
 
     for radius in radii:
         if (radius <= star.snow_line.value):
-            if star.gas_giant_arrangement == Star.GasGiantArrangement.ECCENTRIC:
+            if star.gas_giant_arrangement == type(star).GasGiantArrangement.ECCENTRIC:
                 if uniform(0, 1) <= .25925926:
                     gas_giants.append(make_gas_giant(star, radius, radius == fbsl_radius))
                     radii.remove(radius)
-            elif star.gas_giant_arrangement == Star.GasGiantArrangement.EPISTELLAR:
+            elif star.gas_giant_arrangement == type(star).GasGiantArrangement.EPISTELLAR:
                 if uniform(0, 1) <= .09259259:
                     gas_giants.append(make_gas_giant(star, radius, radius == fbsl_radius))
                     radii.remove(radius)
         else:
-            if star.gas_giant_arrangement == Star.GasGiantArrangement.CONVENTIONAL:
+            if star.gas_giant_arrangement == type(star).GasGiantArrangement.CONVENTIONAL:
                 if uniform(0, 1) <= .9537037:
                     gas_giants.append(make_gas_giant(star, radius, radius == fbsl_radius))
                     radii.remove(radius)
@@ -128,9 +126,9 @@ def make_gas_giants(star, radii, fbsl_radius):
 
     return gas_giants
 
-def make_world(orbit, size: world.World.Size):
-    bb_temp = (278 * np.power(orbit._parent_body.luminosity.value, (1 / 4))
-               / np.sqrt(orbit.radius.value)) * u.K
+def make_world(star, radius, size: world.World.Size):
+    bb_temp = (278 * np.power(star.luminosity.value, (1 / 4))
+               / np.sqrt(radius)) * u.K
     types = {}
     if size == world.World.Size.SMALL:
         types = {0 * u.K: world.SmallHadean,
@@ -154,14 +152,31 @@ def make_world(orbit, size: world.World.Size):
     else:
         world_type = list(filter(lambda x: bb_temp >= x[0], types.items()))[-1][1]
 
-    return world_type(orbit)
+    return world_type(orbit=Orbit(star, radius * u.au))
 
 def make_worlds(star, radii):
-    pass
+    worlds = []
+
+    # TODO: implement modifiers
+    for _ in radii:
+        radius = radii.pop()
+        methods = {4: lambda _: None,
+                   7: lambda x: world.AsteroidBelt(orbit=Orbit(star, x * u.au)),
+                   9: lambda x: make_world(star, x, world.World.Size.TINY),
+                   12: lambda x: make_world(star, x, world.World.Size.SMALL),
+                   16: lambda x: make_world(star, x, world.World.Size.STANDARD)}
+        roll = roll3d6()
+        filtered = list(filter(lambda x: roll < x[0], list(methods.items())))
+        method = filtered[0][1] if len(filtered) > 0 else lambda x: make_world(star, x, world.World.Size.LARGE)
+        w = method(radius)
+        if w:
+            worlds.append(w)
+    
+    return worlds
 
 def populate_star(star):
     """the procedure to populate a star's orbits"""
-    # TODO place fgg_idx
+
     radii, fgg_idx = make_radii(star)
     
     # first radius beyond snow line
@@ -169,18 +184,16 @@ def populate_star(star):
     
     worlds = []
 
-    print(len(radii))
-
     # placing first gas_giant
     if fgg_idx > 0:
         worlds.append(make_gas_giant(star, radii[fgg_idx], radii[fgg_idx] == fbsl_radius))
         radii.remove(radii[fgg_idx])
     
-    if star.gas_giant_arrangement != Star.GasGiantArrangement.NONE:
+    if star.gas_giant_arrangement != type(star).GasGiantArrangement.NONE:
         worlds.extend(make_gas_giants(star, radii, fbsl_radius))
     
-    """self._worlds = []
-    for i in range(0, len(self._orbits)):
-        self._worlds.append(make_world(self, self._orbits[i], World.Size.STANDARD))
-        setattr(type(self), chr(ord('b') + i),
-                property(lambda self, i=i: self._worlds[i]))"""
+    worlds.extend(make_worlds(star, radii))
+
+    worlds.sort(key=lambda x: x.orbit.radius)
+
+    return worlds
