@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from .. import model
-from ..units import d_earth
+from ..units import d_earth, D_earth, G_earth
 from ..random import roll2d6, roll3d6, truncnorm_draw
 from .marginal_atmosphere import Marginal
 from . import Atmosphere
@@ -10,7 +10,6 @@ from random import choices
 from typing import List
 import enum
 
-from scipy.stats import truncnorm
 from ordered_enum import ValueOrderedEnum
 from astropy import units as u
 import numpy as np
@@ -190,7 +189,7 @@ the same type"""
         """density in d⊕"""
         return (self._get_bounded_property('density')
                 if hasattr(self, '_density')
-                else np.nan)
+                else np.nan) * d_earth
 
     @property
     def density_bounds(self) -> model.bounds.QuantityBounds:
@@ -223,18 +222,25 @@ the same type"""
         """diameter in D⊕"""
         return (self._get_bounded_property('diameter')
                 if hasattr(self, '_diameter')
-                else np.nan)
+                else np.nan) * D_earth
 
     @property
     def diameter_bounds(self) -> model.bounds.QuantityBounds:
         """computed value range for diameter"""
-        return (model.bounds.QuantityBounds(np.sqrt(self.blackbody_temperature / self.density) * self.size[0],
-                               np.sqrt(self.blackbody_temperature / self.density) * self.size[1])
-                if self.density and self.size else None)
+        return (model.bounds.QuantityBounds(
+                np.sqrt(self.blackbody_temperature.value / self.density.value) * self.size[0] * D_earth,
+                np.sqrt(self.blackbody_temperature.value / self.density.value) * self.size[1] * D_earth)
+                if self.density and self.size else None
+                )
 
     @diameter.setter
     def diameter(self, value: u.Quantity):
-        self._set_bounded_property('diameter', value)
+        if not isinstance(value, u.Quantity):
+            raise ValueError('expected quantity type value')
+        if 'length' not in value.unit.physical_type:
+            raise ValueError('can\'t set diameter to value of %s physical type' %
+                             value.unit.physical_type)
+        self._set_bounded_property('diameter', value.to(D_earth))
 
     @property
     def blackbody_correction(self) -> float:
@@ -251,12 +257,12 @@ the same type"""
     @property
     def gravity(self) -> u.Quantity:
         """surface gravity in G⊕"""
-        return self.density * self.diameter
+        return self.density.value * self.diameter.value * G_earth
 
     @property
     def mass(self) -> u.Quantity:
         """mass in M⊕"""
-        return self.density * self.diameter**3 * u.M_earth
+        return self.density.value * self.diameter.value ** 3 * u.M_earth
 
     @property
     def climate(self) -> Climate:

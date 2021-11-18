@@ -5,6 +5,8 @@ from .. import model
 import enum
 
 import numpy as np
+from astropy import units as u
+from astropy.units import cds
 from ordered_enum import ValueOrderedEnum
 
 
@@ -12,15 +14,15 @@ class Atmosphere(model.Model):
     """the Atmosphere Model"""
 
     @enum.unique
-    class Pressure(float, ValueOrderedEnum):
+    class Pressure(u.Quantity, ValueOrderedEnum):
         """class Pressure Enum from Atmospheric Pressure Categories Table"""
-        TRACE = .0
-        VERY_THIN = .01
-        THIN = .51
-        STANDARD = .81
-        DENSE = 1.21
-        VERY_DENSE = 1.51
-        SUPER_DENSE = 10
+        TRACE = .0 * cds.atm
+        VERY_THIN = .01 * cds.atm
+        THIN = .51 * cds.atm
+        STANDARD = .81 * cds.atm
+        DENSE = 1.21 * cds.atm
+        VERY_DENSE = 1.51 * cds.atm
+        SUPER_DENSE = 10 * cds.atm
 
     @enum.unique
     class Toxicity(ValueOrderedEnum):
@@ -58,7 +60,7 @@ class Atmosphere(model.Model):
     def pressure(self):
         """atmospheric pressure in atm⊕"""
         return (self._world.volatile_mass * self._world.pressure_factor
-                * self._world.gravity)
+                * self._world.gravity.value) * cds.atm
 
     @property
     def pressure_category(self):

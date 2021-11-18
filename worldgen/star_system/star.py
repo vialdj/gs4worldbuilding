@@ -220,7 +220,7 @@ modifier if applicable"""
 
     def populate(self):
         self._worlds = populate_star(self)
-        for i in range(0, len(self._worlds)):
+        for i in range(len(self._worlds)):
             setattr(type(self), chr(ord('b') + i),
                     property(lambda self, i=i: self._worlds[i]))
 

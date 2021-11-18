@@ -1,4 +1,5 @@
 import worldgen.world as w
+from worldgen import units
 from worldgen.model.bounds import ValueBounds
 
 from worldgen.world.marginal_atmosphere import Marginal
@@ -151,7 +152,7 @@ def test_set_hydrosphere_raises_exception_on_no_bounds(asteroid_belt):
 
 def test_set_volatile_mass_raises_exception_on_no_bounds(asteroid_belt):
     with pytest.raises(AttributeError):
-        asteroid_belt.diameter = np.nan
+        asteroid_belt.diameter = 1 * units.D_earth
 
 
 def test_set_diameter_raises_exception_on_no_bounds(asteroid_belt):
@@ -214,8 +215,8 @@ def test_tiny_ice(tiny_ice):
     assert np.isnan(tiny_ice.hydrosphere)
     assert tiny_ice.core is w.World.Core.ICY_CORE
     assert tiny_ice.size is w.World.Size.TINY
-    assert (tiny_ice.density >= .3 and
-            tiny_ice.density <= .7)
+    assert (tiny_ice.density >= .3 * units.d_earth and
+            tiny_ice.density <= .7 * units.d_earth)
 
 
 def test_small_ice(small_ice):
@@ -234,8 +235,8 @@ def test_small_ice(small_ice):
     assert small_ice.pressure_factor == 10
     assert small_ice.core is w.World.Core.ICY_CORE
     assert small_ice.size is w.World.Size.SMALL
-    assert (small_ice.density >= .3 and
-            small_ice.density <= .7)
+    assert (small_ice.density >= .3 * units.d_earth and
+            small_ice.density <= .7 * units.d_earth)
 
 
 def test_standard_ice(standard_ice):
@@ -254,8 +255,8 @@ def test_standard_ice(standard_ice):
     assert standard_ice.pressure_factor == 1
     assert standard_ice.core is w.World.Core.LARGE_IRON_CORE
     assert standard_ice.size is w.World.Size.STANDARD
-    assert (standard_ice.density >= .8 and
-            standard_ice.density <= 1.2)
+    assert (standard_ice.density >= .8 * units.d_earth and
+            standard_ice.density <= 1.2 * units.d_earth)
 
 
 def test_large_ice(large_ice):
@@ -273,8 +274,8 @@ def test_large_ice(large_ice):
     assert large_ice.pressure_factor == 5
     assert large_ice.core is w.World.Core.LARGE_IRON_CORE
     assert large_ice.size is w.World.Size.LARGE
-    assert (large_ice.density >= .8 and
-            large_ice.density <= 1.2)
+    assert (large_ice.density >= .8 * units.d_earth and
+            large_ice.density <= 1.2 * units.d_earth)
 
 
 def test_standard_greenhouse(standard_greenhouse):
@@ -297,8 +298,8 @@ def test_standard_greenhouse(standard_greenhouse):
     assert standard_greenhouse.pressure_factor == 100
     assert standard_greenhouse.core is w.World.Core.LARGE_IRON_CORE
     assert standard_greenhouse.size is w.World.Size.STANDARD
-    assert (standard_greenhouse.density >= .8 and
-            standard_greenhouse.density <= 1.2)
+    assert (standard_greenhouse.density >= .8 * units.d_earth and
+            standard_greenhouse.density <= 1.2 * units.d_earth)
 
 
 def test_large_greenhouse(large_greenhouse):
@@ -321,8 +322,8 @@ def test_large_greenhouse(large_greenhouse):
     assert large_greenhouse.pressure_factor == 500
     assert large_greenhouse.core is w.World.Core.LARGE_IRON_CORE
     assert large_greenhouse.size is w.World.Size.LARGE
-    assert (large_greenhouse.density >= .8 and
-            large_greenhouse.density <= 1.2)
+    assert (large_greenhouse.density >= .8 * units.d_earth and
+            large_greenhouse.density <= 1.2 * units.d_earth)
 
 
 def test_standard_ocean(standard_ocean):
@@ -347,8 +348,8 @@ def test_standard_ocean(standard_ocean):
     assert standard_ocean.pressure_factor == 1
     assert standard_ocean.core is w.World.Core.LARGE_IRON_CORE
     assert standard_ocean.size is w.World.Size.STANDARD
-    assert (standard_ocean.density >= .8 and
-            standard_ocean.density <= 1.2)
+    assert (standard_ocean.density >= .8 * units.d_earth and
+            standard_ocean.density <= 1.2 * units.d_earth)
 
 
 def test_large_ocean(large_ocean):
@@ -372,8 +373,8 @@ def test_large_ocean(large_ocean):
     assert large_ocean.pressure_factor == 5
     assert large_ocean.core is w.World.Core.LARGE_IRON_CORE
     assert large_ocean.size is w.World.Size.LARGE
-    assert (large_ocean.density >= .8 and
-            large_ocean.density <= 1.2)
+    assert (large_ocean.density >= .8 * units.d_earth and
+            large_ocean.density <= 1.2 * units.d_earth)
 
 
 def test_standard_ammonia(standard_ammonia):
@@ -391,8 +392,8 @@ def test_standard_ammonia(standard_ammonia):
     assert standard_ammonia.pressure_factor == 1
     assert standard_ammonia.core is w.World.Core.ICY_CORE
     assert standard_ammonia.size is w.World.Size.STANDARD
-    assert (standard_ammonia.density >= .3 and
-            standard_ammonia.density <= .7)
+    assert (standard_ammonia.density >= .3 * units.d_earth and
+            standard_ammonia.density <= .7 * units.d_earth)
 
 
 def test_large_ammonia(large_ammonia):
@@ -410,8 +411,8 @@ def test_large_ammonia(large_ammonia):
     assert large_ammonia.pressure_factor == 5
     assert large_ammonia.core == w.World.Core.ICY_CORE
     assert large_ammonia.size == w.World.Size.LARGE
-    assert (large_ammonia.density >= .3 and
-            large_ammonia.density <= .7)
+    assert (large_ammonia.density >= .3 * units.d_earth and
+            large_ammonia.density <= .7 * units.d_earth)
 
 
 def test_standard_garden(standard_garden):
@@ -436,8 +437,8 @@ def test_standard_garden(standard_garden):
     assert standard_garden.pressure_factor == 1
     assert standard_garden.core == w.World.Core.LARGE_IRON_CORE
     assert standard_garden.size == w.World.Size.STANDARD
-    assert (standard_garden.density >= .8 and
-            standard_garden.density <= 1.2)
+    assert (standard_garden.density >= .8 * units.d_earth and
+            standard_garden.density <= 1.2 * units.d_earth)
 
 
 def test_large_garden(large_garden):
@@ -463,8 +464,8 @@ def test_large_garden(large_garden):
     assert large_garden.pressure_factor == 5
     assert large_garden.core == w.World.Core.LARGE_IRON_CORE
     assert large_garden.size == w.World.Size.LARGE
-    assert (large_garden.density >= .8 and
-            large_garden.density <= 1.2)
+    assert (large_garden.density >= .8 * units.d_earth and
+            large_garden.density <= 1.2 * units.d_earth)
 
 
 def test_standard_chthonian(standard_chthonian):
@@ -477,8 +478,8 @@ def test_standard_chthonian(standard_chthonian):
     assert np.isnan(standard_chthonian.hydrosphere)
     assert standard_chthonian.core == w.World.Core.LARGE_IRON_CORE
     assert standard_chthonian.size == w.World.Size.STANDARD
-    assert (standard_chthonian.density >= .8 and
-            standard_chthonian.density <= 1.2)
+    assert (standard_chthonian.density >= .8 * units.d_earth and
+            standard_chthonian.density <= 1.2 * units.d_earth)
 
 
 def test_large_chthonian(large_chthonian):
@@ -491,8 +492,8 @@ def test_large_chthonian(large_chthonian):
     assert np.isnan(large_chthonian.hydrosphere)
     assert large_chthonian.core == w.World.Core.LARGE_IRON_CORE
     assert large_chthonian.size == w.World.Size.LARGE
-    assert (large_chthonian.density >= .8 and
-            large_chthonian.density <= 1.2)
+    assert (large_chthonian.density >= .8 * units.d_earth and
+            large_chthonian.density <= 1.2 * units.d_earth)
 
 
 def test_small_hadean(small_hadean):
@@ -505,8 +506,8 @@ def test_small_hadean(small_hadean):
     assert np.isnan(small_hadean.hydrosphere)
     assert small_hadean.core == w.World.Core.ICY_CORE
     assert small_hadean.size == w.World.Size.SMALL
-    assert (small_hadean.density >= .3 and
-            small_hadean.density <= .7)
+    assert (small_hadean.density >= .3 * units.d_earth and
+            small_hadean.density <= .7 * units.d_earth)
 
 
 def test_standard_hadean(standard_hadean):
@@ -519,8 +520,8 @@ def test_standard_hadean(standard_hadean):
     assert np.isnan(standard_hadean.hydrosphere)
     assert standard_hadean.core == w.World.Core.ICY_CORE
     assert standard_hadean.size == w.World.Size.STANDARD
-    assert (standard_hadean.density >= .3 and
-            standard_hadean.density <= .7)
+    assert (standard_hadean.density >= .3 * units.d_earth and
+            standard_hadean.density <= .7 * units.d_earth)
 
 
 def test_tiny_rock(tiny_rock):
@@ -533,8 +534,8 @@ def test_tiny_rock(tiny_rock):
     assert np.isnan(tiny_rock.hydrosphere)
     assert tiny_rock.core == w.World.Core.SMALL_IRON_CORE
     assert tiny_rock.size == w.World.Size.TINY
-    assert (tiny_rock.density >= .6 and
-            tiny_rock.density <= 1)
+    assert (tiny_rock.density >= .6 * units.d_earth and
+            tiny_rock.density <= 1 * units.d_earth)
 
 
 def test_small_rock(small_rock):
@@ -547,8 +548,8 @@ def test_small_rock(small_rock):
     assert np.isnan(small_rock.hydrosphere)
     assert small_rock.core == w.World.Core.SMALL_IRON_CORE
     assert small_rock.size == w.World.Size.SMALL
-    assert (small_rock.density >= .6 and
-            small_rock.density <= 1)
+    assert (small_rock.density >= .6 * units.d_earth and
+            small_rock.density <= 1 * units.d_earth)
 
 
 def test_tiny_sulfur(tiny_sulfur):
@@ -561,8 +562,8 @@ def test_tiny_sulfur(tiny_sulfur):
     assert np.isnan(tiny_sulfur.hydrosphere)
     assert tiny_sulfur.core == w.World.Core.ICY_CORE
     assert tiny_sulfur.size == w.World.Size.TINY
-    assert (tiny_sulfur.density >= .3 and
-            tiny_sulfur.density <= .7)
+    assert (tiny_sulfur.density >= .3 * units.d_earth and
+            tiny_sulfur.density <= .7 * units.d_earth)
 
 
 # Tests on marginal atmosphere modifiers

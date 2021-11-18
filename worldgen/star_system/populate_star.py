@@ -180,7 +180,8 @@ def populate_star(star):
     radii, fgg_idx = make_radii(star)
     
     # first radius beyond snow line
-    fbsl_radius = list(filter(lambda x: x >= star.snow_line.value, radii))[-1]
+    l = list(filter(lambda x: x >= star.snow_line.value, radii))
+    fbsl_radius = l[-1] if len(l) > 0 else -1
     
     worlds = []
 
