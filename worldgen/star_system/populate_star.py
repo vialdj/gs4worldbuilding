@@ -108,19 +108,19 @@ def make_gas_giants(star, radii, fbsl_radius):
     for radius in radii:
         if (radius <= star.snow_line.value):
             if star.gas_giant_arrangement == type(star).GasGiantArrangement.ECCENTRIC:
-                if uniform(0, 1) <= .25925926:
+                if roll3d6() <= 8:
                     gas_giants.append(make_gas_giant(star, radius, radius == fbsl_radius))
                     radii.remove(radius)
             elif star.gas_giant_arrangement == type(star).GasGiantArrangement.EPISTELLAR:
-                if uniform(0, 1) <= .09259259:
+                if roll3d6() <= 6:
                     gas_giants.append(make_gas_giant(star, radius, radius == fbsl_radius))
                     radii.remove(radius)
         else:
             if star.gas_giant_arrangement == type(star).GasGiantArrangement.CONVENTIONAL:
-                if uniform(0, 1) <= .9537037:
+                if roll3d6() <= 15:
                     gas_giants.append(make_gas_giant(star, radius, radius == fbsl_radius))
                     radii.remove(radius)
-            elif uniform(0, 1) <= .90740741:
+            elif roll3d6() <= 14:
                 gas_giants.append(make_gas_giant(star, radius, radius == fbsl_radius))
                 radii.remove(radius)
 

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from ..random import roll3d6
 from .. import model
 from . import Atmosphere, World
 
@@ -18,7 +19,7 @@ class SmallIce(World):
 
         def randomize(self):
             """sum of a 3d roll to define toxicity conditionally on <= 15"""
-            if uniform(0, 1) < .9537:
+            if roll3d6() <= 15:
                 self._toxicity = Atmosphere.Toxicity.MILD
             else:
                 self._toxicity = Atmosphere.Toxicity.HIGH

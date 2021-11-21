@@ -2,11 +2,8 @@
 
 from .. import model
 from . import Atmosphere, World
-from ..random import roll2d6
+from ..random import roll2d6, roll3d6
 
-from random import uniform
-
-import numpy as np
 from astropy import units as u
 
 
@@ -20,7 +17,7 @@ class StandardIce(World):
 
         def randomize(self):
             """sum of a 3d roll to define toxicity if value > 12"""
-            if uniform(0, 1) < .7407:
+            if roll3d6() > 12:
                 self._toxicity = Atmosphere.Toxicity.MILD
 
     _temperature_bounds = model.bounds.QuantityBounds(80 * u.K, 230 * u.K)

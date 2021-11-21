@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+from ..random import roll3d6
 from .. import model
 from .marginal_atmosphere import MarginalCandidate
 from . import Atmosphere, World
@@ -19,7 +20,7 @@ class LargeGarden(World):
 
         def randomize(self):
             """sum of a 3d roll to apply marginal modifier if > 11"""
-            if uniform(0, 1) < .375:
+            if roll3d6() > 11:
                 self.make_marginal()
 
     _temperature_bounds = model.bounds.QuantityBounds(250 * u.K, 340 * u.K)

@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 
+from ..random import roll3d6
 from .. import model
 from . import Atmosphere, World
-
-from random import uniform
 
 from astropy import units as u
 
@@ -19,7 +18,7 @@ class StandardOcean(World):
 
         def randomize(self):
             """sum of a 3d roll to define toxicity if value > 12"""
-            if uniform(0, 1) < .7407:
+            if roll3d6() > 12:
                 self._toxicity = Atmosphere.Toxicity.MILD
             else:
                 self._toxicity = None
