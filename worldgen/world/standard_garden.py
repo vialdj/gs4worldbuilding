@@ -20,7 +20,7 @@ class StandardGarden(World):
 
         def randomize(self):
             """sum of a 3d roll to apply marginal modifier if > 11"""
-            if roll3d6 > 11:
+            if roll3d6() > 11:
                 self.make_marginal()
             else:
                 self.remove_marginal()
