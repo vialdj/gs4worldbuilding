@@ -27,6 +27,7 @@ class Builder():
                 world.LargeOcean: .00938964,
                 world.AsteroidBelt: .16274024}
 
+        # consecutive 3d6 rolls over Overall Type Table and World Type Table
         world_type = choices(list(dist.keys()),
                              weights=list(dist.values()))[0]
         return world_type()

@@ -1,11 +1,10 @@
 # -*- coding: utf-8 -*-
 
 from .. import model
-from ..random import truncexpon_draw
+from ..random import truncexpon_draw, roll3d6
 from .populate_star import populate_star
 
 from enum import Enum
-from random import choices
 
 import numpy as np
 from astropy import units as u
@@ -39,10 +38,13 @@ modifier if applicable"""
 
     def random_gas_giant_arrangement(self):
         """sum of a 3d roll times over Gas Giant Arrangement Table"""
-        distribution = [.5, .24074, 0.16666, .0926]
-        self.gas_giant_arrangement = choices(list(self.GasGiantArrangement),
-                                             weights=distribution,
-                                             k=1)[0]
+        arrangements = {11: self.GasGiantArrangement.NONE,
+                       13: self.GasGiantArrangement.CONVENTIONAL,
+                       15: self.GasGiantArrangement.ECCENTRIC}
+        roll = roll3d6()
+        filtered = list(filter(lambda x: roll < x[0], list(arrangements.items())))
+
+        self.gas_giant_arrangement = filtered[0][1] if len(filtered) > 0 else self.GasGiantArrangement.EPISTELLAR
 
     @staticmethod
     def __l_max(mass):

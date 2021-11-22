@@ -3,7 +3,7 @@ from ..random import roll2d6, roll3d6, truncnorm_draw
 from .orbit import Orbit
 from .gas_giant import SmallGasGiant, MediumGasGiant, LargeGasGiant
 
-from random import uniform, choices
+from random import uniform
 
 import numpy as np
 from astropy import units as u
@@ -88,18 +88,13 @@ def make_radii(star):
 
 def make_gas_giant(star, radius, fbsl=False):
     
-    gas_giant_dist = {SmallGasGiant: .5,
-                      MediumGasGiant: .481481481,
-                      LargeGasGiant: .018518519}
+    gas_giant_types = {11: SmallGasGiant,
+                       17: MediumGasGiant}
 
-    if radius <= star.snow_line.value or fbsl:
-        gas_giant_dist = {SmallGasGiant: .092592593,
-                          MediumGasGiant: .648148148,
-                          LargeGasGiant: .259259259}
-    
-    gas_giant_type = choices(list(gas_giant_dist.keys()),
-                             weights=list(gas_giant_dist.values()))[0]
-    
+    roll = roll3d6(+4) if radius <= star.snow_line.value or fbsl else roll3d6()
+    filtered = list(filter(lambda x: roll < x[0], list(gas_giant_types.items())))
+    gas_giant_type = filtered[0][1] if len(filtered) > 0 else LargeGasGiant
+   
     return gas_giant_type(star, radius * u.au)
 
 def make_gas_giants(star, radii, fbsl_radius):
