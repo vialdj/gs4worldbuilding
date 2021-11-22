@@ -4,6 +4,8 @@ from ..random import roll3d6
 from .. import model
 from . import Atmosphere, World
 
+from random import uniform
+
 from astropy import units as u
 
 
