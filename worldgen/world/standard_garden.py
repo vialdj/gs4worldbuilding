@@ -1,11 +1,9 @@
 # -*- coding: utf-8 -*-
 
-from ..random import roll3d6
+from ..random import roll1d6, roll3d6
 from .. import model
 from .marginal_atmosphere import MarginalCandidate
 from . import Atmosphere, World
-
-from random import uniform
 
 from astropy import units as u
 
@@ -35,7 +33,7 @@ class StandardGarden(World):
 
     def random_hydrosphere(self):
         """roll of 1d+4 divided by 10"""
-        self.hydrosphere = uniform(.5, 1)
+        self.hydrosphere = roll1d6(4, continuous=True) / 10
 
     @property
     def absorption(self):

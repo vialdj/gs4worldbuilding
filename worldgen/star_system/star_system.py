@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from .. import model
+from ..random import roll1d6, roll3d6
 from . import Star
 from . import CompanionStar
 
@@ -46,8 +47,8 @@ steps in Ga"""
         """2 distinct rolls of 1d-1 times step-a and step-b added to base age
 from Stellar Age Table"""
         self.age = (self.population.base +
-                    random.uniform(0, 5) * self.population.step_a +
-                    random.uniform(0, 5) * self.population.step_b)
+                    roll1d6(-1, continuous=True) * self.population.step_a +
+                    roll1d6(-1, continuous=True) * self.population.step_b)
 
     @property
     def age(self) -> u.Quantity:
@@ -98,7 +99,7 @@ from Stellar Age Table"""
         # sub-companion star rolls if allowed
         for star in filter(lambda s: s.separation >=
                            CompanionStar.Separation.DISTANT, self._stars[1:]):
-            if (random.uniform(0, 1) > .5):
+            if roll3d6() >= 11:
                 companion = CompanionStar(self, star, sub_companion=True)
                 # the two stars are closest companions
                 star._companions.insert(0, companion)

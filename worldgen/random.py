@@ -15,6 +15,12 @@ def truncexpon_draw(lower, upper, sigma):
     b = (upper - lower) / sigma
     return truncexpon(b, mu, sigma).rvs()
 
+def roll1d6(modifier=0, continuous=False):
+    if continuous:
+        return np.random.uniform(1 + modifier, 6 + modifier)
+    else:
+        return np.random.randint(1, 6) + modifier
+
 def roll2d6(modifier=0, continuous=False):
     if continuous:
         left = 2 + modifier

@@ -1,10 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from ..random import roll3d6
+from ..random import roll1d6, roll3d6
 from .. import model
 from . import Atmosphere, World
-
-from random import uniform
 
 from astropy import units as u
 
@@ -35,7 +33,7 @@ class SmallIce(World):
 
     def random_hydrosphere(self):
         """roll of 1d+2 divided by 10"""
-        self.hydrosphere = uniform(.3, .8)
+        self.hydrosphere = roll1d6(2, continuous=True) / 10
 
     def __init__(self, **kw):
         super(SmallIce, self).__init__(**kw)
