@@ -65,7 +65,7 @@ def high_oxygen(atmosphere):
 def inert_gases(atmosphere):
 
     class InertGases(atmosphere, Marginal):
-        pass
+        _toxicity = Atmosphere.Toxicity.NONE
 
     return InertGases
 

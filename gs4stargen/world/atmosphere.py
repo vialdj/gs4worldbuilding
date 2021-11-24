@@ -73,7 +73,7 @@ class Atmosphere(model.Model):
     @property
     def breathable(self):
         """is the atmosphere breathable"""
-        return not (self.toxicity is not None or self.suffocating
+        return not (self.suffocating
                     or self.corrosive)
 
     def __init__(self, world):
