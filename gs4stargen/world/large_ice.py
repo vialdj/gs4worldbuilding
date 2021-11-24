@@ -1,0 +1,34 @@
+# -*- coding: utf-8 -*-
+
+from . import Atmosphere, TerrestrialWorld
+from .. import model
+from ..random import roll2d6
+
+from astropy import units as u
+
+
+class LargeIce(TerrestrialWorld):
+    """the large ice world model"""
+
+    class LargeIceAtmosphere(Atmosphere):
+        """the large ice atmosphere model"""
+        _composition = ['He', 'N2']
+        _toxicity = Atmosphere.Toxicity.HIGH
+        _suffocating = True
+
+    _designation = "Large (Ice)"
+    _temperature_bounds = model.bounds.QuantityBounds(80 * u.K, 230 * u.K)
+    _size = TerrestrialWorld.Size.LARGE
+    _core = TerrestrialWorld.Core.LARGE_IRON_CORE
+    _pressure_factor = 5
+    _greenhouse_factor = .2
+    _hydrographic_coverage_bounds = model.bounds.ValueBounds(0, .2)
+    _absorption = .86
+    _atmosphere = LargeIceAtmosphere
+
+    def random_hydrographic_coverage(self):
+        """roll of 2d-10 minimum at 0 and divided by 10"""
+        self.hydrographic_coverage = max(roll2d6(-10, continuous=True) / 10, 0)
+
+    def __init__(self, **kw):
+        super(LargeIce, self).__init__(**kw)

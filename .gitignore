@@ -1,6 +1,8 @@
 *.pyc
 .vscode
 htmlcov/*
+gs4stargen/templates/*
+gs4stargen/app.py
 .coverage
-worldgen/.coverage
+gs4stargen/.coverage
 notebooks/.ipynb_checkpoints/*

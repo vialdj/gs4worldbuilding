@@ -1,5 +1,5 @@
 
-import worldgen as w
+import gs4stargen as w
 from astropy import units as u
 
 import pytest
