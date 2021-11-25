@@ -266,7 +266,7 @@ the same type"""
 
     @property
     def gravity(self) -> u.Quantity:
-        """surface gravity in G⊕"""
+        """surface gravity in g"""
         return self.density.value * self.diameter.value * G_earth
 
     @property

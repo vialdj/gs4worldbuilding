@@ -229,6 +229,7 @@ modifier if applicable"""
     def populate(self):
         self._worlds = populate_star(self)
         for i in range(len(self._worlds)):
+            self._worlds[i].name = '{}{}'.format(self.name, chr(ord('b') + i))
             setattr(type(self), chr(ord('b') + i),
                     property(lambda self, i=i: self._worlds[i]))
 

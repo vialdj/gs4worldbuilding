@@ -23,6 +23,14 @@ class Model(object):
         value = getattr(self, '_{}'.format(prop))
         return bounds.scale(value)
 
+    @property
+    def name(self) -> str:
+        return self._name if hasattr(self, '_name') else None
+
+    @name.setter
+    def name(self, value: str):
+        self._name = value
+
     def __iter__(self):
         """yield property names and values"""
         for prop in list(filter(lambda x: hasattr(type(self), x)

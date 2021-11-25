@@ -24,6 +24,7 @@ class StarSystem(model.RandomizableModel):
         UNARY = 1
         BINARY = 2
         TERNARY = 3
+        QUATERARY = 4
 
     population = namedtuple('Population', ['base', 'step_a', 'step_b'])
 
@@ -63,6 +64,10 @@ from Stellar Age Table"""
             self.population.base + 5 * self.population.step_a +
             5 * self.population.step_b
         )
+
+    @property
+    def multiplicity(self):
+        return list(self.MultipleStars)[len(self._stars) - 1]
 
     @age.setter
     def age(self, value):
@@ -106,13 +111,16 @@ from Stellar Age Table"""
                 companion._companions = [star]
                 self._stars.append(companion)
 
-        # populate stars orbits
-        for star in self._stars:
-            star.populate()
-
         for i in range(len(self._stars)):
+            self._stars[i].name = chr(ord('A') + i)
             setattr(type(self), chr(ord('A') + i),
                     property(lambda self, i=i: self._stars[i]))
+
+        # populate stars orbits
+        self._worlds = []
+        for star in self._stars:
+            star.populate()
+            self._worlds.extend(star._worlds)
 
     def random_stars(self):
         """the system randomization of stars"""

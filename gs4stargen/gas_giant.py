@@ -74,7 +74,7 @@ class GasGiantWorld(model.RandomizableModel):
     @property
     def diameter(self) -> u.Quantity:
         """diameter in D⊕"""
-        return np.power(self.mass.value / self.density.value, (1 / 3))
+        return np.power(self.mass.value / self.density.value, (1 / 3)) * units.D_earth
 
     def __init__(self, parent_body, radius):
         self._orbit = type(self).GasGiantOrbit(parent_body, radius, self)
