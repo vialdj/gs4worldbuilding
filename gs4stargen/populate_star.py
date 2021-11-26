@@ -3,6 +3,8 @@ from .random import roll1d6, roll2d6, roll3d6, truncnorm_draw
 from .orbit import Orbit
 from .gas_giant import GasGiantWorld, SmallGasGiant, MediumGasGiant, LargeGasGiant
 
+from collections import namedtuple
+
 import numpy as np
 from astropy import units as u
 
@@ -112,9 +114,9 @@ def terrestrial_type(parent, size, radius=np.nan):
         world_type = world.TinyIce if blackbody_temperature <= 140 * u.K else world.TinyRock
     else:
         world_type = list(filter(lambda x: blackbody_temperature >= x[0], types.items()))[-1][1]
-    
+
     return world_type
- 
+
 def make_moon(parent):
     sizes = sorted(list(world.TerrestrialWorld.Size))
     parent_size = world.TerrestrialWorld.Size.LARGE if issubclass(type(parent), GasGiantWorld) else parent.size
@@ -207,24 +209,45 @@ def make_terrestrial(star, radius, size: world.TerrestrialWorld.Size):
     world_type = terrestrial_type(star, size, radius)
     return world_type(orbit=Orbit(star, radius * u.au))
 
-def make_terrestrials(star, radii):
-    worlds = []
+def make_terrestrials(star, worlds, radii):
 
     # TODO: implement modifiers
-    for _ in radii:
-        radius = radii.pop()
-        methods = {4: lambda _: None,
-                   7: lambda x: world.AsteroidBelt(orbit=Orbit(star, x * u.au)),
-                   9: lambda x: make_terrestrial(star, x, world.TerrestrialWorld.Size.TINY),
-                   12: lambda x: make_terrestrial(star, x, world.TerrestrialWorld.Size.SMALL),
-                   16: lambda x: make_terrestrial(star, x, world.TerrestrialWorld.Size.STANDARD)}
-        roll = roll3d6()
-        filtered = list(filter(lambda x: roll < x[0], list(methods.items())))
-        method = filtered[0][1] if len(filtered) > 0 else lambda x: make_terrestrial(star, x, world.TerrestrialWorld.Size.LARGE)
-        w = method(radius)
-        if w:
-            worlds.append(w)
-    
+
+    orbits = []
+    orbits.extend([[limit.value, 'LIMIT', 0] for limit in star.limits])
+    if star.forbidden_zone:
+        orbits.extend([[limit.value, 'FORBIDDEN_ZONE', 0] for limit in star.forbidden_zone])
+
+    for w in worlds:
+        orbits.append([w.orbit.radius.value, 'GAS_GIANT', 0])
+
+    orbits.extend([[radius, None, 0] for radius in radii])
+    orbits.sort(key=lambda o: o[0])
+
+    methods = {4: lambda _: None,
+               7: lambda x: world.AsteroidBelt(orbit=Orbit(star, x * u.au)),
+               9: lambda x: make_terrestrial(star, x, world.TerrestrialWorld.Size.TINY),
+               12: lambda x: make_terrestrial(star, x, world.TerrestrialWorld.Size.SMALL),
+               16: lambda x: make_terrestrial(star, x, world.TerrestrialWorld.Size.STANDARD)}
+
+    for i in range(1, len(orbits)):
+        if not orbits[i][1]:
+            if orbits[i - 1][1] == 'LIMIT' or (i + 1 < len(orbits) and orbits[i + 1][1] == 'LIMIT'):
+                orbits[i][2] -= 3
+            if orbits[i - 1][1] == 'FORBIDDEN_ZONE' or (i + 1 < len(orbits) and orbits[i + 1][1] == 'FORBIDDEN_ZONE'):
+                orbits[i][2] -= 6
+            if orbits[i - 1][1] == 'GAS_GIANT':
+                orbits[i][2] -= 3
+            if i + 1 < len(orbits) and orbits[i + 1][1] == 'GAS_GIANT':
+                orbits[i][2] -= 6
+
+            roll = roll3d6(orbits[i][2])
+            filtered = list(filter(lambda x: roll < x[0], list(methods.items())))
+            method = filtered[0][1] if len(filtered) > 0 else lambda x: make_terrestrial(star, x, world.TerrestrialWorld.Size.LARGE)
+            w = method(orbits[i][0])
+            if w:
+                worlds.append(w)
+
     return worlds
 
 def populate_star(star):
@@ -235,19 +258,19 @@ def populate_star(star):
     # first radius beyond snow line
     l = list(filter(lambda x: x >= star.snow_line.value, radii))
     fbsl_radius = l[-1] if len(l) > 0 else -1
-    
+
     worlds = []
 
     # placing first gas_giant
     if fgg_idx > 0:
         worlds.append(make_gas_giant(star, radii[fgg_idx], radii[fgg_idx] == fbsl_radius))
         radii.remove(radii[fgg_idx])
-    
+
     if star.gas_giant_arrangement != type(star).GasGiantArrangement.NONE:
         worlds.extend(make_gas_giants(star, radii, fbsl_radius))
-    
-    worlds.extend(make_terrestrials(star, radii))
 
-    worlds.sort(key=lambda x: x.orbit.radius)
+    make_terrestrials(star, worlds, radii)
+
+    worlds.sort(key=lambda w: w.orbit.radius)
 
     return worlds
