@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from . import Atmosphere, TerrestrialWorld
+from . import Atmosphere, Terrestrial
 from .. import model
 from ..random import roll2d6
 
 from astropy import units as u
 
 
-class StandardAmmonia(TerrestrialWorld):
+class StandardAmmonia(Terrestrial):
     """the standard ammonia world model"""
 
     class StandardAmmoniaAtmosphere(Atmosphere):
@@ -17,10 +17,9 @@ class StandardAmmonia(TerrestrialWorld):
         _suffocating = True
         _corrosive = True
 
-    _designation = "Small (Ice)"
     _temperature_bounds = model.bounds.QuantityBounds(140 * u.K, 215 * u.K)
-    _size = TerrestrialWorld.Size.STANDARD
-    _core = TerrestrialWorld.Core.ICY_CORE
+    _size = Terrestrial.Size.STANDARD
+    _core = Terrestrial.Core.ICY_CORE
     _pressure_factor = 1
     _greenhouse_factor = .2
     _hydrographic_coverage_bounds = model.bounds.ValueBounds(.2, 1)

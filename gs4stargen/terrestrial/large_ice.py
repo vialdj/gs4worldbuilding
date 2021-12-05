@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from . import Atmosphere, TerrestrialWorld
+from . import Atmosphere, Terrestrial
 from .. import model
 from ..random import roll2d6
 
 from astropy import units as u
 
 
-class LargeIce(TerrestrialWorld):
+class LargeIce(Terrestrial):
     """the large ice world model"""
 
     class LargeIceAtmosphere(Atmosphere):
@@ -16,10 +16,9 @@ class LargeIce(TerrestrialWorld):
         _toxicity = Atmosphere.Toxicity.HIGH
         _suffocating = True
 
-    _designation = "Large (Ice)"
     _temperature_bounds = model.bounds.QuantityBounds(80 * u.K, 230 * u.K)
-    _size = TerrestrialWorld.Size.LARGE
-    _core = TerrestrialWorld.Core.LARGE_IRON_CORE
+    _size = Terrestrial.Size.LARGE
+    _core = Terrestrial.Core.LARGE_IRON_CORE
     _pressure_factor = 5
     _greenhouse_factor = .2
     _hydrographic_coverage_bounds = model.bounds.ValueBounds(0, .2)

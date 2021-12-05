@@ -1,16 +1,15 @@
 # -*- coding: utf-8 -*-
 
-from . import TerrestrialWorld
+from . import Terrestrial
 from .. import model
 
 from astropy import units as u
 
 
-class TinySulfur(TerrestrialWorld):
-    _designation = "Tiny (Sulfur)"
+class TinySulfur(Terrestrial):
     _temperature_bounds = model.bounds.QuantityBounds(80 * u.K, 140 * u.K)
-    _size = TerrestrialWorld.Size.TINY
-    _core = TerrestrialWorld.Core.ICY_CORE
+    _size = Terrestrial.Size.TINY
+    _core = Terrestrial.Core.ICY_CORE
     _absorption = .77
 
     def __init__(self, **kw):

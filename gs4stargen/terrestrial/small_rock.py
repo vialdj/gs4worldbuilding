@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
 
-from . import TerrestrialWorld
+from . import Terrestrial
 from .. import model
 
 from astropy import units as u
 
 
-class SmallRock(TerrestrialWorld):
+class SmallRock(Terrestrial):
     """the small rock world model"""
 
-    _designation = "Small (Rock)"
     _temperature_bounds = model.bounds.QuantityBounds(140 * u.K, 500 * u.K)
-    _size = TerrestrialWorld.Size.SMALL
-    _core = TerrestrialWorld.Core.SMALL_IRON_CORE
+    _size = Terrestrial.Size.SMALL
+    _core = Terrestrial.Core.SMALL_IRON_CORE
     _absorption = .96
 
     def __init__(self, **kw):

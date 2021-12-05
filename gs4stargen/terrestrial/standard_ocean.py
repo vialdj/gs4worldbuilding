@@ -2,12 +2,12 @@
 
 from ..random import roll1d6, roll3d6
 from .. import model
-from . import Atmosphere, TerrestrialWorld
+from . import Atmosphere, Terrestrial
 
 from astropy import units as u
 
 
-class StandardOcean(TerrestrialWorld):
+class StandardOcean(Terrestrial):
     """the standard ocean world model"""
 
     class StandardOceanAtmosphere(Atmosphere, model.RandomizableModel):
@@ -23,10 +23,9 @@ class StandardOcean(TerrestrialWorld):
             else:
                 self._toxicity = None
 
-    _designation = "Standard (Ocean)"
     _temperature_bounds = model.bounds.QuantityBounds(250 * u.K, 340 * u.K)
-    _size = TerrestrialWorld.Size.STANDARD
-    _core = TerrestrialWorld.Core.LARGE_IRON_CORE
+    _size = Terrestrial.Size.STANDARD
+    _core = Terrestrial.Core.LARGE_IRON_CORE
     _pressure_factor = 1
     _greenhouse_factor = .16
     _hydrographic_coverage_bounds = model.bounds.ValueBounds(.5, 1)

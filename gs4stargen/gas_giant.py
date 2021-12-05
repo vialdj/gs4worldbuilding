@@ -1,16 +1,18 @@
 # -*- coding: utf-8 -*-
 
+from .planet import Planet
 from . import model, random, units
 from .orbit import Orbit
 
 import enum
+from abc import ABC
 
 from astropy import units as u
 import numpy as np
 from ordered_enum import OrderedEnum
 
 
-class GasGiantWorld(model.RandomizableModel):
+class GasGiant(model.RandomizableModel, Planet, ABC):
     """the World Model"""
 
     _precedence = ['mass']
@@ -76,17 +78,22 @@ class GasGiantWorld(model.RandomizableModel):
         """diameter in D⊕"""
         return np.power(self.mass.value / self.density.value, (1 / 3)) * units.D_earth
 
+    @property
+    def moons(self):
+        """the world moons"""
+        return self._n_moons + self._n_moonlets + self._n_captured
+
     def __init__(self, parent_body, radius):
         self._orbit = type(self).GasGiantOrbit(parent_body, radius, self)
 
         self.randomize()
 
 
-class SmallGasGiant(GasGiantWorld):
+class SmallGasGiant(GasGiant):
     """The small gas giant model"""
 
     _mass_bounds = model.bounds.QuantityBounds(10 * u.M_earth, 80 * u.M_earth)
-    _size = GasGiantWorld.Size.SMALL
+    _size = GasGiant.Size.SMALL
 
     def random_mass(self):
         """small mass pdf fit as a truncated exponential"""
@@ -100,12 +107,12 @@ class SmallGasGiant(GasGiantWorld):
                 + .17) * units.d_earth
 
 
-class MediumGasGiant(GasGiantWorld):
+class MediumGasGiant(GasGiant):
     """The medium gas giant model"""
 
     _mass_bounds = model.bounds.QuantityBounds(100 * u.M_earth,
                                                500 * u.M_earth)
-    _size = GasGiantWorld.Size.MEDIUM
+    _size = GasGiant.Size.MEDIUM
 
     def random_mass(self):
         """medium mass pdf fit as a truncated normal"""
@@ -119,12 +126,12 @@ class MediumGasGiant(GasGiantWorld):
                 * units.d_earth)
 
 
-class LargeGasGiant(GasGiantWorld):
+class LargeGasGiant(GasGiant):
     """The large gas giant model"""
 
     _mass_bounds = model.bounds.QuantityBounds(600 * u.M_earth,
                                                4000 * u.M_earth)
-    _size = GasGiantWorld.Size.LARGE
+    _size = GasGiant.Size.LARGE
 
     def random_mass(self):
         """large mass pdf fit as a truncated exponential"""

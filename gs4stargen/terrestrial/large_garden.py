@@ -3,12 +3,12 @@
 from ..random import roll1d6, roll3d6
 from .. import model
 from .marginal_atmosphere import MarginalCandidate
-from . import Atmosphere, TerrestrialWorld
+from . import Atmosphere, Terrestrial
 
 from astropy import units as u
 
 
-class LargeGarden(TerrestrialWorld):
+class LargeGarden(Terrestrial):
     """The large garden world model"""
 
     class LargeGardenAtmosphere(Atmosphere, MarginalCandidate,
@@ -21,10 +21,9 @@ class LargeGarden(TerrestrialWorld):
             if roll3d6() > 11:
                 self.make_marginal()
 
-    _designation = "Large (Garden)"
     _temperature_bounds = model.bounds.QuantityBounds(250 * u.K, 340 * u.K)
-    _size = TerrestrialWorld.Size.LARGE
-    _core = TerrestrialWorld.Core.LARGE_IRON_CORE
+    _size = Terrestrial.Size.LARGE
+    _core = Terrestrial.Core.LARGE_IRON_CORE
     _pressure_factor = 5
     _greenhouse_factor = .16
     _hydrographic_coverage_bounds = model.bounds.ValueBounds(.7, 1)

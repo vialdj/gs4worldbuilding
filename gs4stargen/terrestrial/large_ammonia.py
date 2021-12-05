@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from . import Atmosphere, TerrestrialWorld
+from . import Atmosphere, Terrestrial
 from .. import model
 from ..random import roll2d6
 
 from astropy import units as u
 
 
-class LargeAmmonia(TerrestrialWorld):
+class LargeAmmonia(Terrestrial):
     """The large ammonia world model"""
 
     class LargeAmmoniaAtmosphere(Atmosphere):
@@ -17,10 +17,9 @@ class LargeAmmonia(TerrestrialWorld):
         _suffocating = True
         _corrosive = True
 
-    _designation = "Large (Ammonia)"
     _temperature_bounds = model.bounds.QuantityBounds(140 * u.K, 215 * u.K)
-    _size = TerrestrialWorld.Size.LARGE
-    _core = TerrestrialWorld.Core.ICY_CORE
+    _size = Terrestrial.Size.LARGE
+    _core = Terrestrial.Core.ICY_CORE
     _pressure_factor = 5
     _greenhouse_factor = .2
     _hydrographic_coverage_bounds = model.bounds.ValueBounds(.2, 1)

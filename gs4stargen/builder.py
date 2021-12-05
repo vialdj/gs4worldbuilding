@@ -31,7 +31,7 @@ class Builder():
         world_type = choices(list(dist.keys()),
                              weights=list(dist.values()))[0]
         return world_type()
-
+    
     @staticmethod
     def build_star_system():
         return StarSystem()

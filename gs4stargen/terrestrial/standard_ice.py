@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
 from .. import model
-from . import Atmosphere, TerrestrialWorld
+from . import Atmosphere, Terrestrial
 from ..random import roll2d6, roll3d6
 
 from astropy import units as u
 
 
-class StandardIce(TerrestrialWorld):
+class StandardIce(Terrestrial):
     """the standard ice world model"""
 
     class StandardIceAtmosphere(Atmosphere, model.RandomizableModel):
@@ -20,10 +20,9 @@ class StandardIce(TerrestrialWorld):
             if roll3d6() > 12:
                 self._toxicity = Atmosphere.Toxicity.MILD
 
-    _designation = "Standard (Ice)"
     _temperature_bounds = model.bounds.QuantityBounds(80 * u.K, 230 * u.K)
-    _size = TerrestrialWorld.Size.STANDARD
-    _core = TerrestrialWorld.Core.LARGE_IRON_CORE
+    _size = Terrestrial.Size.STANDARD
+    _core = Terrestrial.Core.LARGE_IRON_CORE
     _pressure_factor = 1
     _greenhouse_factor = .2
     _hydrographic_coverage_bounds = model.bounds.ValueBounds(0, .2)

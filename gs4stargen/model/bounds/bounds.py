@@ -8,6 +8,10 @@ class Bounds(object):
         self.min = min
         self.max = max
 
+    def __iter__(self):
+        """return boundaries"""
+        return iter([self.min, self.max])
+
     def __eq__(self, obj):
         return (isinstance(obj, type(self)) and
                 self.min == obj.min and

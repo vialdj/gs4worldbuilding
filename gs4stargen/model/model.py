@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
-class Model(object):
+from abc import ABC
+
+
+class Model(ABC):
     """the Model class"""
 
     def _set_bounded_property(self, prop, value):

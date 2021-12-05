@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from . import Atmosphere, TerrestrialWorld
+from . import Atmosphere, Terrestrial
 from .. import model
 from ..random import roll1d6
 
 from astropy import units as u
 
 
-class LargeOcean(TerrestrialWorld):
+class LargeOcean(Terrestrial):
     """the large ocean world model"""
 
     class LargeOceanAtmosphere(Atmosphere):
@@ -16,10 +16,9 @@ class LargeOcean(TerrestrialWorld):
         _toxicity = Atmosphere.Toxicity.HIGH
         _suffocating = True
 
-    _designation = "Large (Ocean)"
     _temperature_bounds = model.bounds.QuantityBounds(250 * u.K, 340 * u.K)
-    _size = TerrestrialWorld.Size.LARGE
-    _core = TerrestrialWorld.Core.LARGE_IRON_CORE
+    _size = Terrestrial.Size.LARGE
+    _core = Terrestrial.Core.LARGE_IRON_CORE
     _pressure_factor = 5
     _greenhouse_factor = .16
     _hydrographic_coverage_bounds = model.bounds.ValueBounds(.7, 1)

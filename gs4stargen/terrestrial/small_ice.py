@@ -2,12 +2,12 @@
 
 from ..random import roll1d6, roll3d6
 from .. import model
-from . import Atmosphere, TerrestrialWorld
+from . import Atmosphere, Terrestrial
 
 from astropy import units as u
 
 
-class SmallIce(TerrestrialWorld):
+class SmallIce(Terrestrial):
     """the small ice world model"""
 
     class SmallIceAtmosphere(Atmosphere, model.RandomizableModel):
@@ -22,10 +22,9 @@ class SmallIce(TerrestrialWorld):
             else:
                 self._toxicity = Atmosphere.Toxicity.HIGH
 
-    _designation = "Small (Ice)"
     _temperature_bounds = model.bounds.QuantityBounds(80 * u.K, 140 * u.K)
-    _size = TerrestrialWorld.Size.SMALL
-    _core = TerrestrialWorld.Core.ICY_CORE
+    _size = Terrestrial.Size.SMALL
+    _core = Terrestrial.Core.ICY_CORE
     _pressure_factor = 10
     _greenhouse_factor = .1
     _hydrographic_coverage_bounds = model.bounds.ValueBounds(.3, .8)

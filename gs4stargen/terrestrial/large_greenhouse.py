@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 
-from . import Atmosphere, TerrestrialWorld
+from . import Atmosphere, Terrestrial
 from .. import model
-from .. random import roll2d6
+from ..random import roll2d6
 
 from astropy import units as u
 
 
-class LargeGreenhouse(TerrestrialWorld):
+class LargeGreenhouse(Terrestrial):
     """The large greenhouse world model"""
 
     class LargeGreenhouseAtmosphere(Atmosphere):
@@ -21,10 +21,9 @@ class LargeGreenhouse(TerrestrialWorld):
             return (['CO2'] if self._world.hydrographic_coverage < .1
                     else ['N2', 'H2O', 'O2'])
 
-    _designation = "Large (Greenhouse)"
     _temperature_bounds = model.bounds.QuantityBounds(500 * u.K, 950 * u.K)
-    _size = TerrestrialWorld.Size.LARGE
-    _core = TerrestrialWorld.Core.LARGE_IRON_CORE
+    _size = Terrestrial.Size.LARGE
+    _core = Terrestrial.Core.LARGE_IRON_CORE
     _pressure_factor = 500
     _greenhouse_factor = 2.0
     _hydrographic_coverage_bounds = model.bounds.ValueBounds(0, .5)

@@ -1,7 +1,9 @@
 from . import Model
 
+from abc import ABC
 
-class RandomizableModel(Model):
+
+class RandomizableModel(Model, ABC):
     """the Randomizable model specialization"""
 
     _precedence = []

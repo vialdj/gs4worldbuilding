@@ -2,9 +2,8 @@ from .atmosphere import Atmosphere
 from .marginal_atmosphere import (chlorine_or_fluorine, high_carbon_dioxide,
                                   high_oxygen, inert_gases, low_oxygen,
                                   nitrogen_compounds, sulfur_compounds,
-                                  organic_toxins, pollutants)
-from .world import TerrestrialWorld
-from .asteroid_belt import AsteroidBelt
+                                  organic_toxins, pollutants, Marginal)
+from .terrestrial import Terrestrial
 from .large_garden import LargeGarden
 from .large_ocean import LargeOcean
 from .large_ice import LargeIce
