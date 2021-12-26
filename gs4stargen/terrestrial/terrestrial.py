@@ -170,7 +170,9 @@ the same type"""
 
     @property
     def blackbody_correction(self) -> float:
-        return (self.absorption * (1 + self.volatile_mass * self.greenhouse_factor))
+        return ((self.absorption * (1 + self.volatile_mass *
+                                   self.greenhouse_factor))
+                if self.atmosphere else self.absorption)
 
     @property
     def blackbody_temperature(self) -> u.Quantity:
@@ -185,7 +187,7 @@ the same type"""
     @property
     def mass(self) -> u.Quantity:
         """mass in M⊕"""
-        return self.density.value * self.diameter.value ** 3 * u.M_earths
+        return self.density.value * self.diameter.value ** 3 * u.M_earth
 
     @property
     def habitability(self) -> int:
@@ -264,7 +266,7 @@ def inplace(world):
                     np.sqrt(self._orbit.radius.value)) * u.K
 
         @property
-        def temperature(self):
+        def temperature(self) -> u.Quantity:
             """average temperature in K"""
             return (self.blackbody_temperature.value *
                     self.blackbody_correction) * u.K
@@ -281,7 +283,8 @@ def inplace(world):
         @property
         def moons(self):
             """the world moons"""
-            return self._n_moons + self._n_moonlets
+            return 0
+            # return self._n_moons + self._n_moonlets
 
     return InplaceTerrestrial
 

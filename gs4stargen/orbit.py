@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from . import model, random
+from .planet import Planet
 
 import numpy as np
 from astropy import units as u
@@ -58,10 +59,13 @@ class Orbit(model.RandomizableModel):
         return ((1 + self.eccentricity) * self.radius.value) * u.au
 
     @property
-    def period(self):
+    def period(self) -> u.Quantity:
         """the orbital period in earth years"""
-        return np.sqrt(self.radius.value ** 3 / (self._parent_body.mass.value +
-                       self._body.mass.to(u.M_sun).value)) * u.a
+        return np.sqrt(self.radius.value ** 3 /
+                       ((self._parent_body.mass.value +
+                         self._body.mass.to(u.M_sun).value)
+                        if issubclass(type(self._body), Planet)
+                        else self._parent_body.mass.value)) * u.a
 
     def __init__(self, parent_body, radius, body=None):
         self._body = body

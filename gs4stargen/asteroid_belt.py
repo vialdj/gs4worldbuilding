@@ -34,10 +34,12 @@ class AsteroidBelt(RandomizableModel, World):
         self.resource = (filtered[-1][1] if len(filtered) > 0
                          else World.Resource.MOTHERLODE)
 
+    @property
     def blackbody_correction(self) -> float:
         """the correction applied on temperature"""
         return self._absorption
 
+    @property
     def habitability(self) -> int:
         """the habitability score"""
         return 0

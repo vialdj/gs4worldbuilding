@@ -1,4 +1,4 @@
-from gs4stargen import world, StarSystem
+from gs4stargen import terrestrial, StarSystem
 from random import choices
 
 
@@ -6,32 +6,33 @@ class Builder():
 
     @staticmethod
     def build_world():
-        dist = {world.TinySulfur: .0457488,
-                world.TinyIce: .16274024,
-                world.TinyRock: .11266216,
-                world.SmallHadean: .00312988,
-                world.SmallIce: .00938964,
-                world.SmallRock: .05007808,
-                world.StandardChthonian: .00300024,
-                world.StandardGreenhouse: .01200096,
-                world.StandardAmmonia: .05924988,
-                world.StandardHadean: .01877928,
-                world.StandardIce: .0312988,
-                world.StandardOcean: .11266216,
-                world.StandardGarden: .15899976,
-                world.LargeChthonian: .00300024,
-                world.LargeGreenhouse: .01200096,
-                world.LargeAmmonia: .02699892,
-                world.LargeIce: .00312988,
-                world.LargeGarden: .00300024,
-                world.LargeOcean: .00938964,
-                world.AsteroidBelt: .16274024}
+        dist = {terrestrial.TinySulfur: .0457488,
+                terrestrial.TinyIce: .16274024,
+                terrestrial.TinyRock: .11266216,
+                terrestrial.SmallHadean: .00312988,
+                terrestrial.SmallIce: .00938964,
+                terrestrial.SmallRock: .05007808,
+                terrestrial.StandardChthonian: .00300024,
+                terrestrial.StandardGreenhouse: .01200096,
+                terrestrial.StandardAmmonia: .05924988,
+                terrestrial.StandardHadean: .01877928,
+                terrestrial.StandardIce: .0312988,
+                terrestrial.StandardOcean: .11266216,
+                terrestrial.StandardGarden: .15899976,
+                terrestrial.LargeChthonian: .00300024,
+                terrestrial.LargeGreenhouse: .01200096,
+                terrestrial.LargeAmmonia: .02699892,
+                terrestrial.LargeIce: .00312988,
+                terrestrial.LargeGarden: .00300024,
+                terrestrial.LargeOcean: .00938964,
+                # terrestrial.AsteroidBelt: .16274024
+                }
 
         # consecutive 3d6 rolls over Overall Type Table and World Type Table
-        world_type = choices(list(dist.keys()),
+        terrestrial_type = choices(list(dist.keys()),
                              weights=list(dist.values()))[0]
-        return world_type()
-    
+        return terrestrial_type()
+
     @staticmethod
     def build_star_system():
         return StarSystem()
