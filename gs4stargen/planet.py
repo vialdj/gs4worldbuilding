@@ -102,6 +102,14 @@ class InplacePlanet(Planet, ABC):
         self._set_bounded_property('rotation', value.to(u.h))
 
     @property
+    def solar_day(self):
+        """solar day in standard hours"""
+        rotation = -self.rotation if self.retrograde else self.rotation
+        return ((self._orbit.period.to(u.h).value * rotation.to(u.h).value) /
+                (self._orbit.period.to(u.h).value - rotation.to(u.h).value)
+                if rotation != self._orbit.period else np.inf) * u.h
+
+    @property
     def moons(self):
         """the world moons"""
         return 0
