@@ -12,8 +12,6 @@ from astropy import units as u
 
 class World(ABC):
     """The gurps world abstract class"""
-    _precedence = ['resource', 'hydrographic_coverage', 'volatile_mass',
-                   'temperature', 'density', 'diameter']
 
     @enum.unique
     class Climate(u.Quantity, ValueOrderedEnum):
@@ -50,7 +48,7 @@ class World(ABC):
         pass
 
     def random_temperature(self) -> None:
-        """sum of a 3d6-3 roll times step value add minimum"""
+        """sum of a 3d6-3 roll in range"""
         tmin = self.temperature_bounds.min.value
         tmax = self.temperature_bounds.max.value
         roll = roll3d6(-3, continuous=True)

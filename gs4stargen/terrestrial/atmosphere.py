@@ -58,7 +58,7 @@ class Atmosphere(model.Model):
 
     @property
     def pressure(self):
-        """atmospheric pressure in atm⊕"""
+        """atmospheric pressure in atm🜨"""
         return (self._world.volatile_mass * self._world.pressure_factor
                 * self._world.gravity.value) * cds.atm
 

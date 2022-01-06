@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .. import World, Planet
+from .. import World, Planet, InplacePlanet
 from ..model import RandomizableModel, bounds
 from ..units import d_earth, D_earth, G_earth
 from ..random import roll2d6, roll3d6, truncnorm_draw
@@ -144,7 +144,7 @@ the same type"""
 
     @property
     def diameter(self) -> u.Quantity:
-        """diameter in D⊕"""
+        """diameter in D🜨"""
         return (self._get_bounded_property('diameter')
                 if hasattr(self, '_diameter')
                 else np.nan) * D_earth
@@ -186,7 +186,7 @@ the same type"""
 
     @property
     def mass(self) -> u.Quantity:
-        """mass in M⊕"""
+        """mass in M🜨"""
         return self.density.value * self.diameter.value ** 3 * u.M_earth
 
     @property
@@ -253,17 +253,18 @@ the same type"""
 
 def inplace(world):
 
-    class InplaceTerrestrial(world):
+    class InplaceTerrestrial(world, InplacePlanet):
         """the orbiting world extended model"""
-        _precedence = [p for p in world._precedence
-                       if p != 'temperature']
+        _precedence = [*[p for p in world._precedence
+                       if p != 'temperature'], 'rotation']
+        _rotation_modifiers = {world.Size.TINY: 18,
+                               world.Size.SMALL: 14,
+                               world.Size.STANDARD: 10,
+                               world.Size.LARGE: 6}
 
         @property
         def blackbody_temperature(self) -> u.Quantity:
-            """blackbody temperature in K from orbit"""
-            return (278 * np.power(self._orbit._parent_body.luminosity.value,
-                                   (1 / 4)) /
-                    np.sqrt(self._orbit.radius.value)) * u.K
+            return InplacePlanet.blackbody_temperature.fget(self)
 
         @property
         def temperature(self) -> u.Quantity:
@@ -274,17 +275,6 @@ def inplace(world):
         @temperature.setter
         def temperature(self, _):
             raise AttributeError('can\'t set overriden attribute')
-
-        @property
-        def orbit(self):
-            """the world orbit around its parent body"""
-            return self._orbit
-
-        @property
-        def moons(self):
-            """the world moons"""
-            return 0
-            # return self._n_moons + self._n_moonlets
 
     return InplaceTerrestrial
 

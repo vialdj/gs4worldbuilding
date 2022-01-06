@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .planet import Planet
+from .planet import InplacePlanet
 from . import model, random, units
 from .orbit import Orbit
 
@@ -12,10 +12,10 @@ import numpy as np
 from ordered_enum import OrderedEnum
 
 
-class GasGiant(model.RandomizableModel, Planet, ABC):
+class GasGiant(model.RandomizableModel, InplacePlanet, ABC):
     """the World Model"""
 
-    _precedence = ['mass']
+    _precedence = ['mass', 'rotation']
 
     class GasGiantOrbit(Orbit):
         """The gas giant orbit model"""
@@ -44,6 +44,10 @@ class GasGiant(model.RandomizableModel, Planet, ABC):
         MEDIUM = enum.auto()
         LARGE = enum.auto()
 
+    _rotation_modifiers = {Size.SMALL: 6,
+                           Size.MEDIUM: 0,
+                           Size.LARGE: 0}
+
     @property
     def size(self) -> Size:
         """size class variable"""
@@ -51,12 +55,12 @@ class GasGiant(model.RandomizableModel, Planet, ABC):
 
     @property
     def mass(self) -> u.Quantity:
-        """mass in M⊕"""
+        """mass in M🜨"""
         return self._get_bounded_property('mass') * u.M_earth
 
     @property
     def mass_bounds(self) -> model.bounds.QuantityBounds:
-        """Mass range static class variable in M⊕"""
+        """Mass range static class variable in M🜨"""
         return type(self)._mass_bounds
 
     @mass.setter
@@ -69,25 +73,13 @@ class GasGiant(model.RandomizableModel, Planet, ABC):
         self._set_bounded_property('mass', value.to(u.M_earth))
 
     @property
-    def orbit(self) -> GasGiantOrbit:
-        """the GasGiant orbit around its parent body"""
-        return self._orbit
-
-    @property
     def diameter(self) -> u.Quantity:
-        """diameter in D⊕"""
+        """diameter in D🜨"""
         return (np.power(self.mass.value / self.density.value, (1 / 3))
                 * units.D_earth)
 
-    @property
-    def moons(self):
-        """the world moons"""
-        return 0
-        #return self._n_moons + self._n_moonlets + self._n_captured
-
     def __init__(self, parent_body, radius):
         self._orbit = type(self).GasGiantOrbit(parent_body, radius, self)
-
         self.randomize()
 
 
@@ -104,7 +96,7 @@ class SmallGasGiant(GasGiant):
 
     @property
     def density(self) -> u.Quantity:
-        """small density in d⊕ from Gas Giant Size Table fitted as ax**b+c"""
+        """small density in d🜨 from Gas Giant Size Table fitted as ax**b+c"""
         return (74.43464003356911 * self.mass.value ** -2.473690314600168
                 + .17) * units.d_earth
 
@@ -123,7 +115,7 @@ class MediumGasGiant(GasGiant):
 
     @property
     def density(self) -> u.Quantity:
-        """medium density in d⊕ from Gas Giant Size Table fitted as ax+b"""
+        """medium density in d🜨 from Gas Giant Size Table fitted as ax+b"""
         return ((.0002766666669434452 * self.mass.value + .15033333325029977)
                 * units.d_earth)
 
@@ -142,6 +134,6 @@ class LargeGasGiant(GasGiant):
 
     @property
     def density(self) -> u.Quantity:
-        """large density in d⊕ from Gas Giant Size Table fitted as ax+b"""
+        """large density in d🜨 from Gas Giant Size Table fitted as ax+b"""
         return ((.0003880597018732323 * self.mass.value + .036185736947409355)
                 * units.d_earth)

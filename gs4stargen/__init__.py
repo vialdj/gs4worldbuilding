@@ -1,6 +1,6 @@
 from . import model
 from .world import World
-from .planet import Planet
+from .planet import Planet, InplacePlanet
 from .terrestrial import Terrestrial
 from .star_system import StarSystem
 from .star import Star
