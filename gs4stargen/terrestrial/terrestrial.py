@@ -256,7 +256,7 @@ def inplace(world):
     class InplaceTerrestrial(world, InplacePlanet):
         """the orbiting world extended model"""
         _precedence = [*[p for p in world._precedence
-                       if p != 'temperature'], 'rotation']
+                       if p != 'temperature'], 'rotation', 'retrograde']
         _rotation_modifiers = {world.Size.TINY: 18,
                                world.Size.SMALL: 14,
                                world.Size.STANDARD: 10,

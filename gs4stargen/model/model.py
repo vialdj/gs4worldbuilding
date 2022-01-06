@@ -13,8 +13,8 @@ class Model(ABC):
             raise AttributeError('can\'t set attribute, no {}_bounds found'
                                  .format(prop))
         if value < bounds.min or value > bounds.max:
-            raise ValueError('{} value out of range {}'
-                             .format(prop, bounds))
+            raise ValueError('{} value {} out of range {}'
+                             .format(prop, value, bounds))
         setattr(self, '_{}'.format(prop), bounds.normalize(value))
 
     def _get_bounded_property(self, prop):
