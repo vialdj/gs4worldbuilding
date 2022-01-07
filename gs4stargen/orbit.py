@@ -2,6 +2,7 @@
 
 from . import model, random
 from .planet import Planet
+from .units import D_earth
 
 import numpy as np
 from astropy import units as u
@@ -26,7 +27,7 @@ class Orbit(model.RandomizableModel):
         if 'length' not in value.unit.physical_type:
             raise ValueError('can\'t set radius to value of %s physical type' %
                              value.unit.physical_type)
-        self._radius = value
+        self._radius = value.to(u.au)
 
     @property
     def eccentricity(self) -> float:
@@ -61,11 +62,17 @@ class Orbit(model.RandomizableModel):
     @property
     def period(self) -> u.Quantity:
         """the orbital period in earth years"""
-        return np.sqrt(self.radius.value ** 3 /
-                       ((self._parent_body.mass.value +
-                         self._body.mass.to(u.M_sun).value)
-                        if issubclass(type(self._body), Planet)
-                        else self._parent_body.mass.value)) * u.a
+        if issubclass(type(self._parent_body), Planet):
+            # handling satellite orbital period
+            return np.sqrt(self.radius.to(D_earth).value ** 3 /
+                           (self._parent_body.mass.value +
+                            self._body.mass.value)) * .166 * u.a
+        else:
+            return np.sqrt(self.radius.value ** 3 /
+                           ((self._parent_body.mass.value +
+                           self._body.mass.to(u.M_sun).value)
+                           if issubclass(type(self._body), Planet)
+                           else self._parent_body.mass.value)) * u.a
 
     def __init__(self, parent_body, radius, body=None):
         self._body = body

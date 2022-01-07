@@ -227,11 +227,22 @@ modifier if applicable"""
                        [0]])
 
     def populate(self):
-        self._worlds = populate_star(self)
-        for i in range(len(self._worlds)):
-            self._worlds[i].name = '{}{}'.format(self.name, chr(ord('b') + i))
-            setattr(type(self), chr(ord('b') + i),
-                    property(lambda self, i=i: self._worlds[i]))
+        self._worlds = []
+        worlds = populate_star(self)
+        for i in range(len(worlds)):
+            worlds[i].name = '{}{}'.format(self.name, chr(ord('b') + i))
+            self._worlds.append(worlds[i])
+            if hasattr(worlds[i], '_moons'):
+                for j in range(len(worlds[i]._moons)):
+                    worlds[i]._moons[j].name = '{}{}{}'.format(self.name,
+                                                               chr(ord('b') + i),
+                                                               j + 1)
+                    self._worlds.append(worlds[i]._moons[j])
+                    """setattr(type(self), '{}{}{}'.format(self.name,
+                                                        chr(ord('b') + i),
+                                                        j + 1), property(lambda self, i=i, j=j: self._worlds[i]._moons[j]))"""
+
+            """setattr(type(self), '{}{}'.format(self.name, chr(ord('b') + i)), property(lambda self, i=i: self._worlds[i]))"""
 
     def __init__(self, star_system):
         self._star_system = star_system

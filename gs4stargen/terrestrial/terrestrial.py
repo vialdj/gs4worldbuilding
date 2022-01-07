@@ -245,7 +245,7 @@ the same type"""
             world = self
             world.__class__ = (satellite(type(self))
                                if issubclass(type(orbit._parent_body),
-                                             type(self))
+                                             Planet)
                                else inplace(type(self)))
 
         self.randomize()
@@ -281,11 +281,38 @@ def inplace(world):
 
 def satellite(world):
 
-    class TerrestrialSatellite(world):
+    class TerrestrialSatellite(world, InplacePlanet):
+
+        _precedence = [*[p for p in world._precedence
+                       if p != 'temperature'], 'rotation', 'retrograde', 'axial_tilt']
+        _rotation_modifiers = {world.Size.TINY: 18,
+                               world.Size.SMALL: 14,
+                               world.Size.STANDARD: 10,
+                               world.Size.LARGE: 6}
 
         @property
         def blackbody_temperature(self) -> u.Quantity:
             """blackbody temperature in K from parent body"""
             return self._orbit._parent_body.blackbody_temperature
+
+        @property
+        def solar_day(self) -> u.Quantity:
+            """solar day in standard hours"""
+            rotation = -self.rotation if self.retrograde else self.rotation
+            return abs((self._orbit._parent_body._orbit.period.to(u.h).value *
+                        rotation.to(u.h).value) /
+                       (self._orbit._parent_body._orbit.period.to(u.h).value -
+                        rotation.to(u.h).value)
+                       if rotation != self._orbit.period else np.inf) * u.h
+
+        @property
+        def temperature(self) -> u.Quantity:
+            """average temperature in K"""
+            return (self.blackbody_temperature.value *
+                    self.blackbody_correction) * u.K
+
+        @temperature.setter
+        def temperature(self, _):
+            raise AttributeError('can\'t set overriden attribute')
 
     return TerrestrialSatellite

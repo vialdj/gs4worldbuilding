@@ -73,6 +73,10 @@ class GasGiant(model.RandomizableModel, InplacePlanet, ABC):
         self._set_bounded_property('mass', value.to(u.M_earth))
 
     @property
+    def moons(self):
+        return super(GasGiant, self).moons + self._n_captured
+
+    @property
     def diameter(self) -> u.Quantity:
         """diameter in D🜨"""
         return (np.power(self.mass.value / self.density.value, (1 / 3))

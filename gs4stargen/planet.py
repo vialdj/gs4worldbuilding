@@ -121,9 +121,10 @@ class InplacePlanet(Planet, ABC):
     @property
     def rotation_bounds(self) -> bounds.QuantityBounds:
         """rotation bounds in hours"""
-        return bounds.QuantityBounds(min(self._rotation_modifiers[self.size],
+        """return bounds.QuantityBounds(min(self._rotation_modifiers[self.size],
                                          16) * u.h,
-                                     self._orbit.period.to(u.h))
+                                     self._orbit.period.to(u.h))"""
+        return bounds.QuantityBounds(0 * u.h, self._orbit.period.to(u.h))
 
     @rotation.setter
     def rotation(self, value: u.Quantity):
@@ -151,4 +152,5 @@ class InplacePlanet(Planet, ABC):
     @property
     def moons(self):
         """the world moons"""
-        return 0
+        return (len(self._moons) if hasattr(self, '_moons') else 0 +
+                self._n_moonlets if hasattr(self, 'n_moonlets') else 0)
