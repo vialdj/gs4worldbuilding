@@ -71,7 +71,7 @@ class InplacePlanet(Planet, ABC):
                          12: 2400}[special_roll] * roll1d6(continuous=True)
                          if special_roll > 6 else initial_roll) * u.h
         else:
-            rotation = (initial_roll +
+            rotation = (initial_roll + self.tidal_effect +
                         self._rotation_modifiers[self.size]) * u.h
         self.rotation = min(rotation, self.rotation_bounds.max)
 
@@ -122,7 +122,8 @@ class InplacePlanet(Planet, ABC):
     @property
     def rotation(self) -> u.Quantity:
         """rotation in standard hours"""
-        return self._get_bounded_property('rotation') * u.h
+        return (self._orbit.period.to(u.h) if self.tide_locked
+                else self._get_bounded_property('rotation') * u.h)
 
     @property
     def rotation_bounds(self) -> bounds.QuantityBounds:
@@ -159,7 +160,7 @@ class InplacePlanet(Planet, ABC):
                        self._orbit.radius.value ** 3)
         if hasattr(self, '_moons'):
             # adding the sum of the moons tidal effects
-            tidal_force += sum([(2.23 * 10 ** 6 * moon.mass.value *
+            tidal_force += sum([(2230000 * moon.mass.value *
                                  self.diameter.value) /
                                 moon._orbit.radius.to(D_earth).value ** 3
                                 for moon in self._moons])
@@ -170,7 +171,8 @@ class InplacePlanet(Planet, ABC):
     @property
     def tide_locked(self) -> bool:
         """tide locked readonly property"""
-        return self.rotation == self._orbit.period
+        rotation = self.rotation_bounds.scale(self._rotation)
+        return rotation * u.h == self._orbit.period or self.tidal_effect >= 50
 
     @property
     def moons(self):

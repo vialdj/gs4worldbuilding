@@ -313,8 +313,7 @@ def satellite(world):
         def tidal_effect(self) -> bool:
             """the total tidal effect property"""
             # computing the planet tidal force
-            tidal_force = ((2.23 * 10 ** 6 *
-                            self._orbit._parent_body.mass.value *
+            tidal_force = ((2230000 * self._orbit._parent_body.mass.value *
                             self.diameter.value) /
                            self._orbit.radius.to(D_earth).value ** 3)
             return round(tidal_force *
