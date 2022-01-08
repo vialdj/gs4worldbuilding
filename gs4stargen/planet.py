@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from .model import bounds
 from .random import roll3d6, roll2d6, roll1d6
+from .units import D_earth, G_earth
 
 from abc import ABC, abstractmethod
 
@@ -9,7 +10,7 @@ from astropy import units as u
 
 
 class Planet(ABC):
-    """the Planet interface"""
+    """the Planet abstract class"""
 
     @property
     def size(self):
@@ -27,6 +28,11 @@ class Planet(ABC):
     def diameter(self) -> u.Quantity:
         """diameter in D🜨"""
         pass
+
+    @property
+    def gravity(self) -> u.Quantity:
+        """surface gravity in g"""
+        return self.density.value * self.diameter.value * G_earth
 
     @property
     @abstractmethod
@@ -140,9 +146,26 @@ class InplacePlanet(Planet, ABC):
     def solar_day(self) -> u.Quantity:
         """solar day in standard hours"""
         rotation = -self.rotation if self.retrograde else self.rotation
-        return abs((self._orbit.period.to(u.h).value * rotation.to(u.h).value) /
-                   (self._orbit.period.to(u.h).value - rotation.to(u.h).value)
+        return abs((self._orbit.period.to(u.h).value * rotation.value) /
+                   (self._orbit.period.to(u.h).value - rotation.value)
                    if rotation != self._orbit.period else np.inf) * u.h
+
+    @property
+    def tidal_effect(self) -> bool:
+        """the total tidal effect property"""
+        # computing the primary star tidal force
+        tidal_force = ((self._orbit._parent_body.mass.value *
+                        self.diameter.value * .46) /
+                       self._orbit.radius.value ** 3)
+        if hasattr(self, '_moons'):
+            # adding the sum of the moons tidal effects
+            tidal_force += sum([(2.23 * 10 ** 6 * moon.mass.value *
+                                 self.diameter.value) /
+                                moon._orbit.radius.to(D_earth).value ** 3
+                                for moon in self._moons])
+        return round(tidal_force *
+                     self._orbit._parent_body._star_system.age.value /
+                     self.mass.value)
 
     @property
     def tide_locked(self) -> bool:

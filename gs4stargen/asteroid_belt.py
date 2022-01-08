@@ -10,6 +10,9 @@ from astropy import units as u
 
 
 class AsteroidBelt(RandomizableModel, World):
+    """The asteroid belt world model"""
+    _designation = 'Asteroid Belt'
+
     _precedence = ['resource', 'temperature']
     _temperature_bounds = bounds.QuantityBounds(140 * u.K, 500 * u.K)
     _absorption = .97

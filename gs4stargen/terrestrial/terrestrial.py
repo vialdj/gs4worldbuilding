@@ -180,11 +180,6 @@ the same type"""
         return (self.temperature / self.blackbody_correction)
 
     @property
-    def gravity(self) -> u.Quantity:
-        """surface gravity in g"""
-        return self.density.value * self.diameter.value * G_earth
-
-    @property
     def mass(self) -> u.Quantity:
         """mass in M🜨"""
         return self.density.value * self.diameter.value ** 3 * u.M_earth
@@ -238,7 +233,6 @@ the same type"""
         self._atmosphere = (self._atmosphere(self)
                             if hasattr(self, '_atmosphere')
                             else None)
-
         if orbit:
             if not orbit._body:
                 orbit._body = self
@@ -314,5 +308,17 @@ def satellite(world):
         @temperature.setter
         def temperature(self, _):
             raise AttributeError('can\'t set overriden attribute')
+
+        @property
+        def tidal_effect(self) -> bool:
+            """the total tidal effect property"""
+            # computing the planet tidal force
+            tidal_force = ((2.23 * 10 ** 6 *
+                            self._orbit._parent_body.mass.value *
+                            self.diameter.value) /
+                           self._orbit.radius.to(D_earth).value ** 3)
+            return round(tidal_force *
+                         self._orbit._parent_body._orbit._parent_body._star_system.age.value /
+                         self.mass.value)
 
     return TerrestrialSatellite
