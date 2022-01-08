@@ -10,6 +10,7 @@ from astropy import units as u
 
 class StandardGarden(Terrestrial):
     """the standard garden world model"""
+    _designation = 'Standard (Garden)'
 
     class StandardGardenAtmosphere(Atmosphere, MarginalCandidate,
                                    model.RandomizableModel):

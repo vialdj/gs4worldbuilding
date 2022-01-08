@@ -89,6 +89,7 @@ class GasGiant(model.RandomizableModel, InplacePlanet, ABC):
 
 class SmallGasGiant(GasGiant):
     """The small gas giant model"""
+    _designation = 'Small Gas Giant'
 
     _mass_bounds = model.bounds.QuantityBounds(10 * u.M_earth, 80 * u.M_earth)
     _size = GasGiant.Size.SMALL
@@ -107,6 +108,7 @@ class SmallGasGiant(GasGiant):
 
 class MediumGasGiant(GasGiant):
     """The medium gas giant model"""
+    _designation = 'Medium Gas Giant'
 
     _mass_bounds = model.bounds.QuantityBounds(100 * u.M_earth,
                                                500 * u.M_earth)
@@ -126,6 +128,7 @@ class MediumGasGiant(GasGiant):
 
 class LargeGasGiant(GasGiant):
     """The large gas giant model"""
+    _designation = 'Large Gas Giant'
 
     _mass_bounds = model.bounds.QuantityBounds(600 * u.M_earth,
                                                4000 * u.M_earth)

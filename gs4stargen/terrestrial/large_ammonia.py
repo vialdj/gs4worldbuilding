@@ -9,6 +9,7 @@ from astropy import units as u
 
 class LargeAmmonia(Terrestrial):
     """The large ammonia world model"""
+    _designation = 'Large (Ammonia)'
 
     class LargeAmmoniaAtmosphere(Atmosphere):
         """The large ammonia atmosphere model"""

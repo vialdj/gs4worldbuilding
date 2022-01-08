@@ -9,6 +9,7 @@ from astropy import units as u
 
 class StandardOcean(Terrestrial):
     """the standard ocean world model"""
+    _designation = 'Standard (Ocean)'
 
     class StandardOceanAtmosphere(Atmosphere, model.RandomizableModel):
         """the standard ocean atmosphere model"""

@@ -9,6 +9,7 @@ from astropy import units as u
 
 class SmallIce(Terrestrial):
     """the small ice world model"""
+    _designation = 'Small (Ice)'
 
     class SmallIceAtmosphere(Atmosphere, model.RandomizableModel):
         """the small ice atmosphere model"""

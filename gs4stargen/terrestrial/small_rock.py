@@ -8,6 +8,7 @@ from astropy import units as u
 
 class SmallRock(Terrestrial):
     """the small rock world model"""
+    _designation = 'Small (Rock)'
 
     _temperature_bounds = model.bounds.QuantityBounds(140 * u.K, 500 * u.K)
     _size = Terrestrial.Size.SMALL

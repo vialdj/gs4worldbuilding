@@ -9,6 +9,7 @@ from astropy import units as u
 
 class LargeOcean(Terrestrial):
     """the large ocean world model"""
+    _designation = 'Large (Ocean)'
 
     class LargeOceanAtmosphere(Atmosphere):
         """the large ocean atmosphere model"""

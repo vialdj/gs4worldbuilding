@@ -9,6 +9,7 @@ from astropy import units as u
 
 class LargeGreenhouse(Terrestrial):
     """The large greenhouse world model"""
+    _designation = 'Large (Greenhouse)'
 
     class LargeGreenhouseAtmosphere(Atmosphere):
         """The large greenhouse atmosphere model"""

@@ -8,6 +8,7 @@ from astropy import units as u
 
 class LargeChthonian(Terrestrial):
     """The large chthonian world model"""
+    _designation = 'Large (Chthonian)'
 
     _temperature_bounds = model.bounds.QuantityBounds(500 * u.K, 950 * u.K)
     _size = Terrestrial.Size.LARGE

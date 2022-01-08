@@ -9,6 +9,7 @@ from astropy import units as u
 
 class StandardAmmonia(Terrestrial):
     """the standard ammonia world model"""
+    _designation = 'Standard (Ammonia)'
 
     class StandardAmmoniaAtmosphere(Atmosphere):
         """the standard ammonia atmosphere model"""

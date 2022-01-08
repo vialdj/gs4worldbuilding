@@ -9,6 +9,7 @@ from astropy import units as u
 
 class StandardGreenhouse(Terrestrial):
     """the standard greenhouse world model"""
+    _designation = 'Standard (Greenhouse)'
 
     class StandardGreenhouseAtmosphere(Atmosphere):
         """the standard greenhouse atmosphere model"""

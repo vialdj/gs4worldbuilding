@@ -9,7 +9,8 @@ from astropy import units as u
 
 class LargeIce(Terrestrial):
     """the large ice world model"""
-
+    _designation = 'Large (Ice)'
+ 
     class LargeIceAtmosphere(Atmosphere):
         """the large ice atmosphere model"""
         _composition = ['He', 'N2']
