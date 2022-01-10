@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .. import World, Planet, InplacePlanet
+from .. import World, Planet, InplacePlanet, gas_giant
 from ..model import RandomizableModel, bounds
 from ..units import d_earth, D_earth, G_earth
 from ..random import roll2d6, roll3d6, truncnorm_draw
@@ -250,11 +250,75 @@ def inplace(world):
     class InplaceTerrestrial(world, InplacePlanet):
         """the orbiting world extended model"""
         _precedence = [*[p for p in world._precedence
-                       if p != 'temperature'], 'rotation', 'retrograde', 'axial_tilt']
+                       if p != 'temperature'], 'rotation', 'retrograde',
+                       'axial_tilt', 'volcanic_activity', 'tectonic_activity']
         _rotation_modifiers = {world.Size.TINY: 18,
                                world.Size.SMALL: 14,
                                world.Size.STANDARD: 10,
                                world.Size.LARGE: 6}
+
+        class TectonicActivity(OrderedEnum):
+            """class tectonic activity category Enum from corresponding table"""
+            NONE = 'No tectonic activity'
+            LIGHT = 'Light tectonic activity'
+            MODERATE = 'Moderate tectonic activity'
+            HEAVY = 'Heavy tectonic activity'
+            EXTREME = 'Extreme tectonic activity'
+
+        class VolcanicActivity(OrderedEnum):
+            """class volcanic activity category Enum from corresponding table"""
+            NONE = 'No volcanic activity'
+            LIGHT = 'Light volcanic activity'
+            MODERATE = 'Moderate volcanic activity'
+            HEAVY = 'Heavy volcanic activity'
+            EXTREME = 'Extreme volcanic activity'
+
+        def random_tectonic_activity(self) -> None:
+            table = {7: self.TectonicActivity.NONE,
+                     11: self.TectonicActivity.LIGHT,
+                     15: self.TectonicActivity.MODERATE,
+                     19: self.TectonicActivity.HEAVY}
+            filters = [(self.volcanic_activity ==
+                        self.VolcanicActivity.NONE, -8),
+                       (self.volcanic_activity ==
+                        self.VolcanicActivity.LIGHT, -4),
+                       (self.volcanic_activity ==
+                        self.VolcanicActivity.HEAVY, 4),
+                       (self.volcanic_activity ==
+                        self.VolcanicActivity.EXTREME, 8),
+                       (self.hydrographic_coverage == 0, -4),
+                       (self.hydrographic_coverage > 0 and
+                        self.hydrographic_coverage < .5, -2),
+                       (hasattr(self, '_moons') and len(self._moons) == 1, 2),
+                       (hasattr(self, '_moons') and len(self._moons) > 1, 4)]
+            roll = roll3d6(sum(value if truth else 0 for
+                               truth, value in filters))
+            filtered = list(filter(lambda x: roll < x, table.keys()))
+            self.tectonic_activity = ((table[filtered[0]] if
+                                       len(filtered) > 0 else
+                                       type(self).TectonicActivity.EXTREME) if
+                                      self.size > type(self).Size.SMALL else
+                                      type(self).TectonicActivity.NONE)
+
+        def random_volcanic_activity(self) -> None:
+            table = {17: self.VolcanicActivity.NONE,
+                     21: self.VolcanicActivity.LIGHT,
+                     27: self.VolcanicActivity.MODERATE,
+                     71: self.VolcanicActivity.HEAVY}
+            age = (self._orbit._parent_body._star_system.age
+                   if not issubclass(type(self._orbit._parent_body), Planet)
+                   else self._orbit._parent_body._orbit._parent_body._star_system.age)
+            modifier = round((self.gravity.value / age.value) * 40)
+            modifiers = [(hasattr(self, '_moons') and len(self._moons) == 1, 5),
+                         (hasattr(self, '_moons') and len(self._moons) > 1, 10),
+                         (self._designation == 'Tiny (Sulfur)', 60),
+                         (issubclass(type(self._orbit._parent_body),
+                                     gas_giant.GasGiant), 5)]
+            roll = roll3d6(modifier + sum(value if truth else 0
+                                          for truth, value in modifiers))
+            filtered = list(filter(lambda x: roll < x, table.keys()))
+            self.volcanic_activity = (table[filtered[0]] if len(filtered) > 0
+                                      else type(self).VolcanicActivity.EXTREME)
 
         @property
         def blackbody_temperature(self) -> u.Quantity:
@@ -269,6 +333,93 @@ def inplace(world):
         @temperature.setter
         def temperature(self, _):
             raise AttributeError('can\'t set overriden attribute')
+
+        @property
+        def tectonic_activity(self):
+            """tectonic activity value on corresponding Table"""
+            return self._get_bounded_property('tectonic_activity')
+
+        @property
+        def tectonic_activity_bounds(self) -> bounds.ValueBounds:
+            """tectonic activity range"""
+            table = {7: self.TectonicActivity.NONE,
+                     11: self.TectonicActivity.LIGHT,
+                     15: self.TectonicActivity.MODERATE,
+                     19: self.TectonicActivity.HEAVY}
+            modifiers = [(self.volcanic_activity ==
+                          self.VolcanicActivity.NONE, -8),
+                         (self.volcanic_activity ==
+                          self.VolcanicActivity.LIGHT, -4),
+                         (self.volcanic_activity ==
+                          self.VolcanicActivity.HEAVY, 4),
+                         (self.volcanic_activity ==
+                          self.VolcanicActivity.EXTREME, 8),
+                         (self.hydrographic_coverage == 0, -4),
+                         (self.hydrographic_coverage > 0 and
+                          self.hydrographic_coverage < .5, -2),
+                         (hasattr(self, '_moons') and
+                          len(self._moons) == 1, 2),
+                         (hasattr(self, '_moons') and len(self._moons) > 1, 4)]
+            min_roll = sum(value if truth else 0 for
+                           truth, value in modifiers) + 3
+            filtered = list(filter(lambda x: min_roll < x, table.keys()))
+            min = (table[filtered[0]] if len(filtered) > 0
+                   else type(self).TectonicActivity.EXTREME)
+            max_roll = min_roll + 15
+            filtered = list(filter(lambda x: max_roll < x, table.keys()))
+            max = (table[filtered[0]] if len(filtered) > 0
+                   else type(self).TectonicActivity.EXTREME)
+            return (bounds.ValueBounds(min, max) if
+                    self.size > type(self).Size.SMALL else
+                    bounds.ValueBounds(self.TectonicActivity.NONE,
+                                       self.TectonicActivity.NONE))
+
+        @tectonic_activity.setter
+        def tectonic_activity(self, value):
+            if not isinstance(value, self.TectonicActivity):
+                raise ValueError('tectonic activity value type has to be {}'
+                                 .format(self.TectonicActivity))
+            self._set_bounded_property('tectonic_activity', value)
+
+        @property
+        def volcanic_activity(self):
+            """volcanic activity value on corresponding Table"""
+            return self._get_bounded_property('volcanic_activity')
+
+        @property
+        def volcanic_activity_bounds(self) -> bounds.ValueBounds:
+            """volcanic activity range"""
+            table = {17: self.VolcanicActivity.NONE,
+                     21: self.VolcanicActivity.LIGHT,
+                     27: self.VolcanicActivity.MODERATE,
+                     71: self.VolcanicActivity.HEAVY}
+            age = (self._orbit._parent_body._star_system.age if
+                   not issubclass(type(self._orbit._parent_body), Planet) else
+                   self._orbit._parent_body._orbit._parent_body._star_system.age)
+            min_roll = round((self.gravity.value / age.value) * 40) + 3
+            modifiers = [(hasattr(self, '_moons') and
+                          len(self._moons) == 1, 5),
+                         (hasattr(self, '_moons') and
+                          len(self._moons) > 1, 10),
+                         (self._designation == 'Tiny (Sulfur)', 60),
+                         (issubclass(type(self._orbit._parent_body),
+                                     gas_giant.GasGiant), 5)]
+            min_roll += sum(value if truth else 0 for truth, value in modifiers)
+            filtered = list(filter(lambda x: min_roll < x, table.keys()))
+            min = (table[filtered[0]] if len(filtered) > 0
+                   else type(self).VolcanicActivity.EXTREME)
+            max_roll = min_roll + 15
+            filtered = list(filter(lambda x: max_roll < x, table.keys()))
+            max = (table[filtered[0]] if len(filtered) > 0
+                   else type(self).VolcanicActivity.EXTREME)
+            return bounds.ValueBounds(min, max)
+
+        @volcanic_activity.setter
+        def volcanic_activity(self, value):
+            if not isinstance(value, self.VolcanicActivity):
+                raise ValueError('volcanic activity value type has to be {}'
+                                 .format(self.VolcanicActivity))
+            self._set_bounded_property('volcanic_activity', value)
 
     return InplaceTerrestrial
 
