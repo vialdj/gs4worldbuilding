@@ -18,8 +18,8 @@ import numpy as np
 class Terrestrial(RandomizableModel, World, Planet, ABC):
     """the Terrestrial World Model"""
 
-    _precedence = ['resource', 'hydrographic_coverage', 'volatile_mass',
-                   'temperature', 'density', 'diameter']
+    _precedence = ['hydrographic_coverage', 'volatile_mass',
+                   'temperature', 'density', 'diameter', 'resource']
     _resource_bounds = bounds.ValueBounds(World.Resource.SCANT,
                                           World.Resource.RICH)
 
@@ -38,17 +38,16 @@ class Terrestrial(RandomizableModel, World, Planet, ABC):
 
     def random_resource(self):
         """sum of a 3d roll times over Resource Value Table"""
-        resource_value_table = {3: World.Resource.SCANT,
-                                5: World.Resource.VERY_POOR,
-                                8: World.Resource.POOR,
-                                14: World.Resource.AVERAGE,
-                                17: World.Resource.ABUNDANT,
-                                19: World.Resource.VERY_ABUNDANT}
+        table = {3: World.Resource.SCANT,
+                 5: World.Resource.VERY_POOR,
+                 8: World.Resource.POOR,
+                 14: World.Resource.AVERAGE,
+                 17: World.Resource.ABUNDANT,
+                 19: World.Resource.VERY_ABUNDANT}
         roll = roll3d6()
-        filtered = list(filter(lambda x: roll >= x[0],
-                               resource_value_table.items()))
-        self.resource = (filtered[-1][1] if len(filtered) > 0
-                         else World.Resource.RICH)
+        filtered = list(filter(lambda x: roll < x, table.keys()))
+        self.resource = (table[filtered[0]] if len(filtered) > 0 else
+                         World.Resource.RICH)
 
     def random_density(self):
         """sum of a 3d6 roll over World Density Table"""
@@ -237,199 +236,248 @@ the same type"""
             if not orbit._body:
                 orbit._body = self
             world = self
-            world.__class__ = (satellite(type(self))
+            world.__class__ = (place_satellite(type(self))
                                if issubclass(type(orbit._parent_body),
                                              Planet)
-                               else inplace(type(self)))
+                               else place_terrestrial(type(self)))
 
         self.randomize()
 
 
-def inplace(world):
+class InplaceTerrestrial(Terrestrial, InplacePlanet):
+    """the orbiting world extended model"""
+    _precedence = [*[p for p in Terrestrial._precedence if
+                     (p != 'temperature' and p != 'resource')],
+                   'rotation', 'retrograde', 'axial_tilt',
+                   'volcanic_activity', 'tectonic_activity', 'resource']
+    _rotation_modifiers = {Terrestrial.Size.TINY: 18,
+                           Terrestrial.Size.SMALL: 14,
+                           Terrestrial.Size.STANDARD: 10,
+                           Terrestrial.Size.LARGE: 6}
 
-    class InplaceTerrestrial(world, InplacePlanet):
-        """the orbiting world extended model"""
-        _precedence = [*[p for p in world._precedence
-                       if p != 'temperature'], 'rotation', 'retrograde',
-                       'axial_tilt', 'volcanic_activity', 'tectonic_activity']
-        _rotation_modifiers = {world.Size.TINY: 18,
-                               world.Size.SMALL: 14,
-                               world.Size.STANDARD: 10,
-                               world.Size.LARGE: 6}
+    class TectonicActivity(OrderedEnum):
+        """class tectonic activity category Enum from corresponding table"""
+        NONE = 'No tectonic activity'
+        LIGHT = 'Light tectonic activity'
+        MODERATE = 'Moderate tectonic activity'
+        HEAVY = 'Heavy tectonic activity'
+        EXTREME = 'Extreme tectonic activity'
 
-        class TectonicActivity(OrderedEnum):
-            """class tectonic activity category Enum from corresponding table"""
-            NONE = 'No tectonic activity'
-            LIGHT = 'Light tectonic activity'
-            MODERATE = 'Moderate tectonic activity'
-            HEAVY = 'Heavy tectonic activity'
-            EXTREME = 'Extreme tectonic activity'
+    class VolcanicActivity(OrderedEnum):
+        """class volcanic activity category Enum from corresponding table"""
+        NONE = 'No volcanic activity'
+        LIGHT = 'Light volcanic activity'
+        MODERATE = 'Moderate volcanic activity'
+        HEAVY = 'Heavy volcanic activity'
+        EXTREME = 'Extreme volcanic activity'
 
-        class VolcanicActivity(OrderedEnum):
-            """class volcanic activity category Enum from corresponding table"""
-            NONE = 'No volcanic activity'
-            LIGHT = 'Light volcanic activity'
-            MODERATE = 'Moderate volcanic activity'
-            HEAVY = 'Heavy volcanic activity'
-            EXTREME = 'Extreme volcanic activity'
+    def random_resource(self):
+        """sum of a 3d roll times over Resource Value Table with volcanism modifier"""
+        table = {3: World.Resource.SCANT,
+                 5: World.Resource.VERY_POOR,
+                 8: World.Resource.POOR,
+                 14: World.Resource.AVERAGE,
+                 17: World.Resource.ABUNDANT,
+                 19: World.Resource.VERY_ABUNDANT}
+        modifiers = {self.VolcanicActivity.NONE: -2,
+                     self.VolcanicActivity.LIGHT: -1,
+                     self.VolcanicActivity.MODERATE: 0,
+                     self.VolcanicActivity.HEAVY: 1,
+                     self.VolcanicActivity.EXTREME: 2}
+        roll = roll3d6(modifiers[self.volcanic_activity])
+        filtered = list(filter(lambda x: roll < x, table.keys()))
+        self.resource = (table[filtered[0]] if len(filtered) > 0 else
+                         World.Resource.RICH)
 
-        def random_tectonic_activity(self) -> None:
-            table = {7: self.TectonicActivity.NONE,
-                     11: self.TectonicActivity.LIGHT,
-                     15: self.TectonicActivity.MODERATE,
-                     19: self.TectonicActivity.HEAVY}
-            filters = [(self.volcanic_activity ==
-                        self.VolcanicActivity.NONE, -8),
-                       (self.volcanic_activity ==
-                        self.VolcanicActivity.LIGHT, -4),
-                       (self.volcanic_activity ==
-                        self.VolcanicActivity.HEAVY, 4),
-                       (self.volcanic_activity ==
-                        self.VolcanicActivity.EXTREME, 8),
-                       (self.hydrographic_coverage == 0, -4),
-                       (self.hydrographic_coverage > 0 and
-                        self.hydrographic_coverage < .5, -2),
-                       (hasattr(self, '_moons') and len(self._moons) == 1, 2),
-                       (hasattr(self, '_moons') and len(self._moons) > 1, 4)]
-            roll = roll3d6(sum(value if truth else 0 for
-                               truth, value in filters))
-            filtered = list(filter(lambda x: roll < x, table.keys()))
-            self.tectonic_activity = ((table[filtered[0]] if
-                                       len(filtered) > 0 else
-                                       type(self).TectonicActivity.EXTREME) if
-                                      self.size > type(self).Size.SMALL else
-                                      type(self).TectonicActivity.NONE)
+    def random_tectonic_activity(self) -> None:
+        table = {7: self.TectonicActivity.NONE,
+                 11: self.TectonicActivity.LIGHT,
+                 15: self.TectonicActivity.MODERATE,
+                 19: self.TectonicActivity.HEAVY}
+        filters = [(self.volcanic_activity ==
+                    self.VolcanicActivity.NONE, -8),
+                   (self.volcanic_activity ==
+                    self.VolcanicActivity.LIGHT, -4),
+                   (self.volcanic_activity ==
+                    self.VolcanicActivity.HEAVY, 4),
+                   (self.volcanic_activity ==
+                    self.VolcanicActivity.EXTREME, 8),
+                   (self.hydrographic_coverage == 0, -4),
+                   (self.hydrographic_coverage > 0 and
+                    self.hydrographic_coverage < .5, -2),
+                   (hasattr(self, '_moons') and len(self._moons) == 1, 2),
+                   (hasattr(self, '_moons') and len(self._moons) > 1, 4)]
+        roll = roll3d6(sum(value if truth else 0 for
+                           truth, value in filters))
+        filtered = list(filter(lambda x: roll < x, table.keys()))
+        self.tectonic_activity = ((table[filtered[0]] if
+                                   len(filtered) > 0 else
+                                   type(self).TectonicActivity.EXTREME) if
+                                  self.size > type(self).Size.SMALL else
+                                  type(self).TectonicActivity.NONE)
 
-        def random_volcanic_activity(self) -> None:
-            table = {17: self.VolcanicActivity.NONE,
-                     21: self.VolcanicActivity.LIGHT,
-                     27: self.VolcanicActivity.MODERATE,
-                     71: self.VolcanicActivity.HEAVY}
-            age = (self._orbit._parent_body._star_system.age
-                   if not issubclass(type(self._orbit._parent_body), Planet)
-                   else self._orbit._parent_body._orbit._parent_body._star_system.age)
-            modifier = round((self.gravity.value / age.value) * 40)
-            modifiers = [(hasattr(self, '_moons') and len(self._moons) == 1, 5),
-                         (hasattr(self, '_moons') and len(self._moons) > 1, 10),
-                         (self._designation == 'Tiny (Sulfur)', 60),
-                         (issubclass(type(self._orbit._parent_body),
-                                     gas_giant.GasGiant), 5)]
-            roll = roll3d6(modifier + sum(value if truth else 0
-                                          for truth, value in modifiers))
-            filtered = list(filter(lambda x: roll < x, table.keys()))
-            self.volcanic_activity = (table[filtered[0]] if len(filtered) > 0
-                                      else type(self).VolcanicActivity.EXTREME)
+    def random_volcanic_activity(self) -> None:
+        table = {17: self.VolcanicActivity.NONE,
+                 21: self.VolcanicActivity.LIGHT,
+                 27: self.VolcanicActivity.MODERATE,
+                 71: self.VolcanicActivity.HEAVY}
+        age = (self._orbit._parent_body._star_system.age
+               if not issubclass(type(self._orbit._parent_body), Planet)
+               else self._orbit._parent_body._orbit._parent_body._star_system.age)
+        modifier = round((self.gravity.value / age.value) * 40)
+        modifiers = [(hasattr(self, '_moons') and len(self._moons) == 1, 5),
+                     (hasattr(self, '_moons') and len(self._moons) > 1, 10),
+                     (self._designation == 'Tiny (Sulfur)', 60),
+                     (issubclass(type(self._orbit._parent_body),
+                                 gas_giant.GasGiant), 5)]
+        roll = roll3d6(modifier + sum(value if truth else 0
+                                      for truth, value in modifiers))
+        filtered = list(filter(lambda x: roll < x, table.keys()))
+        self.volcanic_activity = (table[filtered[0]] if len(filtered) > 0
+                                  else type(self).VolcanicActivity.EXTREME)
 
-        @property
-        def blackbody_temperature(self) -> u.Quantity:
-            return InplacePlanet.blackbody_temperature.fget(self)
+    @property
+    def blackbody_temperature(self) -> u.Quantity:
+        return InplacePlanet.blackbody_temperature.fget(self)
 
-        @property
-        def temperature(self) -> u.Quantity:
-            """average temperature in K"""
-            return (self.blackbody_temperature.value *
-                    self.blackbody_correction) * u.K
+    @property
+    def habitability(self) -> int:
+        modifiers = [(self.volcanic_activity == self.VolcanicActivity.HEAVY,
+                      -1),
+                     (self.tectonic_activity == self.TectonicActivity.HEAVY,
+                      -1),
+                     (self.volcanic_activity == self.VolcanicActivity.EXTREME,
+                      -2),
+                     (self.tectonic_activity == self.TectonicActivity.EXTREME,
+                      -2)]
+        return (Terrestrial.habitability.fget(self) +
+                max(sum(value if truth else 0 for truth, value in modifiers),
+                    -2))
 
-        @temperature.setter
-        def temperature(self, _):
-            raise AttributeError('can\'t set overriden attribute')
+    @property
+    def resource_bounds(self) -> bounds.ValueBounds:
+        modifiers = {self.VolcanicActivity.NONE: -2,
+                     self.VolcanicActivity.LIGHT: -1,
+                     self.VolcanicActivity.MODERATE: 0,
+                     self.VolcanicActivity.HEAVY: 1,
+                     self.VolcanicActivity.EXTREME: 2}
+        modifier = modifiers[self.volcanic_activity]
 
-        @property
-        def tectonic_activity(self):
-            """tectonic activity value on corresponding Table"""
-            return self._get_bounded_property('tectonic_activity')
+        value_bounds = Terrestrial.resource_bounds.fget(self)
+        return bounds.ValueBounds(value_bounds.min + modifier,
+                                  value_bounds.max + modifier)
 
-        @property
-        def tectonic_activity_bounds(self) -> bounds.ValueBounds:
-            """tectonic activity range"""
-            table = {7: self.TectonicActivity.NONE,
-                     11: self.TectonicActivity.LIGHT,
-                     15: self.TectonicActivity.MODERATE,
-                     19: self.TectonicActivity.HEAVY}
-            modifiers = [(self.volcanic_activity ==
-                          self.VolcanicActivity.NONE, -8),
-                         (self.volcanic_activity ==
-                          self.VolcanicActivity.LIGHT, -4),
-                         (self.volcanic_activity ==
-                          self.VolcanicActivity.HEAVY, 4),
-                         (self.volcanic_activity ==
-                          self.VolcanicActivity.EXTREME, 8),
-                         (self.hydrographic_coverage == 0, -4),
-                         (self.hydrographic_coverage > 0 and
-                          self.hydrographic_coverage < .5, -2),
-                         (hasattr(self, '_moons') and
-                          len(self._moons) == 1, 2),
-                         (hasattr(self, '_moons') and len(self._moons) > 1, 4)]
-            min_roll = sum(value if truth else 0 for
-                           truth, value in modifiers) + 3
-            filtered = list(filter(lambda x: min_roll < x, table.keys()))
-            min = (table[filtered[0]] if len(filtered) > 0
-                   else type(self).TectonicActivity.EXTREME)
-            max_roll = min_roll + 15
-            filtered = list(filter(lambda x: max_roll < x, table.keys()))
-            max = (table[filtered[0]] if len(filtered) > 0
-                   else type(self).TectonicActivity.EXTREME)
-            return (bounds.ValueBounds(min, max) if
-                    self.size > type(self).Size.SMALL else
-                    bounds.ValueBounds(self.TectonicActivity.NONE,
-                                       self.TectonicActivity.NONE))
+    @property
+    def temperature(self) -> u.Quantity:
+        """average temperature in K"""
+        return (self.blackbody_temperature.value *
+                self.blackbody_correction) * u.K
 
-        @tectonic_activity.setter
-        def tectonic_activity(self, value):
-            if not isinstance(value, self.TectonicActivity):
-                raise ValueError('tectonic activity value type has to be {}'
-                                 .format(self.TectonicActivity))
-            self._set_bounded_property('tectonic_activity', value)
+    @temperature.setter
+    def temperature(self, _):
+        raise AttributeError('can\'t set overriden attribute')
 
-        @property
-        def volcanic_activity(self):
-            """volcanic activity value on corresponding Table"""
-            return self._get_bounded_property('volcanic_activity')
+    @property
+    def tectonic_activity(self):
+        """tectonic activity value on corresponding Table"""
+        return self._get_bounded_property('tectonic_activity')
 
-        @property
-        def volcanic_activity_bounds(self) -> bounds.ValueBounds:
-            """volcanic activity range"""
-            table = {17: self.VolcanicActivity.NONE,
-                     21: self.VolcanicActivity.LIGHT,
-                     27: self.VolcanicActivity.MODERATE,
-                     71: self.VolcanicActivity.HEAVY}
-            age = (self._orbit._parent_body._star_system.age if
-                   not issubclass(type(self._orbit._parent_body), Planet) else
-                   self._orbit._parent_body._orbit._parent_body._star_system.age)
-            min_roll = round((self.gravity.value / age.value) * 40) + 3
-            modifiers = [(hasattr(self, '_moons') and
-                          len(self._moons) == 1, 5),
-                         (hasattr(self, '_moons') and
-                          len(self._moons) > 1, 10),
-                         (self._designation == 'Tiny (Sulfur)', 60),
-                         (issubclass(type(self._orbit._parent_body),
-                                     gas_giant.GasGiant), 5)]
-            min_roll += sum(value if truth else 0 for truth, value in modifiers)
-            filtered = list(filter(lambda x: min_roll < x, table.keys()))
-            min = (table[filtered[0]] if len(filtered) > 0
-                   else type(self).VolcanicActivity.EXTREME)
-            max_roll = min_roll + 15
-            filtered = list(filter(lambda x: max_roll < x, table.keys()))
-            max = (table[filtered[0]] if len(filtered) > 0
-                   else type(self).VolcanicActivity.EXTREME)
-            return bounds.ValueBounds(min, max)
+    @property
+    def tectonic_activity_bounds(self) -> bounds.ValueBounds:
+        """tectonic activity range"""
+        table = {7: self.TectonicActivity.NONE,
+                 11: self.TectonicActivity.LIGHT,
+                 15: self.TectonicActivity.MODERATE,
+                 19: self.TectonicActivity.HEAVY}
+        modifiers = [(self.volcanic_activity ==
+                      self.VolcanicActivity.NONE, -8),
+                     (self.volcanic_activity ==
+                      self.VolcanicActivity.LIGHT, -4),
+                     (self.volcanic_activity ==
+                      self.VolcanicActivity.HEAVY, 4),
+                     (self.volcanic_activity ==
+                      self.VolcanicActivity.EXTREME, 8),
+                     (self.hydrographic_coverage == 0, -4),
+                     (self.hydrographic_coverage > 0 and
+                      self.hydrographic_coverage < .5, -2),
+                     (hasattr(self, '_moons') and
+                      len(self._moons) == 1, 2),
+                     (hasattr(self, '_moons') and len(self._moons) > 1, 4)]
+        min_roll = sum(value if truth else 0 for
+                       truth, value in modifiers) + 3
+        filtered = list(filter(lambda x: min_roll < x, table.keys()))
+        min = (table[filtered[0]] if len(filtered) > 0
+               else type(self).TectonicActivity.EXTREME)
+        max_roll = min_roll + 15
+        filtered = list(filter(lambda x: max_roll < x, table.keys()))
+        max = (table[filtered[0]] if len(filtered) > 0
+               else type(self).TectonicActivity.EXTREME)
+        return (bounds.ValueBounds(min, max) if
+                self.size > type(self).Size.SMALL else
+                bounds.ValueBounds(self.TectonicActivity.NONE,
+                                   self.TectonicActivity.NONE))
 
-        @volcanic_activity.setter
-        def volcanic_activity(self, value):
-            if not isinstance(value, self.VolcanicActivity):
-                raise ValueError('volcanic activity value type has to be {}'
-                                 .format(self.VolcanicActivity))
-            self._set_bounded_property('volcanic_activity', value)
+    @tectonic_activity.setter
+    def tectonic_activity(self, value):
+        if not isinstance(value, self.TectonicActivity):
+            raise ValueError('tectonic activity value type has to be {}'
+                             .format(self.TectonicActivity))
+        self._set_bounded_property('tectonic_activity', value)
 
-    return InplaceTerrestrial
+    @property
+    def volcanic_activity(self):
+        """volcanic activity value on corresponding Table"""
+        return self._get_bounded_property('volcanic_activity')
+
+    @property
+    def volcanic_activity_bounds(self) -> bounds.ValueBounds:
+        """volcanic activity range"""
+        table = {17: self.VolcanicActivity.NONE,
+                 21: self.VolcanicActivity.LIGHT,
+                 27: self.VolcanicActivity.MODERATE,
+                 71: self.VolcanicActivity.HEAVY}
+        age = (self._orbit._parent_body._star_system.age if
+               not issubclass(type(self._orbit._parent_body), Planet) else
+               self._orbit._parent_body._orbit._parent_body._star_system.age)
+        min_roll = round((self.gravity.value / age.value) * 40) + 3
+        modifiers = [(hasattr(self, '_moons') and
+                      len(self._moons) == 1, 5),
+                     (hasattr(self, '_moons') and
+                      len(self._moons) > 1, 10),
+                     (self._designation == 'Tiny (Sulfur)', 60),
+                     (issubclass(type(self._orbit._parent_body),
+                                 gas_giant.GasGiant), 5)]
+        min_roll += sum(value if truth else 0 for truth, value in modifiers)
+        filtered = list(filter(lambda x: min_roll < x, table.keys()))
+        min = (table[filtered[0]] if len(filtered) > 0
+               else type(self).VolcanicActivity.EXTREME)
+        max_roll = min_roll + 15
+        filtered = list(filter(lambda x: max_roll < x, table.keys()))
+        max = (table[filtered[0]] if len(filtered) > 0
+               else type(self).VolcanicActivity.EXTREME)
+        return bounds.ValueBounds(min, max)
+
+    @volcanic_activity.setter
+    def volcanic_activity(self, value):
+        if not isinstance(value, self.VolcanicActivity):
+            raise ValueError('volcanic activity value type has to be {}'
+                             .format(self.VolcanicActivity))
+        self._set_bounded_property('volcanic_activity', value)
 
 
-def satellite(world):
+def place_terrestrial(world):
 
-    class TerrestrialSatellite(world, InplacePlanet):
+    class ConcreteInplaceTerrestrial(world, InplaceTerrestrial):
+        pass
 
-        _precedence = [*[p for p in world._precedence
-                       if p != 'temperature'], 'rotation', 'retrograde', 'axial_tilt']
+    return ConcreteInplaceTerrestrial
+
+
+def place_satellite(world):
+
+    class Satellite(world, InplaceTerrestrial):
+
+        _precedence = InplaceTerrestrial._precedence
         _rotation_modifiers = {world.Size.TINY: 18,
                                world.Size.SMALL: 14,
                                world.Size.STANDARD: 10,
@@ -451,16 +499,6 @@ def satellite(world):
                        if rotation != self._orbit.period else np.inf) * u.h
 
         @property
-        def temperature(self) -> u.Quantity:
-            """average temperature in K"""
-            return (self.blackbody_temperature.value *
-                    self.blackbody_correction) * u.K
-
-        @temperature.setter
-        def temperature(self, _):
-            raise AttributeError('can\'t set overriden attribute')
-
-        @property
         def tidal_effect(self) -> bool:
             """the total tidal effect property"""
             # computing the planet tidal force
@@ -471,4 +509,4 @@ def satellite(world):
                          self._orbit._parent_body._orbit._parent_body._star_system.age.value /
                          self.mass.value)
 
-    return TerrestrialSatellite
+    return Satellite

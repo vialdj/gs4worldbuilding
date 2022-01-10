@@ -29,7 +29,7 @@ class World(ABC):
         VERY_HOT = 333 * u.K
         INFERNAL = 344 * u.K
 
-    class Resource(int, enum.Enum):
+    class Resource(int, ValueOrderedEnum):
         """class Ressource Enum from Ressource Value Table"""
         WORTHLESS = -5
         VERY_SCANT = -4

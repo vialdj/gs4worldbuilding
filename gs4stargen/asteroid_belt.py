@@ -21,21 +21,20 @@ class AsteroidBelt(RandomizableModel, World):
 
     def random_resource(self) -> None:
         """sum of a 3d roll times over Resource Value Table"""
-        resource_value_table = {4: World.Resource.WORTHLESS,
-                                5: World.Resource.VERY_SCANT,
-                                6: World.Resource.SCANT,
-                                8: World.Resource.VERY_POOR,
-                                10: World.Resource.POOR,
-                                12: World.Resource.AVERAGE,
-                                14: World.Resource.ABUNDANT,
-                                16: World.Resource.VERY_ABUNDANT,
-                                17: World.Resource.RICH,
-                                18: World.Resource.VERY_RICH}
+        table = {4: World.Resource.WORTHLESS,
+                 5: World.Resource.VERY_SCANT,
+                 6: World.Resource.SCANT,
+                 8: World.Resource.VERY_POOR,
+                 10: World.Resource.POOR,
+                 12: World.Resource.AVERAGE,
+                 14: World.Resource.ABUNDANT,
+                 16: World.Resource.VERY_ABUNDANT,
+                 17: World.Resource.RICH,
+                 18: World.Resource.VERY_RICH}
         roll = roll3d6()
-        filtered = list(filter(lambda x: roll >= x[0],
-                               resource_value_table.items()))
-        self.resource = (filtered[-1][1] if len(filtered) > 0
-                         else World.Resource.MOTHERLODE)
+        filtered = list(filter(lambda x: roll < x, table.keys()))
+        self.resource = (table[filtered[0]] if len(filtered) > 0 else
+                         World.Resource.MOTHERLODE)
 
     @property
     def blackbody_correction(self) -> float:
