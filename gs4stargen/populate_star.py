@@ -130,8 +130,11 @@ def terrestrial_type(parent, size, radius=np.nan):
 
     world_type = None
     if size == terrestrial.Terrestrial.Size.TINY:
-        # TODO: add tiny sulfur type
-        world_type = (terrestrial.TinyIce
+        # TODO: tiny sulfur is almost always the innermost moon, not respected here
+        world_type = ((terrestrial.TinySulfur if
+                      issubclass(type(parent), GasGiant) and
+                      not hasattr(parent, '_moons') and
+                      roll1d6() < 4 else terrestrial.TinyIce)
                       if blackbody_temperature <= 140 * u.K
                       else terrestrial.TinyRock)
     else:

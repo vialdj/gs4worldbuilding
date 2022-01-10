@@ -2,6 +2,7 @@
 .vscode
 htmlcov/*
 gs4stargen/templates/*
+gs4stargen/static/*
 gs4stargen/app.py
 .coverage
 gs4stargen/.coverage
