@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
+from gs4stargen.model.bounds.value_bounds import ValueBounds
 from .model import bounds
 from .random import roll3d6, roll2d6, roll1d6
 from .units import D_earth, G_earth
 
 from abc import ABC, abstractmethod
+from enum import Enum
 
 import numpy as np
 from astropy import units as u
@@ -57,6 +59,15 @@ class InplacePlanet(Planet, ABC):
                            table.keys()))[0]]
                            + tilt_roll) * u.deg
 
+    def random_resonant(self) -> None:
+        """Roll 3d to define resonant property"""
+        resonant = False
+        rotation = self.rotation_bounds.scale(self._rotation)
+        if ((rotation * u.h == self._orbit.period or
+             self.tidal_effect >= 50) and self._orbit.eccentricity >= .1):
+            resonant = True if roll3d6() >= 12 else False
+        self.resonant = resonant
+
     def random_retrograde(self) -> None:
         """Roll 3d to define retrograde property"""
         self.retrograde = True if roll3d6() > 13 else False
@@ -104,9 +115,33 @@ class InplacePlanet(Planet, ABC):
                 np.sqrt(self._orbit.radius.value)) * u.K
 
     @property
+    def moons(self):
+        """the world moons"""
+        return (len(self._moons) if hasattr(self, '_moons') else 0 +
+                self._n_moonlets if hasattr(self, 'n_moonlets') else 0)
+
+    @property
     def orbit(self):
         """the planets orbit around its parent body"""
         return self._orbit
+
+    @property
+    def resonant(self) -> bool:
+        return self._get_bounded_property('resonant')
+
+    @property
+    def resonant_bounds(self) -> ValueBounds:
+        rotation = self.rotation_bounds.scale(self._rotation)
+        return bounds.ValueBounds(False,
+                                  (rotation * u.h == self._orbit.period or
+                                   self.tidal_effect >= 50) and
+                                  self._orbit.eccentricity >= .1)
+
+    @resonant.setter
+    def resonant(self, value):
+        if not isinstance(value, bool):
+            raise ValueError('expected boolean type value')
+        self._set_bounded_property('resonant', value)
 
     @property
     def retrograde(self) -> bool:
@@ -122,6 +157,8 @@ class InplacePlanet(Planet, ABC):
     @property
     def rotation(self) -> u.Quantity:
         """rotation in standard hours"""
+        if self.resonant:
+            return (2 * self._orbit.period.to(u.h)) / 3
         return (self._orbit.period.to(u.h) if self.tide_locked
                 else self._get_bounded_property('rotation') * u.h)
 
@@ -172,10 +209,5 @@ class InplacePlanet(Planet, ABC):
     def tide_locked(self) -> bool:
         """tide locked readonly property"""
         rotation = self.rotation_bounds.scale(self._rotation)
-        return rotation * u.h == self._orbit.period or self.tidal_effect >= 50
-
-    @property
-    def moons(self):
-        """the world moons"""
-        return (len(self._moons) if hasattr(self, '_moons') else 0 +
-                self._n_moonlets if hasattr(self, 'n_moonlets') else 0)
+        return ((rotation * u.h == self._orbit.period or
+                self.tidal_effect >= 50) and not self.resonant)

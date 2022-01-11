@@ -169,8 +169,8 @@ the same type"""
 
     @property
     def blackbody_correction(self) -> float:
-        return ((self.absorption * (1 + self.volatile_mass *
-                                   self.greenhouse_factor))
+        return ((self.absorption * (1 + self.volatile_mass * 
+                                    self.greenhouse_factor))
                 if self.atmosphere else self.absorption)
 
     @property
@@ -248,7 +248,7 @@ class InplaceTerrestrial(Terrestrial, InplacePlanet):
     """the orbiting world extended model"""
     _precedence = [*[p for p in Terrestrial._precedence if
                      (p != 'temperature' and p != 'resource')],
-                   'rotation', 'retrograde', 'axial_tilt',
+                   'rotation', 'resonant', 'retrograde', 'axial_tilt',
                    'volcanic_activity', 'tectonic_activity', 'resource']
     _rotation_modifiers = {Terrestrial.Size.TINY: 18,
                            Terrestrial.Size.SMALL: 14,

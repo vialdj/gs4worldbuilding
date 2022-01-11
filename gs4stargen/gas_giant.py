@@ -15,7 +15,7 @@ from ordered_enum import OrderedEnum
 class GasGiant(model.RandomizableModel, InplacePlanet, ABC):
     """the World Model"""
 
-    _precedence = ['mass', 'rotation', 'retrograde', 'axial_tilt']
+    _precedence = ['mass', 'rotation', 'resonant', 'retrograde', 'axial_tilt']
 
     class GasGiantOrbit(Orbit):
         """The gas giant orbit model"""
