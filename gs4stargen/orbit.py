@@ -11,9 +11,30 @@ from astropy import units as u
 class Orbit(model.RandomizableModel):
     """the orbit model"""
 
-    _precedence = ['eccentricity']
+    _precedence = ['eccentricity', 'inclination', 'ascending_lon', 'periapsis_arg', 'epoch_mean_anomaly']
 
     _eccentricity_bounds = model.bounds.ValueBounds(0, .8)
+    
+    def random_ascending_lon(self):
+        """draw from a uniform distribution between -180 and 180"""
+        self.ascending_lon = np.random.uniform(-180, 180) * u.deg
+
+    def random_eccentricity(self):
+        """sum of a 3d6 roll over Planetary Orbital Eccentricity Table with
+        modifiers if any"""
+        self.eccentricity = random.truncnorm_draw(0, .8, .20295,
+                                                  .15273767544387992)
+    def random_inclination(self):
+        """draw from a Rayleigh distribution with a mode of 2"""
+        self.inclination = np.random.rayleigh(2) * u.deg
+
+    def random_epoch_mean_anomaly(self):
+        """draw from a uniform distribution between 0 and 360"""
+        self.epoch_mean_anomaly = np.random.uniform(0, 360) * u.deg
+    
+    def random_periapsis_arg(self):
+        """draw from a uniform distribution between 0 and 360"""
+        self.periapsis_arg = np.random.uniform(0, 360) * u.deg
 
     @property
     def radius(self) -> u.Quantity:
@@ -39,15 +60,54 @@ class Orbit(model.RandomizableModel):
         """value range for eccentricity"""
         return self._eccentricity_bounds
 
-    def random_eccentricity(self):
-        """sum of a 3d6 roll over Planetary Orbital Eccentricity Table with
-        modifiers if any"""
-        self.eccentricity = random.truncnorm_draw(0, .8, .20295,
-                                                  .15273767544387992)
-
     @eccentricity.setter
     def eccentricity(self, value: float):
         self._set_bounded_property('eccentricity', value)
+
+    @property
+    def epoch_mean_anomaly(self) -> u.Quantity:
+        """the mean anomaly at epoch M0 in degrees"""
+        return self._epoch_mean_anomaly * u.deg
+
+    @epoch_mean_anomaly.setter
+    def epoch_mean_anomaly(self, value: u.Quantity):
+        if not isinstance(value, u.Quantity):
+            raise ValueError('expected quantity type value')
+        if 'angle' not in value.unit.physical_type:
+            raise ValueError('can\'t set mean anomaly at epoch to value of'
+                             + ' %s physical type' %
+                             value.unit.physical_type)
+        self._epoch_mean_anomaly = value.to(u.deg)
+
+    @property
+    def inclination(self) -> u.Quantity:
+        """the orbital inclination in degrees"""
+        return self._inclination * u.deg
+
+    @inclination.setter
+    def inclination(self, value: u.Quantity):
+        if not isinstance(value, u.Quantity):
+            raise ValueError('expected quantity type value')
+        if 'angle' not in value.unit.physical_type:
+            raise ValueError('can\'t set inclination to value of'
+                             + ' %s physical type' %
+                             value.unit.physical_type)
+        self._inclination = value.to(u.deg)
+
+    @property
+    def ascending_lon(self) -> u.Quantity:
+        """the longitude of the ascending node Ω in degrees"""
+        return self._ascending_lon * u.deg
+
+    @ascending_lon.setter
+    def ascending_lon(self, value: u.Quantity):
+        if not isinstance(value, u.Quantity):
+            raise ValueError('expected quantity type value')
+        if 'angle' not in value.unit.physical_type:
+            raise ValueError('can\'t set longitude of ascending node to value of'
+                             + ' %s physical type' %
+                             value.unit.physical_type)
+        self._ascending_lon = value.to(u.deg)
 
     @property
     def min_separation(self) -> u.Quantity:
@@ -58,6 +118,21 @@ class Orbit(model.RandomizableModel):
     def max_separation(self) -> u.Quantity:
         """the maximum separation in AU"""
         return ((1 + self.eccentricity) * self.radius.value) * u.au
+
+    @property
+    def periapsis_arg(self) -> u.Quantity:
+        """the argument of periapsis ω in degrees"""
+        return self._periapsis_arg * u.deg
+
+    @periapsis_arg.setter
+    def periapsis_arg(self, value: u.Quantity):
+        if not isinstance(value, u.Quantity):
+            raise ValueError('expected quantity type value')
+        if 'angle' not in value.unit.physical_type:
+            raise ValueError('can\'t set argument of periapsis to value of'
+                             + ' %s physical type' %
+                             value.unit.physical_type)
+        self._periapsis_arg = value.to(u.deg)
 
     @property
     def period(self) -> u.Quantity:
