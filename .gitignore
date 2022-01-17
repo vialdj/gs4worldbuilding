@@ -1,9 +1,5 @@
 *.pyc
 .vscode
 htmlcov/*
-gs4worldbuilding/templates/*
-gs4worldbuilding/static/*
-gs4worldbuilding/app.py
 .coverage
 gs4worldbuilding/.coverage
-notebooks/.ipynb_checkpoints/*
