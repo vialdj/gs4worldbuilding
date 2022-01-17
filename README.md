@@ -7,7 +7,7 @@ gs4stargen implement the model defined in the GURPS Space (4th Edition) design s
 
 ## Dice rolls to random numbers
 ### Roll for continuous variable
-When a discrete value generated through n d6 rolls is used in some continuous variable equation, a value is drawn from a continuous probability distribution instead. The distribution law is picked to fit the roll's specifics as such:
+When a discrete value generated through n d6 rolls is used in some continuous variable definition, a value is drawn from a continuous probability distribution instead. The distribution law is picked to fit the roll's specifics as such:
 
 | N d6 | Distribution |
 |:-:|:-:|
@@ -19,6 +19,8 @@ examples include:
 * (1d6 + 2) / 10 becomes a draw from an uniform distribution with a=.3 and b=.8
 * max(2d6 - 7, 0) / 10 becomes max(x, 0) where x is drawn from a triangular distribution with a=-.5, b=0 and c=.5.
 * 3d6 / 10 becomes a draw from a truncated normal / 10 with mu=10.5, sigma=2.958040, a=(3 - 10.5) / sigma and b=(18 - 10.5) / sigma
+
+Some complex continuous variable definition procedures distributions have been fitted through various method and are demonstrated in [individual notebooks here](https://github.com/vialdj/gs4worldbuilding_notebooks).
 
 ### Roll on a table with discrete outcomes & roll for condition
 When a discrete value generated through n d6 rolls is used to match some population of discrete values on a table or to test some condition, n randint(1, 6) draws are summed.
