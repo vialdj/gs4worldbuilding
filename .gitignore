@@ -1,9 +1,9 @@
 *.pyc
 .vscode
 htmlcov/*
-gs4stargen/templates/*
-gs4stargen/static/*
-gs4stargen/app.py
+gs4worldbuilding/templates/*
+gs4worldbuilding/static/*
+gs4worldbuilding/app.py
 .coverage
-gs4stargen/.coverage
+gs4worldbuilding/.coverage
 notebooks/.ipynb_checkpoints/*

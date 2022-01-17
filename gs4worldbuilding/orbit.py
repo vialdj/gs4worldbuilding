@@ -67,7 +67,7 @@ class Orbit(model.RandomizableModel):
     @property
     def epoch_mean_anomaly(self) -> u.Quantity:
         """the mean anomaly at epoch M0 in degrees"""
-        return self._epoch_mean_anomaly * u.deg
+        return self._epoch_mean_anomaly
 
     @epoch_mean_anomaly.setter
     def epoch_mean_anomaly(self, value: u.Quantity):
@@ -82,7 +82,7 @@ class Orbit(model.RandomizableModel):
     @property
     def inclination(self) -> u.Quantity:
         """the orbital inclination in degrees"""
-        return self._inclination * u.deg
+        return self._inclination
 
     @inclination.setter
     def inclination(self, value: u.Quantity):
@@ -97,7 +97,7 @@ class Orbit(model.RandomizableModel):
     @property
     def ascending_lon(self) -> u.Quantity:
         """the longitude of the ascending node Ω in degrees"""
-        return self._ascending_lon * u.deg
+        return self._ascending_lon
 
     @ascending_lon.setter
     def ascending_lon(self, value: u.Quantity):
@@ -122,7 +122,7 @@ class Orbit(model.RandomizableModel):
     @property
     def periapsis_arg(self) -> u.Quantity:
         """the argument of periapsis ω in degrees"""
-        return self._periapsis_arg * u.deg
+        return self._periapsis_arg
 
     @periapsis_arg.setter
     def periapsis_arg(self, value: u.Quantity):

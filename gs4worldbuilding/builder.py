@@ -1,4 +1,4 @@
-from gs4stargen import terrestrial, StarSystem
+from gs4worldbuilding import terrestrial, StarSystem
 from random import choices
 
 

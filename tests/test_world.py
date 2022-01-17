@@ -1,10 +1,10 @@
-from gs4stargen.asteroid_belt import AsteroidBelt
-from gs4stargen.world import World
-import gs4stargen.terrestrial as terrestrial
-from gs4stargen import units
-from gs4stargen.model.bounds import ValueBounds
+from gs4worldbuilding.asteroid_belt import AsteroidBelt
+from gs4worldbuilding.world import World
+import gs4worldbuilding.terrestrial as terrestrial
+from gs4worldbuilding import units
+from gs4worldbuilding.model.bounds import ValueBounds
 
-from gs4stargen.terrestrial.marginal_atmosphere import Marginal
+from gs4worldbuilding.terrestrial.marginal_atmosphere import Marginal
 
 import pytest
 import numpy as np

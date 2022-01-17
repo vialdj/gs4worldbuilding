@@ -9,6 +9,22 @@ from enum import Enum
 import numpy as np
 from astropy import units as u
 
+def int_to_roman(input):
+    """TODO: util function to move, Convert an integer to a Roman numeral. """
+
+    if not isinstance(input, type(1)):
+        raise TypeError("expected integer, got %s" % type(input))
+    if not 0 < input < 4000:
+        raise ValueError("Argument must be between 1 and 3999")
+    ints = (1000, 900,  500, 400, 100,  90, 50,  40, 10,  9,   5,  4,   1)
+    nums = ('M', 'CM', 'D', 'CD', 'C', 'XC', 'L', 'XL', 'X', 'IX', 'V', 'IV', 'I')
+    result = []
+    for i in range(len(ints)):
+        count = int(input / ints[i])
+        result.append(nums[i] * count)
+        input -= ints[i] * count
+    return ''.join(result)
+
 
 class Star(model.RandomizableModel):
     """the Star model on its main sequence"""
@@ -236,13 +252,13 @@ modifier if applicable"""
                 for j in range(len(worlds[i]._moons)):
                     worlds[i]._moons[j].name = '{}{}{}'.format(self.name,
                                                                chr(ord('b') + i),
-                                                               j + 1)
-                    self._worlds.append(worlds[i]._moons[j])
+                                                               int_to_roman(j + 1))
+                    #self._worlds.append(worlds[i]._moons[j])
                     """setattr(type(self), '{}{}{}'.format(self.name,
                                                         chr(ord('b') + i),
                                                         j + 1), property(lambda self, i=i, j=j: self._worlds[i]._moons[j]))"""
 
-            """setattr(type(self), '{}{}'.format(self.name, chr(ord('b') + i)), property(lambda self, i=i: self._worlds[i]))"""
+            #setattr(type(self), '{}{}'.format(self.name, chr(ord('b') + i)), property(lambda self, i=i: self._worlds[i]))
 
     def __init__(self, star_system):
         self._star_system = star_system

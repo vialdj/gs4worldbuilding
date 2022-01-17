@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from gs4stargen.model.bounds.value_bounds import ValueBounds
+from gs4worldbuilding.model.bounds.value_bounds import ValueBounds
 from .model import bounds
 from .random import roll3d6, roll2d6, roll1d6
 from .units import D_earth, G_earth
