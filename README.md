@@ -25,7 +25,17 @@ Some complex continuous variable definition procedures distributions have been f
 When a discrete value generated through n d6 rolls is used to match some population of discrete values on a table or to test some condition, n randint(1, 6) draws are summed.
 
 ## Model extensions
-### Orbital inclination
+### Orbital parameters
+For completeness, some orbital elements can be added to the GURPS generated semimajor-axis and eccentricity.
+
+#### Inclination i 
 The orbital inclination (in degrees) of objects in respect to the generated star system's reference plane is drawn from a Rayleigh distribution with a mode of 2.
-### Longitude of the ascending node
-The longitude of the ascending node Ω (in degrees) is drawn from a uniform distribution between -180 and 180.
+
+#### Longitude of the ascending node Ω
+The longitude of the ascending node (in degrees) is drawn from a uniform distribution between -180 and 180.
+
+#### Argument of periapsis ω
+The argument of periapsis (in degrees) is drawn from a uniform distribution between 0 and 360.
+
+#### Mean anomaly at epoch M0
+The mean anomaly at epoch (in degrees) is drawn from a uniform distribution between 0 and 360.
