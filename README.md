@@ -1,5 +1,6 @@
 [![CodeFactor](https://www.codefactor.io/repository/github/vialdj/gs4worldbuilding/badge)](https://www.codefactor.io/repository/github/vialdj/gs4worldbuilding)
 [![Build Status](https://app.travis-ci.com/vialdj/gs4worldbuilding.svg?branch=master)](https://app.travis-ci.com/vialdj/gs4worldbuilding)
+[![Coverage Status](https://coveralls.io/repos/github/vialdj/gs4worldbuilding/badge.svg?branch=master)](https://coveralls.io/github/vialdj/gs4worldbuilding?branch=master)
 
 # gs4worldbuilding (WIP!)
 gs4worldbuilding implement the model defined in the GURPS Space (4th Edition) design sequence. It allows you to randomly generates worlds, stars and star systems. Once an object is generated through any of the available methods, you can then tune some of its properties while keeping the model consistent.
@@ -26,7 +27,7 @@ When a discrete value generated through n d6 rolls is used to match some populat
 
 ## Model extensions
 ### Orbital parameters
-For completeness, some orbital elements can be added to the GURPS generated semimajor-axis and eccentricity.
+For completeness, some orbital elements are added to the GURPS generated semimajor-axis and eccentricity.
 
 #### Inclination i 
 The orbital inclination (in degrees) of objects in respect to the generated star system's reference plane is drawn from a Rayleigh distribution with a mode of 2.

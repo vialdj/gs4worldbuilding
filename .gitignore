@@ -1,5 +1,6 @@
 *.pyc
 .vscode
 htmlcov/*
+*.egg-info*
 .coverage
 gs4worldbuilding/.coverage
