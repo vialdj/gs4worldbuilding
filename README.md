@@ -1,7 +1,7 @@
 [![CodeFactor](https://www.codefactor.io/repository/github/vialdj/gs4worldbuilding/badge)](https://www.codefactor.io/repository/github/vialdj/gs4worldbuilding)
 [![Build Status](https://app.travis-ci.com/vialdj/gs4worldbuilding.svg?branch=master)](https://app.travis-ci.com/vialdj/gs4worldbuilding)
 
-# gs4worldbuilding (WIP!)
+# gs4worldbuilding (WIP, unstable!)
 gs4worldbuilding implement the model defined in the GURPS Space (4th Edition) design sequence. It allows you to randomly generates worlds, stars and star systems. Once an object is generated through any of the available methods, you can then tune some of its properties while keeping the model consistent.
 
 ## Dice rolls to random numbers
