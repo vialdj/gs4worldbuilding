@@ -1,6 +1,9 @@
 *.pyc
 .vscode
+.venv
 htmlcov/*
 *.egg-info*
 .coverage
 gs4worldbuilding/.coverage
+build/*
+*.egg

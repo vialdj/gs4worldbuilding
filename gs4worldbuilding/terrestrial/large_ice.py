@@ -2,7 +2,7 @@
 
 from . import Atmosphere, Terrestrial
 from .. import model
-from ..random import roll2d6
+from ..random import RandomGenerator
 
 from astropy import units as u
 
@@ -28,7 +28,7 @@ class LargeIce(Terrestrial):
 
     def random_hydrographic_coverage(self):
         """roll of 2d-10 minimum at 0 and divided by 10"""
-        self.hydrographic_coverage = max(roll2d6(-10, continuous=True) / 10, 0)
+        self.hydrographic_coverage = max(RandomGenerator(-10, continuous=True) / 10, 0)
 
     def __init__(self, **kw):
         super(LargeIce, self).__init__(**kw)

@@ -2,7 +2,7 @@
 
 from .world import World
 from .model import bounds, RandomizableModel
-from .random import roll3d6
+from .random import RandomGenerator
 
 import numpy as np
 
@@ -31,7 +31,7 @@ class AsteroidBelt(RandomizableModel, World):
                  16: World.Resource.VERY_ABUNDANT,
                  17: World.Resource.RICH,
                  18: World.Resource.VERY_RICH}
-        roll = roll3d6()
+        roll = RandomGenerator().roll3d6()
         filtered = list(filter(lambda x: roll < x, table.keys()))
         self.resource = (table[filtered[0]] if len(filtered) > 0 else
                          World.Resource.MOTHERLODE)

@@ -1,5 +1,5 @@
 from . import model, terrestrial, planet
-from .random import roll1d6, roll2d6, roll3d6, truncnorm_draw
+from .random import RandomGenerator
 from .asteroid_belt import AsteroidBelt
 from .orbit import Orbit
 from .gas_giant import GasGiant, SmallGasGiant, MediumGasGiant, LargeGasGiant
@@ -15,21 +15,21 @@ def make_first_gas_giant_radius(star):
     gas giant arrangement"""
     if star.gas_giant_arrangement == type(star).GasGiantArrangement.CONVENTIONAL:
         # roll of 2d-2 * .05 + 1 multiplied by the snow line radius
-        return (roll2d6(-2, continuous=True) * .05 + 1) * star.snow_line.value
+        return (RandomGenerator().roll2d6(-2, continuous=True) * .05 + 1) * star.snow_line.value
     elif star.gas_giant_arrangement == type(star).GasGiantArrangement.ECCENTRIC:
         # roll of 1d-1 * .125 multiplied by the snow line radius
-        return roll1d6(-1, continuous=True) * .125 * star.snow_line.value
+        return RandomGenerator().roll1d6(-1, continuous=True) * .125 * star.snow_line.value
     elif star.gas_giant_arrangement == type(star).GasGiantArrangement.EPISTELLAR:
         # roll of 3d * .1 multiplied by the inner limit radius
-        return roll3d6(continuous=True) / 10 * star.limits.min.value
+        return RandomGenerator().roll3d6(continuous=True) / 10 * star.limits.min.value
     return np.nan
 
-    
+
 def make_radius(limits, previous_radius, outward=False):
     """generates a float representing an orbital radius at a random spacing
     from previous radius"""
     # transform last orbit given 3d roll over Orbital Spacing table
-    ratio = truncnorm_draw(1.4, 2, 1.6976, 0.1120457049600742)
+    ratio = RandomGenerator().truncnorm_draw(1.4, 2, 1.6976, 0.1120457049600742)
     radius = (previous_radius * ratio if outward else previous_radius / ratio)
     if not outward and (previous_radius - radius) < .15:
         # TODO: should not clamp orbit at a distance of exactly .15
@@ -69,7 +69,7 @@ def make_radii(star):
         radii.append(fgg_radius)
     else:
         # divided outermost legal distance by roll of 1d * .05 + 1
-        radii.append(limits.max.value / (roll1d6(continuous=True) * .05 + 1))
+        radii.append(limits.max.value / (RandomGenerator().roll1d6(continuous=True) * .05 + 1))
 
 
     # place radii
@@ -113,7 +113,7 @@ def terrestrial_type(parent, size, radius=np.nan):
                             if parent_star.mass <= .65 *
                             u.M_sun else terrestrial.StandardIce),
                  241 * u.K: (terrestrial.StandardGarden
-                             if roll3d6(garden_roll_modifier) >= 18
+                             if RandomGenerator().roll3d6(garden_roll_modifier) >= 18
                              else terrestrial.StandardOcean),
                  321 * u.K: terrestrial.StandardGreenhouse,
                  501 * u.K: terrestrial.StandardChthonian}
@@ -123,7 +123,7 @@ def terrestrial_type(parent, size, radius=np.nan):
                            if parent_star.mass <= .65 * u.M_sun
                            else terrestrial.LargeIce),
                  241 * u.K: (terrestrial.LargeGarden
-                             if roll3d6(garden_roll_modifier) >= 18
+                             if RandomGenerator().roll3d6(garden_roll_modifier) >= 18
                              else terrestrial.LargeOcean),
                  321 * u.K: terrestrial.LargeGreenhouse,
                  501 * u.K: terrestrial.LargeChthonian}
@@ -134,7 +134,7 @@ def terrestrial_type(parent, size, radius=np.nan):
         world_type = ((terrestrial.TinySulfur if
                       issubclass(type(parent), GasGiant) and
                       not hasattr(parent, '_moons') and
-                      roll1d6() < 4 else terrestrial.TinyIce)
+                      RandomGenerator().roll1d6() < 4 else terrestrial.TinyIce)
                       if blackbody_temperature <= 140 * u.K
                       else terrestrial.TinyRock)
     else:
@@ -150,7 +150,7 @@ def make_moon(parent):
                               if issubclass(type(parent), GasGiant)
                               else parent.size)
 
-    size_roll = roll3d6()
+    size_roll = RandomGenerator().roll3d6()
     scale = -3 if size_roll < 12 else (-2 if size_roll < 15 else -1)
     moon_size = max(parent_size + scale, 0)
 
@@ -158,11 +158,11 @@ def make_moon(parent):
         # orbital radius for major moons of terrestrial planets
         diff = parent_size - moon_size
         modifier = 2 if diff == 2 else (4 if diff == 1 else 0)
-        radius = roll2d6(modifier, continuous=True) * 2.5 * parent.diameter.to(u.au).value
+        radius = RandomGenerator().roll2d6(modifier, continuous=True) * 2.5 * parent.diameter.to(u.au).value
         # TODO: ensure that major moons are not in 5 planetary diameter of each other
     else:
-        radius_roll = roll3d6(3, continuous=True)
-        radius_roll += roll2d6() if radius_roll >= 15 else 0
+        radius_roll = RandomGenerator().roll3d6(3, continuous=True)
+        radius_roll += RandomGenerator().roll2d6() if radius_roll >= 15 else 0
         radius = radius_roll / 2 * parent.diameter.to(u.au).value
         # TODO: ensure that major moons are not in 1 planetary diameter of each other
     moon_type = terrestrial_type(parent, sizes[moon_size], radius)
@@ -178,7 +178,7 @@ def make_gas_giant_moons(parent):
     filtered = list(filter(lambda x: parent.orbit.radius <= x[0],
                            modifiers.items()))
     modifier = filtered[0][1] if len(filtered) > 0 else 0
-    parent._n_moonlets = max(roll2d6(modifier), 0)
+    parent._n_moonlets = max(RandomGenerator().roll2d6(modifier), 0)
     parent._n_captured = 0
     # roll for moons
     if parent.orbit.radius > .1 * u.au:
@@ -186,7 +186,7 @@ def make_gas_giant_moons(parent):
         filtered = list(filter(lambda x: parent.orbit.radius <= x[0],
                                modifiers.items()))
         modifier = filtered[0][1] if len(filtered) > 0 else 0
-        n_moons = max(roll1d6(modifier), 0)
+        n_moons = max(RandomGenerator().roll1d6(modifier), 0)
         for _ in range(n_moons):
             moons.append(make_moon(parent))
     # roll for captured moonlets
@@ -195,7 +195,7 @@ def make_gas_giant_moons(parent):
         filtered = list(filter(lambda x: parent.orbit.radius <= x[0],
                                modifiers.items()))
         modifier = filtered[0][1] if len(filtered) > 0 else 0
-        parent._n_captured = max(roll1d6(modifier), 0)
+        parent._n_captured = max(RandomGenerator().roll1d6(modifier), 0)
 
     moons.sort(key=lambda m: m.orbit.radius)
     return moons
@@ -204,7 +204,7 @@ def make_gas_giant_moons(parent):
 def make_gas_giant(star, radius, fbsl=False):
     gas_giant_types = {11: SmallGasGiant,
                        17: MediumGasGiant}
-    size_roll = roll3d6(4 if radius <= star.snow_line.value or fbsl else 0)
+    size_roll = RandomGenerator().roll3d6(4 if radius <= star.snow_line.value or fbsl else 0)
     filtered = list(filter(lambda x: size_roll < x[0],
                            list(gas_giant_types.items())))
     gas_giant_type = filtered[0][1] if len(filtered) > 0 else LargeGasGiant
@@ -220,22 +220,22 @@ def make_gas_giants(star, radii, fbsl_radius):
     for radius in radii:
         if (radius <= star.snow_line.value):
             if star.gas_giant_arrangement == type(star).GasGiantArrangement.ECCENTRIC:
-                if roll3d6() <= 8:
+                if RandomGenerator().roll3d6() <= 8:
                     gas_giants.append(make_gas_giant(star, radius,
                                                      radius == fbsl_radius))
                     radii.remove(radius)
             elif star.gas_giant_arrangement == type(star).GasGiantArrangement.EPISTELLAR:
-                if roll3d6() <= 6:
+                if RandomGenerator().roll3d6() <= 6:
                     gas_giants.append(make_gas_giant(star, radius,
                                                      radius == fbsl_radius))
                     radii.remove(radius)
         else:
             if star.gas_giant_arrangement == type(star).GasGiantArrangement.CONVENTIONAL:
-                if roll3d6() <= 15:
+                if RandomGenerator().roll3d6() <= 15:
                     gas_giants.append(make_gas_giant(star, radius,
                                                      radius == fbsl_radius))
                     radii.remove(radius)
-            elif roll3d6() <= 14:
+            elif RandomGenerator().roll3d6() <= 14:
                 gas_giants.append(make_gas_giant(star, radius,
                                                  radius == fbsl_radius))
                 radii.remove(radius)
@@ -254,10 +254,10 @@ def make_terrestrial_moons(parent):
                           terrestrial.Terrestrial.Size.STANDARD: 0,
                           terrestrial.Terrestrial.Size.LARGE: 1}
         modifier += size_modifiers[parent.size]
-        n_moons = max(roll1d6(-4 + modifier), 0)
+        n_moons = max(RandomGenerator().roll1d6(-4 + modifier), 0)
         for _ in range(n_moons):
             moons.append(make_moon(parent))
-        parent._n_moonlets = (max(roll1d6(-2 + modifier), 0)
+        parent._n_moonlets = (max(RandomGenerator().roll1d6(-2 + modifier), 0)
                               if len(moons) == 0 else 0)
 
     moons.sort(key=lambda m: m.orbit.radius)
@@ -305,7 +305,7 @@ def make_worlds(star, worlds, radii):
             if i + 1 < len(orbits) and orbits[i + 1][1] == 'GAS_GIANT':
                 orbits[i][2] -= 6
 
-            roll = roll3d6(orbits[i][2])
+            roll = RandomGenerator().roll3d6(orbits[i][2])
             filtered = list(filter(lambda x: roll < x[0], list(methods.items())))
             method = filtered[0][1] if len(filtered) > 0 else lambda x: make_terrestrial(star, x, terrestrial.Terrestrial.Size.LARGE)
             w = method(orbits[i][0])

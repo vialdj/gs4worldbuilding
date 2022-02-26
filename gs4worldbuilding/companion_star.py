@@ -3,9 +3,8 @@
 from .star import Star
 from .orbit import Orbit
 from . import model
-from .random import truncnorm_draw, truncexpon_draw, roll2d6
+from .random import RandomGenerator
 
-import random
 import enum
 
 from ordered_enum.ordered_enum import ValueOrderedEnum
@@ -24,31 +23,28 @@ class CompanionStar(Star):
             """sum of a 3d6 roll over Stellar Orbital Eccentricity Table with
             modifiers if any"""
             if self._body.separation == CompanionStar.Separation.MODERATE:
-                self.eccentricity = truncnorm_draw(0, .8, .4151,
-                                                   .16553546447815948)
+                self.eccentricity = RandomGenerator().truncnorm_draw(0, .8, .4151, .16553546447815948)
             elif self._body.separation == CompanionStar.Separation.CLOSE:
-                self.eccentricity = truncnorm_draw(0, .7, .3055,
-                                                   .1839014681833726)
+                self.eccentricity = RandomGenerator().truncnorm_draw(0, .7, .3055, .1839014681833726)
             elif self._body.separation == CompanionStar.Separation.VERY_CLOSE:
-                self.eccentricity = truncexpon_draw(0, .6, .1819450191678794)
+                self.eccentricity = RandomGenerator().truncexpon_draw(0, .6, .1819450191678794)
             else:
-                self.eccentricity = truncnorm_draw(0, .95, .5204,
-                                                   .142456449485448)
+                self.eccentricity = RandomGenerator().truncnorm_draw(0, .95, .5204, .142456449485448)
 
         def random_radius(self):
             """roll of 2d6 multiplied by the separation category radius"""
-            self.radius = (roll2d6(continuous=True) *
+            self.radius = (RandomGenerator().roll2d6(continuous=True) *
                            self._body.separation.value * u.au)
 
         @property
         def eccentricity_bounds(self) -> model.bounds.ValueBounds:
             """value range for eccentricity dependent separation"""
             rngs = {CompanionStar.Separation.MODERATE:
-                        model.bounds.ValueBounds(0, .8),
+                    model.bounds.ValueBounds(0, .8),
                     CompanionStar.Separation.CLOSE:
-                        model.bounds.ValueBounds(0, .7),
+                    model.bounds.ValueBounds(0, .7),
                     CompanionStar.Separation.VERY_CLOSE:
-                        model.bounds.ValueBounds(0, .6)}
+                    model.bounds.ValueBounds(0, .6)}
             return (rngs[self._body.separation]
                     if self._body.separation in rngs.keys() else
                     model.bounds.ValueBounds(0, .95))
@@ -94,27 +90,26 @@ radius multiplier in AU"""
         DISTANT = 50 * u.au
 
     def random_seed_mass(self):
-        """campanion star random mass procedure"""
+        """companion star random mass procedure"""
         mass = self._parent_body.mass.value
         # roll 1d6 - 1
-        r = random.randint(0, 5)
+        r = RandomGenerator().roll1d6(-1)
         if r >= 1:
             # sum of nd6 roll
-            s = sum([random.randint(1, 6) for _ in range(r)])
+            s = sum([RandomGenerator().roll1d6() for _ in range(r)])
             for _ in range(s):
                 # count down on the stellar mass table
                 mass -= (.05 if mass else .10)
         # add noise to value
         n = .025 if mass <= 1.5 else .05
-        mass += random.uniform(-n, n)
+        mass += RandomGenerator().rng.uniform(-n, n)
         # mass in [.1, parent_body.mass] range
         self.seed_mass = min(max(.1, mass) * u.M_sun, self._parent_body.mass)
 
     def random_separation(self):
         """sum of a 3d6 roll over Orbital Separation Table"""
-        self.separation = random.choices(list(self.Separation),
-                                         weights=self._separation_dist,
-                                         k=1)[0]
+        self.separation = RandomGenerator().choice(list(self.Separation),
+                                                   self._separation_dist)
 
     @property
     def seed_mass_bounds(self) -> model.bounds.QuantityBounds:

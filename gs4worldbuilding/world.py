@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .random import roll3d6
+from .random import RandomGenerator
 from .model import bounds
 
 import enum
@@ -51,7 +51,7 @@ class World(ABC):
         """sum of a 3d6-3 roll in range"""
         tmin = self.temperature_bounds.min.value
         tmax = self.temperature_bounds.max.value
-        roll = roll3d6(-3, continuous=True)
+        roll = RandomGenerator().roll3d6(-3, continuous=True)
         self.temperature = (tmin + roll / 15 * (tmax - tmin)) * u.K
 
     @property

@@ -2,9 +2,9 @@
 
 from .atmosphere import Atmosphere
 from .. import model
+from ..random import RandomGenerator
 
 import copy
-from random import choices
 
 
 class Marginal():
@@ -150,9 +150,8 @@ provided marginal modifier or one at random"""
         }
 
         if marginal_type is None:
-            marginal_type = choices(list(marginal_dist.keys()),
-                                    weights=list(marginal_dist
-                                                 .values()))[0]
+            marginal_type = RandomGenerator().choice(list(marginal_dist.keys()),
+                                                     list(marginal_dist.values()))[0]
 
         base = copy.copy(self)
         base.locked = True

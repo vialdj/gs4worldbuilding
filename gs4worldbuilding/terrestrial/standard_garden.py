@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from ..random import roll1d6, roll3d6
+from ..random import RandomGenerator
 from .. import model
 from .marginal_atmosphere import MarginalCandidate
 from . import Atmosphere, Terrestrial
@@ -19,7 +19,7 @@ class StandardGarden(Terrestrial):
 
         def randomize(self):
             """sum of a 3d roll to apply marginal modifier if > 11"""
-            if roll3d6() > 11:
+            if RandomGenerator().roll3d6() > 11:
                 self.make_marginal()
             else:
                 self.remove_marginal()
@@ -34,7 +34,7 @@ class StandardGarden(Terrestrial):
 
     def random_hydrographic_coverage(self):
         """roll of 1d+4 divided by 10"""
-        self.hydrographic_coverage = roll1d6(4, continuous=True) / 10
+        self.hydrographic_coverage = RandomGenerator().roll1d6(4, continuous=True) / 10
 
     @property
     def absorption(self):

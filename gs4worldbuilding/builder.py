@@ -1,5 +1,5 @@
 from gs4worldbuilding import terrestrial, StarSystem
-from random import choices
+from .random import RandomGenerator
 
 
 class Builder():
@@ -25,14 +25,15 @@ class Builder():
                 terrestrial.LargeIce: .00312988,
                 terrestrial.LargeGarden: .00300024,
                 terrestrial.LargeOcean: .00938964,
-                # terrestrial.AsteroidBelt: .16274024
+                terrestrial.AsteroidBelt: .16274024
                 }
 
         # consecutive 3d6 rolls over Overall Type Table and World Type Table
-        terrestrial_type = choices(list(dist.keys()),
-                             weights=list(dist.values()))[0]
-        return terrestrial_type()
+        type = RandomGenerator.choice(list(dist.keys()), list(dist.values()))
+        return type()
 
     @staticmethod
-    def build_star_system():
+    def build_star_system(seed=None):
+        if seed:
+            RandomGenerator().seed = seed
         return StarSystem()

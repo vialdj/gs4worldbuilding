@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from gs4worldbuilding.model.bounds.value_bounds import ValueBounds
 from .model import bounds
-from .random import roll3d6, roll2d6, roll1d6
+from .random import RandomGenerator
 from .units import D_earth, G_earth
 
 from abc import ABC, abstractmethod
@@ -48,12 +48,12 @@ class InplacePlanet(Planet, ABC):
 
     def random_axial_tilt(self) -> None:
         """Roll 3d over Axial Tilt Tables to define axial tilt"""
-        tilt_roll = roll2d6(-2, continuous=True)
-        table_roll = roll3d6()
+        tilt_roll = RandomGenerator().roll2d6(-2, continuous=True)
+        table_roll = RandomGenerator().roll3d6()
         if table_roll < 17:
             table = {6: 0, 9: 10, 12: 20, 14: 30, 16: 40}
         else:
-            table_roll = roll1d6()
+            table_roll = RandomGenerator().roll1d6()
             table = {2: 50, 4: 60, 5: 70, 6: 80}
         self.axial_tilt = (table[list(filter(lambda x: table_roll <= x,
                            table.keys()))[0]]
@@ -65,21 +65,21 @@ class InplacePlanet(Planet, ABC):
         rotation = self.rotation_bounds.scale(self._rotation)
         if ((rotation * u.h == self._orbit.period or
              self.tidal_effect >= 50) and self._orbit.eccentricity >= .1):
-            resonant = True if roll3d6() >= 12 else False
+            resonant = True if RandomGenerator().roll3d6() >= 12 else False
         self.resonant = resonant
 
     def random_retrograde(self) -> None:
         """Roll 3d to define retrograde property"""
-        self.retrograde = True if roll3d6() > 13 else False
+        self.retrograde = True if RandomGenerator().roll3d6() > 13 else False
 
     def random_rotation(self) -> None:
         """Roll over Rotation Table and Special Rotation Table if applicable"""
-        initial_roll = roll3d6(continuous=True)
+        initial_roll = RandomGenerator().roll3d6(continuous=True)
         if (initial_roll > 16 or initial_roll +
             self._rotation_modifiers[self.size] > 36):
-            special_roll = roll2d6()
+            special_roll = RandomGenerator().roll2d6()
             rotation = ({7: 48, 8: 120, 9: 240, 10: 480, 11: 1200,
-                         12: 2400}[special_roll] * roll1d6(continuous=True)
+                         12: 2400}[special_roll] * RandomGenerator().roll1d6(continuous=True)
                          if special_roll > 6 else initial_roll) * u.h
         else:
             rotation = (initial_roll + self.tidal_effect +

@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 
 from . import model
-from .random import truncexpon_draw, roll3d6
+from .random import RandomGenerator
 from .populate_star import populate_star
 
 from enum import Enum
 
 import numpy as np
 from astropy import units as u
+
 
 def int_to_roman(input):
     """TODO: util function to move, Convert an integer to a Roman numeral. """
@@ -47,18 +48,18 @@ class Star(model.RandomizableModel):
     def random_seed_mass(self):
         """consecutive sum of a 3d roll times over Stellar Mass Table with
 modifier if applicable"""
-        self.seed_mass = truncexpon_draw(self.seed_mass_bounds.min.value,
-                                         self.seed_mass_bounds.max.value,
-                                         (.26953477975949597
-                                          if self._star_system.garden_host
-                                          else .3905806446817353)) * u.M_sun
+        self.seed_mass = RandomGenerator().truncexpon_draw(self.seed_mass_bounds.min.value,
+                                                           self.seed_mass_bounds.max.value,
+                                                           (.26953477975949597
+                                                            if self._star_system.garden_host
+                                                            else .3905806446817353)) * u.M_sun
 
     def random_gas_giant_arrangement(self):
         """sum of a 3d roll times over Gas Giant Arrangement Table"""
         arrangements = {11: self.GasGiantArrangement.NONE,
                         13: self.GasGiantArrangement.CONVENTIONAL,
                         15: self.GasGiantArrangement.ECCENTRIC}
-        roll = roll3d6()
+        roll = RandomGenerator().roll3d6()
         filtered = list(filter(lambda x: roll < x[0],
                                list(arrangements.items())))
 

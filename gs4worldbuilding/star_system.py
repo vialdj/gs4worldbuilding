@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from . import model
-from .random import roll1d6, roll3d6
+from .random import RandomGenerator
 from .star import Star
 from .companion_star import CompanionStar
 
@@ -40,16 +40,14 @@ steps in Ga"""
 
     def random_population(self):
         """sum of a 3d roll over Stellar Age Table populations categories"""
-        self.population = random.choices(list(self.Population),
-                                         weights=self._population_dist,
-                                         k=1)[0]
+        self.population = RandomGenerator().choice(list(self.Population), self._population_dist)
 
     def random_age(self):
         """2 distinct rolls of 1d-1 times step-a and step-b added to base age
 from Stellar Age Table"""
         self.age = (self.population.base +
-                    roll1d6(-1, continuous=True) * self.population.step_a +
-                    roll1d6(-1, continuous=True) * self.population.step_b)
+                    RandomGenerator().roll1d6(-1, continuous=True) * self.population.step_a +
+                    RandomGenerator().roll1d6(-1, continuous=True) * self.population.step_b)
 
     @property
     def age(self) -> u.Quantity:
@@ -104,7 +102,7 @@ from Stellar Age Table"""
         # sub-companion star rolls if allowed
         for star in filter(lambda s: s.separation >=
                            CompanionStar.Separation.DISTANT, self._stars[1:]):
-            if roll3d6() >= 11:
+            if RandomGenerator().roll3d6() >= 11:
                 companion = CompanionStar(self, star, sub_companion=True)
                 # the two stars are closest companions
                 star._companions.insert(0, companion)
@@ -125,8 +123,7 @@ from Stellar Age Table"""
     def random_stars(self):
         """the system randomization of stars"""
         # multiple star roll
-        self.make_stars(random.choices([1, 2, 3], weights=self._stars_dist,
-                                       k=1)[0])
+        self.make_stars(RandomGenerator().choice([1, 2, 3], self._stars_dist))
 
     @property
     def population(self) -> Population:

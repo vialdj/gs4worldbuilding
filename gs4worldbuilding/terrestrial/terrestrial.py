@@ -3,7 +3,7 @@
 from .. import World, Planet, InplacePlanet, gas_giant
 from ..model import RandomizableModel, bounds
 from ..units import d_earth, D_earth, G_earth
-from ..random import roll2d6, roll3d6, truncnorm_draw
+from ..random import RandomGenerator
 from .marginal_atmosphere import Marginal
 from . import Atmosphere
 
@@ -44,7 +44,7 @@ class Terrestrial(RandomizableModel, World, Planet, ABC):
                  14: World.Resource.AVERAGE,
                  17: World.Resource.ABUNDANT,
                  19: World.Resource.VERY_ABUNDANT}
-        roll = roll3d6()
+        roll = RandomGenerator().roll3d6()
         filtered = list(filter(lambda x: roll < x, table.keys()))
         self.resource = (table[filtered[0]] if len(filtered) > 0 else
                          World.Resource.RICH)
@@ -55,20 +55,20 @@ class Terrestrial(RandomizableModel, World, Planet, ABC):
             self.density = (self.density_bounds.min +
                             (self.density_bounds.max -
                              self.density_bounds.min) *
-                            truncnorm_draw(0, 1, .376, .2))
+                            RandomGenerator().truncnorm_draw(0, 1, .376, .2))
 
     def random_diameter(self):
         """roll of 2d6-2 in range [Dmin, Dmax]"""
         if self.size is not None and self.core is not None:
             self.diameter = (self.diameter_bounds.min +
-                             (roll2d6(-2, continuous=True) / 10) *
+                             (RandomGenerator().roll2d6(-2, continuous=True) / 10) *
                              (self.diameter_bounds.max -
                               self.diameter_bounds.min))
 
     def random_volatile_mass(self):
         """sum of a 3d6 roll divided by 10"""
         if self.atmosphere is not None:
-            self.volatile_mass = roll3d6(continuous=True) / 10
+            self.volatile_mass = RandomGenerator().roll3d6(continuous=True) / 10
 
     @property
     def core(self) -> Core:
@@ -284,7 +284,7 @@ class InplaceTerrestrial(Terrestrial, InplacePlanet):
                      self.VolcanicActivity.MODERATE: 0,
                      self.VolcanicActivity.HEAVY: 1,
                      self.VolcanicActivity.EXTREME: 2}
-        roll = roll3d6(modifiers[self.volcanic_activity])
+        roll = RandomGenerator().roll3d6(modifiers[self.volcanic_activity])
         filtered = list(filter(lambda x: roll < x, table.keys()))
         self.resource = (table[filtered[0]] if len(filtered) > 0 else
                          World.Resource.RICH)
@@ -307,8 +307,8 @@ class InplaceTerrestrial(Terrestrial, InplacePlanet):
                     self.hydrographic_coverage < .5, -2),
                    (hasattr(self, '_moons') and len(self._moons) == 1, 2),
                    (hasattr(self, '_moons') and len(self._moons) > 1, 4)]
-        roll = roll3d6(sum(value if truth else 0 for
-                           truth, value in filters))
+        roll = RandomGenerator().roll3d6(sum(value if truth else 0 for
+                                         truth, value in filters))
         filtered = list(filter(lambda x: roll < x, table.keys()))
         self.tectonic_activity = ((table[filtered[0]] if
                                    len(filtered) > 0 else
@@ -330,8 +330,8 @@ class InplaceTerrestrial(Terrestrial, InplacePlanet):
                      (self._designation == 'Tiny (Sulfur)', 60),
                      (issubclass(type(self._orbit._parent_body),
                                  gas_giant.GasGiant), 5)]
-        roll = roll3d6(modifier + sum(value if truth else 0
-                                      for truth, value in modifiers))
+        roll = RandomGenerator().roll3d6(modifier + sum(value if truth else 0
+                                         for truth, value in modifiers))
         filtered = list(filter(lambda x: roll < x, table.keys()))
         self.volcanic_activity = (table[filtered[0]] if len(filtered) > 0
                                   else type(self).VolcanicActivity.EXTREME)

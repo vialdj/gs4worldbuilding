@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 
 from .planet import InplacePlanet
-from . import model, random, units
+from . import model, units
+from .random import RandomGenerator
 from .orbit import Orbit
 
 import enum
@@ -24,9 +25,9 @@ class GasGiant(model.RandomizableModel, InplacePlanet, ABC):
         def random_eccentricity(self):
             if (self._parent_body.gas_giant_arrangement == type(self._parent_body).GasGiantArrangement.ECCENTRIC and
                 self.radius <= self._parent_body.snow_line):
-                self.eccentricity = random.truncnorm_draw(.1, .8, .45435, .23165400385057022)
+                self.eccentricity = RandomGenerator().truncnorm_draw(.1, .8, .45435, .23165400385057022)
             else:
-                self.eccentricity = random.truncnorm_draw(.0, .2, .04625, .042877004326328585)
+                self.eccentricity = RandomGenerator().truncnorm_draw(.0, .2, .04625, .042877004326328585)
 
         @property
         # TODO: watchout for epistellar modifier
@@ -96,7 +97,7 @@ class SmallGasGiant(GasGiant):
 
     def random_mass(self):
         """small mass pdf fit as a truncated exponential"""
-        self.mass = (random.truncexpon_draw(10, 80, 17.69518578597015) *
+        self.mass = (RandomGenerator().truncexpon_draw(10, 80, 17.69518578597015) *
                      u.M_earth)
 
     @property
@@ -116,7 +117,7 @@ class MediumGasGiant(GasGiant):
 
     def random_mass(self):
         """medium mass pdf fit as a truncated normal"""
-        self.mass = (random.truncexpon_draw(100, 500, 102.41483046902924) *
+        self.mass = (RandomGenerator().truncexpon_draw(100, 500, 102.41483046902924) *
                      u.M_earth)
 
     @property
@@ -136,7 +137,7 @@ class LargeGasGiant(GasGiant):
 
     def random_mass(self):
         """large mass pdf fit as a truncated exponential"""
-        self.mass = (random.truncexpon_draw(600, 4000, 872.1918137657565) *
+        self.mass = (RandomGenerator().truncexpon_draw(600, 4000, 872.1918137657565) *
                      u.M_earth)
 
     @property

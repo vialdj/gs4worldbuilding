@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
-from . import model, random
+from . import model
+from .random import RandomGenerator
 from .planet import Planet
 from .units import D_earth
 
@@ -17,24 +18,24 @@ class Orbit(model.RandomizableModel):
     
     def random_ascending_lon(self):
         """draw from a uniform distribution between -180 and 180"""
-        self.ascending_lon = np.random.uniform(-180, 180) * u.deg
+        self.ascending_lon = RandomGenerator().rng.uniform(-180, 180) * u.deg
 
     def random_eccentricity(self):
         """sum of a 3d6 roll over Planetary Orbital Eccentricity Table with
         modifiers if any"""
-        self.eccentricity = random.truncnorm_draw(0, .8, .20295,
-                                                  .15273767544387992)
+        self.eccentricity = RandomGenerator().truncnorm_draw(0, .8, .20295,
+                                                             .15273767544387992)
     def random_inclination(self):
         """draw from a Rayleigh distribution with a mode of 2"""
-        self.inclination = np.random.rayleigh(2) * u.deg
+        self.inclination = RandomGenerator().rng.rayleigh(2) * u.deg
 
     def random_epoch_mean_anomaly(self):
         """draw from a uniform distribution between 0 and 360"""
-        self.epoch_mean_anomaly = np.random.uniform(0, 360) * u.deg
-    
+        self.epoch_mean_anomaly = RandomGenerator().rng.uniform(0, 360) * u.deg
+
     def random_periapsis_arg(self):
         """draw from a uniform distribution between 0 and 360"""
-        self.periapsis_arg = np.random.uniform(0, 360) * u.deg
+        self.periapsis_arg = RandomGenerator().rng.uniform(0, 360) * u.deg
 
     @property
     def radius(self) -> u.Quantity:
