@@ -17,16 +17,6 @@ class RandomGenerator:
         return RandomGenerator.__instance
 
     @property
-    def seed(self):
-        """the generator's seed"""
-        return self.__seed
-
-    @seed.setter
-    def seed(self, value):
-        self.__seed = value
-        self.__rng = np.random.default_rng(value)
-
-    @property
     def rng(self):
         """the readonly numpy random number generator"""
         return self.__rng
@@ -42,6 +32,17 @@ class RandomGenerator:
                 self.randomize_seed()
             return func(*args, **kwargs)
         return init_seed
+
+    @property
+    @_seed_dependent
+    def seed(self):
+        """the generator's seed"""
+        return self.__seed
+
+    @seed.setter
+    def seed(self, value):
+        self.__seed = value
+        self.__rng = np.random.default_rng(value)
 
     @_seed_dependent
     def truncnorm_draw(self, lower, upper, mu, sigma):
