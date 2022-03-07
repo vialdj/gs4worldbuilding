@@ -151,7 +151,7 @@ provided marginal modifier or one at random"""
 
         if marginal_type is None:
             marginal_type = RandomGenerator().choice(list(marginal_dist.keys()),
-                                                     list(marginal_dist.values()))[0]
+                                                     list(marginal_dist.values()))
 
         base = copy.copy(self)
         base.locked = True

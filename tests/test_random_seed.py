@@ -15,7 +15,7 @@ def system_42(builder):
 
 
 def test_seeds_42_42(builder, system_42):
-    assert (system_42 == builder.build_star_system(42))
+    assert (system_42.__str__() == builder.build_star_system(42).__str__())
 
 
 def test_seeds_84_42(builder, system_42):

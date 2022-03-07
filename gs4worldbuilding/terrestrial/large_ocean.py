@@ -27,7 +27,7 @@ class LargeOcean(Terrestrial):
 
     def random_hydrographic_coverage(self):
         """roll of 1d+6 maxed at 10 divided by 10"""
-        self.hydrographic_coverage = min(RandomGenerator(6, continuous=True), 10) / 10
+        self.hydrographic_coverage = min(RandomGenerator().roll1d6(6, continuous=True), 10) / 10
 
     @property
     def absorption(self):
