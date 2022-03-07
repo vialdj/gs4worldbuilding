@@ -24,7 +24,6 @@ class RandomGenerator:
     def randomize_seed(self):
         """Randomize seed with value in 0 INT_MAX range"""
         self.seed = np.random.randint(ctypes.c_uint32(-1).value // 2)
-        return self.seed
 
     def _seed_dependent(func):
         def init_seed(*args, **kwargs):
