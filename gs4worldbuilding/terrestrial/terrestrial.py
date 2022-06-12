@@ -5,7 +5,7 @@ from ..model import RandomizableModel, bounds
 from ..units import d_earth, D_earth, G_earth
 from ..random import RandomGenerator
 from .marginal_atmosphere import Marginal
-from . import Atmosphere
+from . import Atmosphere, Pressure
 
 import enum
 from abc import ABC
@@ -194,15 +194,15 @@ the same type"""
         atm = self.atmosphere
         if atm and atm.breathable:
             filters.extend([(atm.pressure_category ==
-                             Atmosphere.Pressure.VERY_THIN, 1),
+                             Pressure.VERY_THIN, 1),
                             (atm.pressure_category ==
-                             Atmosphere.Pressure.THIN, 2),
+                             Pressure.THIN, 2),
                             (atm.pressure_category in
-                             [Atmosphere.Pressure.STANDARD,
-                              Atmosphere.Pressure.DENSE], 3),
+                             [Pressure.STANDARD,
+                              Pressure.DENSE], 3),
                             (atm.pressure_category in
-                             [Atmosphere.Pressure.VERY_DENSE,
-                              Atmosphere.Pressure.SUPER_DENSE], 1),
+                             [Pressure.VERY_DENSE,
+                              Pressure.SUPER_DENSE], 1),
                             (not issubclass(type(atm), Marginal), 1),
                             (self.climate == self.Climate.COLD, 1),
                             (self.climate >= self.Climate.CHILLY and

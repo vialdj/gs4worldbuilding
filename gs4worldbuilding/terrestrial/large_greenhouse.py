@@ -1,6 +1,6 @@
 from astropy import units as u
 
-from . import Atmosphere, Terrestrial
+from . import Atmosphere, Terrestrial, Toxicity
 from .. import model
 from ..random import RandomGenerator
 
@@ -11,7 +11,7 @@ class LargeGreenhouse(Terrestrial):
 
     class LargeGreenhouseAtmosphere(Atmosphere):
         """The large greenhouse atmosphere model"""
-        _toxicity = Atmosphere.Toxicity.LETHAL
+        _toxicity = Toxicity.LETHAL
         _suffocating = True
         _corrosive = True
 

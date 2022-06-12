@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from .atmosphere import Atmosphere
+from .atmosphere import Toxicity, Pressure
 from .. import model
 from ..random import RandomGenerator
 
@@ -20,8 +20,8 @@ def chlorine_or_fluorine(atmosphere):
 
     class ChlorineOrFluorine(atmosphere, Marginal):
         _toxicity = model.bounds.ValueBounds(
-                        Atmosphere.Toxicity.HIGH,
-                        Atmosphere.Toxicity.LETHAL
+                        Toxicity.HIGH,
+                        Toxicity.LETHAL
                     )
         _corrosive = model.bounds.ValueBounds(False, True)
 
@@ -32,13 +32,13 @@ def high_carbon_dioxide(atmosphere):
 
     class HighCarbonDioxide(atmosphere, Marginal):
         _toxicity = model.bounds.ValueBounds(
-                        Atmosphere.Toxicity.NONE,
-                        Atmosphere.Toxicity.MILD
+                        Toxicity.NONE,
+                        Toxicity.MILD
                     )
 
         @property
         def pressure_category(self):
-            return Atmosphere.Pressure.VERY_DENSE
+            return Pressure.VERY_DENSE
 
     return HighCarbonDioxide
 
@@ -47,13 +47,13 @@ def high_oxygen(atmosphere):
 
     class HighOxygen(atmosphere, Marginal):
         _toxicity = model.bounds.ValueBounds(
-                        Atmosphere.Toxicity.NONE,
-                        Atmosphere.Toxicity.MILD
+                        Toxicity.NONE,
+                        Toxicity.MILD
                     )
 
         @property
         def pressure_category(self):
-            categories = sorted(list(Atmosphere.Pressure),
+            categories = sorted(list(Pressure),
                                 key=lambda x: x.value)
             idx = categories.index(super().pressure_category)
             idx = min(idx + 1, len(categories) - 1)
@@ -65,7 +65,7 @@ def high_oxygen(atmosphere):
 def inert_gases(atmosphere):
 
     class InertGases(atmosphere, Marginal):
-        _toxicity = Atmosphere.Toxicity.NONE
+        pass
 
     return InertGases
 
@@ -76,7 +76,7 @@ def low_oxygen(atmosphere):
 
         @property
         def pressure_category(self):
-            categories = sorted(list(Atmosphere.Pressure),
+            categories = sorted(list(Pressure),
                                 key=lambda x: x.value)
             idx = categories.index(super().pressure_category)
             idx = max(idx - 1, 0)
@@ -89,8 +89,8 @@ def nitrogen_compounds(atmosphere):
 
     class NitrogenCompounds(atmosphere, Marginal):
         _toxicity = model.bounds.ValueBounds(
-                        Atmosphere.Toxicity.MILD,
-                        Atmosphere.Toxicity.HIGH
+                        Toxicity.MILD,
+                        Toxicity.HIGH
                     )
 
     return NitrogenCompounds
@@ -100,8 +100,8 @@ def sulfur_compounds(atmosphere):
 
     class SulfurCompounds(atmosphere, Marginal):
         _toxicity = model.bounds.ValueBounds(
-                        Atmosphere.Toxicity.MILD,
-                        Atmosphere.Toxicity.HIGH
+                        Toxicity.MILD,
+                        Toxicity.HIGH
                     )
 
     return SulfurCompounds
@@ -111,8 +111,8 @@ def organic_toxins(atmosphere):
 
     class OrganicToxins(atmosphere, Marginal):
         _toxicity = model.bounds.ValueBounds(
-                        Atmosphere.Toxicity.MILD,
-                        Atmosphere.Toxicity.LETHAL
+                        Toxicity.MILD,
+                        Toxicity.LETHAL
                     )
 
     return OrganicToxins
@@ -121,7 +121,7 @@ def organic_toxins(atmosphere):
 def pollutants(atmosphere):
 
     class Pollutants(atmosphere, Marginal):
-        _toxicity = Atmosphere.Toxicity.MILD
+        _toxicity = Toxicity.MILD
 
     return Pollutants
 
@@ -134,7 +134,7 @@ specialized atmospheres"""
         """makes a marginal candidate atmosphere marginal using the
 provided marginal modifier or one at random"""
 
-        if issubclass(type(self), Marginal):
+        if isinstance(self, Marginal):
             self.remove_marginal()
 
         marginal_dist = {
@@ -155,15 +155,13 @@ provided marginal modifier or one at random"""
                                      list(marginal_dist.values())))
 
         base = copy.copy(self)
-        base.locked = True
         marginal = self
         marginal.__class__ = marginal_type(type(self))
         marginal._base = base
 
     def remove_marginal(self):
 
-        if issubclass(type(self), Marginal):
-            base_type = type(self.base)
+        if isinstance(self, Marginal):
+            base_type = type(self._base)
             atmosphere = self
             atmosphere.__class__ = base_type
-            atmosphere.locked = False

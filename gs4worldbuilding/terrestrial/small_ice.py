@@ -2,7 +2,7 @@ from astropy import units as u
 
 from ..random import RandomGenerator
 from .. import model
-from . import Atmosphere, Terrestrial
+from . import Atmosphere, Terrestrial, Toxicity
 
 
 class SmallIce(Terrestrial):
@@ -17,9 +17,9 @@ class SmallIce(Terrestrial):
         def randomize(self):
             """sum of a 3d roll to define toxicity conditionally on <= 15"""
             if RandomGenerator().roll3d6() <= 15:
-                self._toxicity = Atmosphere.Toxicity.MILD
+                self._toxicity = Toxicity.MILD
             else:
-                self._toxicity = Atmosphere.Toxicity.HIGH
+                self._toxicity = Toxicity.HIGH
 
     _temperature_bounds = model.bounds.QuantityBounds(80 * u.K, 140 * u.K)
     _size = Terrestrial.Size.SMALL

@@ -1,6 +1,6 @@
 from astropy import units as u
 
-from . import Atmosphere, Terrestrial
+from . import Atmosphere, Terrestrial, Toxicity
 from .. import model
 from ..random import RandomGenerator
 
@@ -12,7 +12,7 @@ class LargeIce(Terrestrial):
     class LargeIceAtmosphere(Atmosphere):
         """the large ice atmosphere model"""
         _composition = ['He', 'N2']
-        _toxicity = Atmosphere.Toxicity.HIGH
+        _toxicity = Toxicity.HIGH
         _suffocating = True
 
     _temperature_bounds = model.bounds.QuantityBounds(80 * u.K, 230 * u.K)

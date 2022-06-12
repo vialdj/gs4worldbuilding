@@ -1,4 +1,4 @@
-from .atmosphere import Atmosphere
+from .atmosphere import Atmosphere, Toxicity, Pressure
 from .marginal_atmosphere import (chlorine_or_fluorine, high_carbon_dioxide,
                                   high_oxygen, inert_gases, low_oxygen,
                                   nitrogen_compounds, sulfur_compounds,

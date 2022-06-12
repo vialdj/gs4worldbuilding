@@ -1,6 +1,6 @@
 from astropy import units as u
 
-from . import Atmosphere, Terrestrial
+from . import Atmosphere, Terrestrial, Toxicity
 from .. import model
 from ..random import RandomGenerator
 
@@ -12,7 +12,7 @@ class LargeAmmonia(Terrestrial):
     class LargeAmmoniaAtmosphere(Atmosphere):
         """The large ammonia atmosphere model"""
         _composition = ['He', 'NH3', 'CH4']
-        _toxicity = Atmosphere.Toxicity.LETHAL
+        _toxicity = Toxicity.LETHAL
         _suffocating = True
         _corrosive = True
 

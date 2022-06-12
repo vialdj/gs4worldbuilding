@@ -1,6 +1,6 @@
 from astropy import units as u
 
-from . import Atmosphere, Terrestrial
+from . import Atmosphere, Terrestrial, Toxicity
 from .. import model
 from ..random import RandomGenerator
 
@@ -12,7 +12,7 @@ class LargeOcean(Terrestrial):
     class LargeOceanAtmosphere(Atmosphere):
         """the large ocean atmosphere model"""
         _composition = ['He', 'N2']
-        _toxicity = Atmosphere.Toxicity.HIGH
+        _toxicity = Toxicity.HIGH
         _suffocating = True
 
     _temperature_bounds = model.bounds.QuantityBounds(250 * u.K, 340 * u.K)

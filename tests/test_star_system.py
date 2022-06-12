@@ -17,6 +17,7 @@ def sol():
     system.A.seed_mass = 1 * u.M_sun
     return system
 
+
 @pytest.fixture
 def procyon():
     # returns a StarSystem instance analog to the procyon system
@@ -43,6 +44,7 @@ def aldebaran():
     system.A.seed_mass = 1.13 * u.M_sun
     return system
 
+
 @pytest.fixture
 def van_maanen():
     # returns a StarSystem instance analog to the van maanen's star's host system
@@ -54,6 +56,7 @@ def van_maanen():
     # TODO: should be 2.6 instead of 2
     system.A.seed_mass = 2 * u.M_sun
     return system
+
 
 @pytest.fixture
 def alpha_centauri():
@@ -72,45 +75,45 @@ def alpha_centauri():
 
 
 def test_sol(sol):
-    assert (sol.A.luminosity_class == Star.Luminosity.V)
-    assert (sol.A.spectral_type == 'G2')
+    assert sol.A.luminosity_class == Star.Luminosity.V
+    assert sol.A.spectral_type == 'G2'
     assert (sol.A.temperature >= 5500 * u.K and
             sol.A.temperature <= 6000 * u.K)
-    assert (sol.A.radius >= 0.004 * u.au and sol.A.radius <= 0.006 * u.au)
+    assert sol.A.radius >= 0.004 * u.au and sol.A.radius <= 0.006 * u.au
 
 
 def test_procyon(procyon):
-    assert (procyon.A.luminosity_class == Star.Luminosity.IV)
+    assert procyon.A.luminosity_class == Star.Luminosity.IV
     assert (procyon.A.temperature >= 6400 * u.K and
             procyon.A.temperature <= 6900 * u.K)
-    assert (procyon.A.radius >= 0.008 * u.au and procyon.A.radius <= 0.01 * u.au)
+    assert procyon.A.radius >= 0.008 * u.au and procyon.A.radius <= 0.01 * u.au
     # TODO: here procyon B mass should be tested at .6
-    assert (procyon.B.luminosity_class == Star.Luminosity.D)
+    assert procyon.B.luminosity_class == Star.Luminosity.D
 
 
 def test_aldebaran(aldebaran):
-    assert (aldebaran.A.luminosity_class == Star.Luminosity.III)
+    assert aldebaran.A.luminosity_class == Star.Luminosity.III
     assert (aldebaran.A.temperature >= 3000 * u.K and
             aldebaran.A.temperature <= 5000 * u.K)
 
 
 def test_van_maanen(van_maanen):
-    assert (van_maanen.A.luminosity_class == Star.Luminosity.D)
+    assert van_maanen.A.luminosity_class == Star.Luminosity.D
     # TODO: here mass should be tested at .67
 
 
 def test_alpha_centauri(alpha_centauri):
-    assert (alpha_centauri.A.luminosity_class == Star.Luminosity.V)
+    assert alpha_centauri.A.luminosity_class == Star.Luminosity.V
     assert (alpha_centauri.A.temperature >= 5800 * u.K and
             alpha_centauri.A.temperature <= 6300 * u.K)
     assert (alpha_centauri.A.radius >= 0.0045 * u.au and
             alpha_centauri.A.radius <= 0.0065 * u.au)
-    assert (alpha_centauri.B.luminosity_class == Star.Luminosity.V)
+    assert alpha_centauri.B.luminosity_class == Star.Luminosity.V
     assert (alpha_centauri.B.temperature >= 5200 * u.K and
             alpha_centauri.B.temperature <= 5800 * u.K)
     assert (alpha_centauri.B.radius >= 0.003 * u.au and
             alpha_centauri.B.radius <= 0.005 * u.au)
-    assert (alpha_centauri.C.luminosity_class == Star.Luminosity.V)
+    assert alpha_centauri.C.luminosity_class == Star.Luminosity.V
     assert (alpha_centauri.C.temperature >= 3100 * u.K and
             alpha_centauri.C.temperature <= 3200 * u.K)
     assert (alpha_centauri.C.radius >= 0.000 * u.au and

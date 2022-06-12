@@ -2,7 +2,7 @@ from astropy import units as u
 
 from ..random import RandomGenerator
 from .. import model
-from . import Atmosphere, Terrestrial
+from . import Atmosphere, Terrestrial, Toxicity
 
 
 class StandardOcean(Terrestrial):
@@ -18,7 +18,7 @@ class StandardOcean(Terrestrial):
         def randomize(self):
             """sum of a 3d roll to define toxicity if value > 12"""
             if RandomGenerator().roll3d6() > 12:
-                self._toxicity = Atmosphere.Toxicity.MILD
+                self._toxicity = Toxicity.MILD
             else:
                 self._toxicity = None
 
