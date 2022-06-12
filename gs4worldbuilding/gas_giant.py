@@ -57,7 +57,7 @@ class GasGiant(model.RandomizableModel, InplacePlanet, ABC):
     @property
     def mass(self) -> u.Quantity:
         """mass in M🜨"""
-        return self._get_bounded_property('mass') * u.M_earth
+        return self._get_bounded_property('mass')
 
     @property
     def mass_bounds(self) -> model.bounds.QuantityBounds:
@@ -75,7 +75,7 @@ class GasGiant(model.RandomizableModel, InplacePlanet, ABC):
 
     @property
     def moons(self):
-        return super(GasGiant, self).moons + self._n_captured
+        return super().moons + self._n_captured
 
     @property
     def diameter(self) -> u.Quantity:

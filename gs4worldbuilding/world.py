@@ -1,13 +1,11 @@
-# -*- coding: utf-8 -*-
-
-from .random import RandomGenerator
-from .model import bounds
-
 import enum
 from abc import ABC, abstractmethod
 
 from ordered_enum import ValueOrderedEnum
 from astropy import units as u
+
+from .random import RandomGenerator
+from .model import bounds
 
 
 class World(ABC):
@@ -49,8 +47,8 @@ class World(ABC):
 
     def random_temperature(self) -> None:
         """sum of a 3d6-3 roll in range"""
-        tmin = self.temperature_bounds.min.value
-        tmax = self.temperature_bounds.max.value
+        tmin = self.temperature_bounds.lower.value
+        tmax = self.temperature_bounds.upper.value
         roll = RandomGenerator().roll3d6(-3, continuous=True)
         self.temperature = (tmin + roll / 15 * (tmax - tmin)) * u.K
 
@@ -72,14 +70,13 @@ class World(ABC):
     @resource.setter
     def resource(self, value: Resource):
         if not isinstance(value, self.Resource):
-            raise ValueError('resource value type has to be {}'
-                             .format(self.Resource))
+            raise ValueError(f'resource value type has to be {self.Resource}')
         self._set_bounded_property('resource', value)
 
     @property
     def temperature(self) -> u.Quantity:
         """average temperature in K"""
-        return self._get_bounded_property('temperature') * u.K
+        return self._get_bounded_property('temperature')
 
     @property
     def temperature_bounds(self) -> bounds.QuantityBounds:
@@ -92,20 +89,20 @@ class World(ABC):
             raise ValueError('expected quantity type value')
         if 'temperature' not in value.unit.physical_type:
             raise ValueError('can\'t set temperature to value of'
-                             + ' %s physical type' %
-                             value.unit.physical_type)
+                             + f' {value.unit.physical_type} physical type')
         self._set_bounded_property('temperature', value.to(u.K))
 
     @property
     @abstractmethod
     def blackbody_correction(self) -> float:
         """the correction applied on temperature"""
-        pass
+        raise NotImplementedError('World subclasses should implement ' +
+                                  "the 'blackbody_correction' property")
 
     @property
     def blackbody_temperature(self) -> u.Quantity:
         """blackbody temperature in K"""
-        return (self.temperature / self.blackbody_correction)
+        return self.temperature / self.blackbody_correction
 
     @property
     def climate(self) -> Climate:
@@ -116,7 +113,8 @@ class World(ABC):
     @abstractmethod
     def habitability(self) -> int:
         """the habitability score"""
-        pass
+        raise NotImplementedError('World subclasses should implement ' +
+                                  "the 'habitability' property")
 
     @property
     def affinity(self) -> int:

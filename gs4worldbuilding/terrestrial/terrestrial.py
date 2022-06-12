@@ -52,18 +52,18 @@ class Terrestrial(RandomizableModel, World, Planet, ABC):
     def random_density(self):
         """sum of a 3d6 roll over World Density Table"""
         if self.core is not None:
-            self.density = (self.density_bounds.min +
-                            (self.density_bounds.max -
-                             self.density_bounds.min) *
+            self.density = (self.density_bounds.lower +
+                            (self.density_bounds.upper -
+                             self.density_bounds.lower) *
                             RandomGenerator().truncnorm_draw(0, 1, .376, .2))
 
     def random_diameter(self):
         """roll of 2d6-2 in range [Dmin, Dmax]"""
         if self.size is not None and self.core is not None:
-            self.diameter = (self.diameter_bounds.min +
+            self.diameter = (self.diameter_bounds.lower +
                              (RandomGenerator().roll2d6(-2, continuous=True) / 10) *
-                             (self.diameter_bounds.max -
-                              self.diameter_bounds.min))
+                             (self.diameter_bounds.upper -
+                              self.diameter_bounds.lower))
 
     def random_volatile_mass(self):
         """sum of a 3d6 roll divided by 10"""
@@ -112,7 +112,7 @@ the same type"""
     def density(self) -> u.Quantity:
         return (self._get_bounded_property('density')
                 if hasattr(self, '_density')
-                else np.nan) * d_earth
+                else np.nan)
 
     @property
     def density_bounds(self) -> bounds.QuantityBounds:
@@ -146,7 +146,7 @@ the same type"""
         """diameter in D🜨"""
         return (self._get_bounded_property('diameter')
                 if hasattr(self, '_diameter')
-                else np.nan) * D_earth
+                else np.nan)
 
     @property
     def diameter_bounds(self) -> bounds.QuantityBounds:
@@ -224,7 +224,7 @@ the same type"""
         if (hasattr(type(self._atmosphere), 'randomize') and
             callable(getattr(type(self._atmosphere), 'randomize'))):
             self._atmosphere.randomize()
-        super(Terrestrial, self).randomize()
+        super().randomize()
 
     def __init__(self, orbit=None):
 
@@ -364,8 +364,8 @@ class InplaceTerrestrial(Terrestrial, InplacePlanet):
         modifier = modifiers[self.volcanic_activity]
 
         value_bounds = Terrestrial.resource_bounds.fget(self)
-        return bounds.ValueBounds(value_bounds.min + modifier,
-                                  value_bounds.max + modifier)
+        return bounds.ValueBounds(value_bounds.lower + modifier,
+                                  value_bounds.upper + modifier)
 
     @property
     def temperature(self) -> u.Quantity:
@@ -420,8 +420,8 @@ class InplaceTerrestrial(Terrestrial, InplacePlanet):
     @tectonic_activity.setter
     def tectonic_activity(self, value):
         if not isinstance(value, self.TectonicActivity):
-            raise ValueError('tectonic activity value type has to be {}'
-                             .format(self.TectonicActivity))
+            raise ValueError('tectonic activity value type has to be' +
+                             f'{self.TectonicActivity}')
         self._set_bounded_property('tectonic_activity', value)
 
     @property
@@ -460,8 +460,8 @@ class InplaceTerrestrial(Terrestrial, InplacePlanet):
     @volcanic_activity.setter
     def volcanic_activity(self, value):
         if not isinstance(value, self.VolcanicActivity):
-            raise ValueError('volcanic activity value type has to be {}'
-                             .format(self.VolcanicActivity))
+            raise ValueError('volcanic activity value type has to be ' +
+                             f'{self.VolcanicActivity}')
         self._set_bounded_property('volcanic_activity', value)
 
 

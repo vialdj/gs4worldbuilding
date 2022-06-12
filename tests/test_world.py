@@ -1,3 +1,7 @@
+import pytest
+import numpy as np
+from astropy import units as u
+
 from gs4worldbuilding.asteroid_belt import AsteroidBelt
 from gs4worldbuilding.world import World
 import gs4worldbuilding.terrestrial as terrestrial
@@ -6,9 +10,6 @@ from gs4worldbuilding.model.bounds import ValueBounds
 
 from gs4worldbuilding.terrestrial.marginal_atmosphere import Marginal
 
-import pytest
-import numpy as np
-from astropy import units as u
 
 @pytest.fixture
 def asteroid_belt():
@@ -131,6 +132,7 @@ def tiny_sulfur():
 
 # Tests on exceptions raises
 
+
 def test_set_temperature_raises_exception_on_nan(asteroid_belt):
     with pytest.raises(ValueError):
         asteroid_belt.temperature = np.nan
@@ -142,9 +144,10 @@ def test_set_temperature_raises_exception_on_out_of_bounds(asteroid_belt):
 
 # Tests on world derived properties
 
+
 def test_get_blackbody_temperature(standard_garden):
-    assert (standard_garden.blackbody_temperature == standard_garden.temperature /
-            standard_garden.blackbody_correction)
+    assert (standard_garden.blackbody_temperature ==
+            standard_garden.temperature / standard_garden.blackbody_correction)
 
 
 def test_get_climate(standard_garden):
@@ -194,8 +197,9 @@ def test_small_ice(small_ice):
     assert small_ice.absorption == .93
     assert (small_ice.temperature >= 80 * u.K and
             small_ice.temperature <= 140 * u.K)
-    assert small_ice.atmosphere.toxicity in [terrestrial.Atmosphere.Toxicity.MILD,
-                                             terrestrial.Atmosphere.Toxicity.HIGH]
+    assert (small_ice.atmosphere.toxicity in
+            [terrestrial.Atmosphere.Toxicity.MILD,
+             terrestrial.Atmosphere.Toxicity.HIGH])
     assert small_ice.atmosphere.composition == ['N2', 'CH4']
     assert small_ice.atmosphere.suffocating is True
     assert small_ice.atmosphere.corrosive is False
@@ -214,8 +218,8 @@ def test_standard_ice(standard_ice):
     assert standard_ice.absorption == .86
     assert (standard_ice.temperature >= 80 * u.K and
             standard_ice.temperature <= 230 * u.K)
-    assert standard_ice.atmosphere.toxicity in [None,
-                                                terrestrial.Atmosphere.Toxicity.MILD]
+    assert (standard_ice.atmosphere.toxicity in
+            [None, terrestrial.Atmosphere.Toxicity.MILD])
     assert standard_ice.atmosphere.composition == ['CO2', 'N2']
     assert standard_ice.atmosphere.suffocating is True
     assert standard_ice.atmosphere.corrosive is False
@@ -234,7 +238,8 @@ def test_large_ice(large_ice):
     assert large_ice.absorption == .86
     assert (large_ice.temperature >= 80 * u.K and
             large_ice.temperature <= 230 * u.K)
-    assert large_ice.atmosphere.toxicity == terrestrial.Atmosphere.Toxicity.HIGH
+    assert (large_ice.atmosphere.toxicity ==
+            terrestrial.Atmosphere.Toxicity.HIGH)
     assert large_ice.atmosphere.composition == ['He', 'N2']
     assert large_ice.atmosphere.suffocating is True
     assert large_ice.atmosphere.corrosive is False
@@ -267,7 +272,8 @@ def test_standard_greenhouse(standard_greenhouse):
             standard_greenhouse.hydrographic_coverage <= .5)
     assert standard_greenhouse.greenhouse_factor == 2
     assert standard_greenhouse.pressure_factor == 100
-    assert standard_greenhouse.core is terrestrial.Terrestrial.Core.LARGE_IRON_CORE
+    assert (standard_greenhouse.core is
+            terrestrial.Terrestrial.Core.LARGE_IRON_CORE)
     assert standard_greenhouse.size is terrestrial.Terrestrial.Size.STANDARD
     assert (standard_greenhouse.density >= .8 * units.d_earth and
             standard_greenhouse.density <= 1.2 * units.d_earth)
@@ -283,7 +289,8 @@ def test_large_greenhouse(large_greenhouse):
              large_greenhouse.atmosphere.composition == ['CO2']) or
             (large_greenhouse.hydrographic_coverage >= .1 and
              large_greenhouse.atmosphere.composition == ['N2', 'H2O', 'O2']))
-    assert large_greenhouse.atmosphere.toxicity == terrestrial.Atmosphere.Toxicity.LETHAL
+    assert (large_greenhouse.atmosphere.toxicity ==
+            terrestrial.Atmosphere.Toxicity.LETHAL)
     assert large_greenhouse.atmosphere.suffocating is True
     assert large_greenhouse.atmosphere.corrosive is True
     assert large_greenhouse.atmosphere.breathable is False
@@ -291,7 +298,8 @@ def test_large_greenhouse(large_greenhouse):
             large_greenhouse.hydrographic_coverage <= .5)
     assert large_greenhouse.greenhouse_factor == 2
     assert large_greenhouse.pressure_factor == 500
-    assert large_greenhouse.core is terrestrial.Terrestrial.Core.LARGE_IRON_CORE
+    assert (large_greenhouse.core is
+            terrestrial.Terrestrial.Core.LARGE_IRON_CORE)
     assert large_greenhouse.size is terrestrial.Terrestrial.Size.LARGE
     assert (large_greenhouse.density >= .8 * units.d_earth and
             large_greenhouse.density <= 1.2 * units.d_earth)
@@ -307,8 +315,8 @@ def test_standard_ocean(standard_ocean):
             standard_ocean.absorption >= .84)
     assert (standard_ocean.temperature >= 250 * u.K and
             standard_ocean.temperature <= 340 * u.K)
-    assert standard_ocean.atmosphere.toxicity in [None,
-                                                  terrestrial.Atmosphere.Toxicity.MILD]
+    assert (standard_ocean.atmosphere.toxicity in
+            [None, terrestrial.Atmosphere.Toxicity.MILD])
     assert standard_ocean.atmosphere.composition == ['CO2', 'N2']
     assert standard_ocean.atmosphere.suffocating is True
     assert standard_ocean.atmosphere.corrosive is False
@@ -333,7 +341,8 @@ def test_large_ocean(large_ocean):
             large_ocean.absorption >= .84)
     assert (large_ocean.temperature >= 250 * u.K and
             large_ocean.temperature <= 340 * u.K)
-    assert large_ocean.atmosphere.toxicity == terrestrial.Atmosphere.Toxicity.HIGH
+    assert (large_ocean.atmosphere.toxicity ==
+            terrestrial.Atmosphere.Toxicity.HIGH)
     assert large_ocean.atmosphere.composition == ['He', 'N2']
     assert large_ocean.atmosphere.suffocating is True
     assert large_ocean.atmosphere.corrosive is False
@@ -352,7 +361,8 @@ def test_standard_ammonia(standard_ammonia):
     assert standard_ammonia.absorption == .84
     assert (standard_ammonia.temperature >= 140 * u.K and
             standard_ammonia.temperature <= 215 * u.K)
-    assert standard_ammonia.atmosphere.toxicity == terrestrial.Atmosphere.Toxicity.LETHAL
+    assert (standard_ammonia.atmosphere.toxicity ==
+            terrestrial.Atmosphere.Toxicity.LETHAL)
     assert standard_ammonia.atmosphere.composition == ['N2', 'NH3', 'CH4']
     assert standard_ammonia.atmosphere.suffocating is True
     assert standard_ammonia.atmosphere.corrosive is True
@@ -371,7 +381,8 @@ def test_large_ammonia(large_ammonia):
     assert large_ammonia.absorption == .84
     assert (large_ammonia.temperature >= 140 * u.K and
             large_ammonia.temperature <= 215 * u.K)
-    assert large_ammonia.atmosphere.toxicity == terrestrial.Atmosphere.Toxicity.LETHAL
+    assert (large_ammonia.atmosphere.toxicity ==
+            terrestrial.Atmosphere.Toxicity.LETHAL)
     assert large_ammonia.atmosphere.composition == ['He', 'NH3', 'CH4']
     assert large_ammonia.atmosphere.suffocating is True
     assert large_ammonia.atmosphere.corrosive is True
@@ -447,7 +458,8 @@ def test_standard_chthonian(standard_chthonian):
     assert np.isnan(standard_chthonian.greenhouse_factor)
     assert np.isnan(standard_chthonian.pressure_factor)
     assert np.isnan(standard_chthonian.hydrographic_coverage)
-    assert standard_chthonian.core == terrestrial.Terrestrial.Core.LARGE_IRON_CORE
+    assert (standard_chthonian.core ==
+            terrestrial.Terrestrial.Core.LARGE_IRON_CORE)
     assert standard_chthonian.size == terrestrial.Terrestrial.Size.STANDARD
     assert (standard_chthonian.density >= .8 * units.d_earth and
             standard_chthonian.density <= 1.2 * units.d_earth)
@@ -559,7 +571,8 @@ def test_set_marginal_high_carbon_dioxyde(standard_garden):
 
 
 def test_set_marginal_high_oxygen(standard_garden):
-    categories = sorted(list(terrestrial.Atmosphere.Pressure), key=lambda x: x.value)
+    categories = sorted(list(terrestrial.Atmosphere.Pressure),
+                        key=lambda x: x.value)
     standard_garden.atmosphere.make_marginal(terrestrial.high_oxygen)
     assert issubclass(type(standard_garden.atmosphere), Marginal)
     assert (standard_garden.atmosphere.toxicity == ValueBounds(
@@ -572,7 +585,8 @@ def test_set_marginal_high_oxygen(standard_garden):
 
 
 def test_set_marginal_low_oxygen(standard_garden):
-    categories = sorted(list(terrestrial.Atmosphere.Pressure), key=lambda x: x.value)
+    categories = sorted(list(terrestrial.Atmosphere.Pressure),
+                        key=lambda x: x.value)
     standard_garden.atmosphere.make_marginal(terrestrial.low_oxygen)
     assert issubclass(type(standard_garden.atmosphere), Marginal)
     p_id = categories.index(standard_garden.atmosphere.base.pressure_category)
@@ -610,4 +624,5 @@ def test_set_marginal_organic_toxins(standard_garden):
 def test_set_marginal_pollutants(standard_garden):
     standard_garden.atmosphere.make_marginal(terrestrial.pollutants)
     assert issubclass(type(standard_garden.atmosphere), Marginal)
-    assert (standard_garden.atmosphere.toxicity == terrestrial.Atmosphere.Toxicity.MILD)
+    assert (standard_garden.atmosphere.toxicity ==
+            terrestrial.Atmosphere.Toxicity.MILD)

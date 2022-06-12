@@ -84,7 +84,7 @@ class InplacePlanet(Planet, ABC):
         else:
             rotation = (initial_roll + self.tidal_effect +
                         self._rotation_modifiers[self.size]) * u.h
-        self.rotation = min(rotation, self.rotation_bounds.max)
+        self.rotation = min(rotation, self.rotation_bounds.upper)
 
     @property
     def axial_tilt(self) -> u.Quantity:
@@ -160,7 +160,7 @@ class InplacePlanet(Planet, ABC):
         if self.resonant:
             return (2 * self._orbit.period.to(u.h)) / 3
         return (self._orbit.period.to(u.h) if self.tide_locked
-                else self._get_bounded_property('rotation') * u.h)
+                else self._get_bounded_property('rotation'))
 
     @property
     def rotation_bounds(self) -> bounds.QuantityBounds:

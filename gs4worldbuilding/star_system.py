@@ -40,19 +40,22 @@ steps in Ga"""
 
     def random_population(self):
         """sum of a 3d roll over Stellar Age Table populations categories"""
-        self.population = RandomGenerator().choice(list(self.Population), self._population_dist)
+        self.population = RandomGenerator().choice(list(self.Population),
+                                                   self._population_dist)
 
     def random_age(self):
         """2 distinct rolls of 1d-1 times step-a and step-b added to base age
 from Stellar Age Table"""
         self.age = (self.population.base +
-                    RandomGenerator().roll1d6(-1, continuous=True) * self.population.step_a +
-                    RandomGenerator().roll1d6(-1, continuous=True) * self.population.step_b)
+                    RandomGenerator().roll1d6(-1, continuous=True)
+                    * self.population.step_a +
+                    RandomGenerator().roll1d6(-1, continuous=True)
+                    * self.population.step_b)
 
     @property
     def age(self) -> u.Quantity:
         """age in Ga"""
-        return self._get_bounded_property('age') * u.Ga
+        return self._get_bounded_property('age')
 
     @property
     def age_bounds(self):
@@ -72,8 +75,8 @@ from Stellar Age Table"""
         if not isinstance(value, u.Quantity):
             raise ValueError('expected quantity type value')
         if 'time' not in value.unit.physical_type:
-            raise ValueError('can\'t set age to value of %s physical type' %
-                             value.unit.physical_type)
+            raise ValueError("can't set age to value of " +
+                             f'{value.unit.physical_type} physical type')
         self._set_bounded_property('age', value.to(u.Ga))
 
     def make_stars(self, n):
@@ -144,8 +147,8 @@ from Stellar Age Table"""
     @population.setter
     def population(self, value):
         if not isinstance(value, self.Population):
-            raise ValueError('population value type has to be {}'
-                             .format(self.Population))
+            raise ValueError("population value type has to be " +
+                             f'{self.Population}')
         self._set_bounded_property('population', value)
 
     def __init__(self, open_cluster=False, garden_host=False):
@@ -165,3 +168,9 @@ from Stellar Age Table"""
             self._population_dist = [.00462963, .087962963, .407407407,
                                      .407407407, .087962963, .00462963]
         self.randomize()
+
+    def __eq__(self, obj):
+        return (isinstance(obj, type(self)) and
+                self.age == obj.age and
+                self.multiplicity == obj.multiplicity and
+                self.population == obj.population)

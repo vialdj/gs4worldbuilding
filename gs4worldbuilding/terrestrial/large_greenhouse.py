@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
+from astropy import units as u
 
 from . import Atmosphere, Terrestrial
 from .. import model
 from ..random import RandomGenerator
-
-from astropy import units as u
 
 
 class LargeGreenhouse(Terrestrial):
@@ -33,7 +31,8 @@ class LargeGreenhouse(Terrestrial):
 
     def random_hydrographic_coverage(self):
         """roll of 2d-7 minimum at 0 and divided by 10"""
-        self.hydrographic_coverage = max(RandomGenerator().roll2d6(-7, continuous=True) / 10, 0)
+        self.hydrographic_coverage = max(RandomGenerator()
+                                         .roll2d6(-7, continuous=True) / 10, 0)
 
     def __init__(self, **kw):
-        super(LargeGreenhouse, self).__init__(**kw)
+        super().__init__(**kw)

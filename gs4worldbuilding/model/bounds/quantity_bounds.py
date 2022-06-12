@@ -1,28 +1,27 @@
-# -*- coding: utf-8 -*-
+from astropy import units as u
 
 from .bounds import Bounds
-
-from astropy import units as u
 
 
 class QuantityBounds(Bounds):
 
     def normalize(self, value):
-        return ((value.value - self.min.value) /
-                (self.max.value - self.min.value))
+        return ((value.value - self.lower.value) /
+                (self.upper.value - self.lower.value))
 
     def scale(self, value):
-        return value * (self.max.value - self.min.value) + self.min.value
+        return value * (self.upper - self.lower) + self.lower
 
     def __str__(self):
-        return '[{:.4g}, {:.4g}] {}'.format(self.min.value, self.max.value,
-                                            self.min.unit)
+        return (f'[{self.lower.value:.4g}, {self.upper.value:.4g}] ' +
+                f'{self.lower.unit}')
 
-    def __init__(self, min: u.Quantity, max: u.Quantity):
-        if type(min) is not u.Quantity or type(max) is not u.Quantity:
+    def __init__(self, lower: u.Quantity, upper: u.Quantity):
+        if not (isinstance(lower, u.Quantity) and
+                isinstance(upper, u.Quantity)):
             raise ValueError('Expected quantity values')
-        physical_type = min.unit.physical_type
-        if physical_type not in max.unit.physical_type:
-            raise ValueError('inconsistent physical type %s and %s' %
-                             (physical_type, max.unit.physical_type))
-        super(QuantityBounds, self).__init__(min, max)
+        physical_type = lower.unit.physical_type
+        if physical_type not in upper.unit.physical_type:
+            raise ValueError(f'inconsistent physical type {physical_type} ' +
+                             f'and {upper.unit.physical_type}')
+        super().__init__(lower, upper)

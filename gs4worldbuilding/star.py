@@ -48,8 +48,8 @@ class Star(model.RandomizableModel):
     def random_seed_mass(self):
         """consecutive sum of a 3d roll times over Stellar Mass Table with
 modifier if applicable"""
-        self.seed_mass = RandomGenerator().truncexpon_draw(self.seed_mass_bounds.min.value,
-                                                           self.seed_mass_bounds.max.value,
+        self.seed_mass = RandomGenerator().truncexpon_draw(self.seed_mass_bounds.lower.value,
+                                                           self.seed_mass_bounds.upper.value,
                                                            (.26953477975949597
                                                             if self._star_system.garden_host
                                                             else .3905806446817353)) * u.M_sun
@@ -122,7 +122,7 @@ modifier if applicable"""
     @property
     def seed_mass(self) -> u.Quantity:
         """mass in M☉ without modifiers"""
-        return self._get_bounded_property('seed_mass') * u.M_sun
+        return self._get_bounded_property('seed_mass')
 
     @property
     def seed_mass_bounds(self) -> model.bounds.QuantityBounds:
@@ -150,8 +150,7 @@ modifier if applicable"""
     @gas_giant_arrangement.setter
     def gas_giant_arrangement(self, value: GasGiantArrangement):
         if not isinstance(value, self.GasGiantArrangement):
-            raise ValueError('gas giant arrangement value type must be {}'
-                             .format(self.GasGiantArrangement))
+            raise ValueError(f'gas giant arrangement value type must be {self.GasGiantArrangement}')
         self._gas_giant_arrangement = value
 
     @property
@@ -247,19 +246,11 @@ modifier if applicable"""
         self._worlds = []
         worlds = populate_star(self)
         for i in range(len(worlds)):
-            worlds[i].name = '{}{}'.format(self.name, chr(ord('b') + i))
+            worlds[i].name = f"{self.name}{chr(ord('b') + i)}"
             self._worlds.append(worlds[i])
             if hasattr(worlds[i], '_moons'):
                 for j in range(len(worlds[i]._moons)):
-                    worlds[i]._moons[j].name = '{}{}{}'.format(self.name,
-                                                               chr(ord('b') + i),
-                                                               int_to_roman(j + 1))
-                    #self._worlds.append(worlds[i]._moons[j])
-                    """setattr(type(self), '{}{}{}'.format(self.name,
-                                                        chr(ord('b') + i),
-                                                        j + 1), property(lambda self, i=i, j=j: self._worlds[i]._moons[j]))"""
-
-            #setattr(type(self), '{}{}'.format(self.name, chr(ord('b') + i)), property(lambda self, i=i: self._worlds[i]))
+                    worlds[i]._moons[j].name = f"{self.name}{chr(ord('b') + i)}{int_to_roman(j + 1)}"
 
     def __init__(self, star_system):
         self._star_system = star_system

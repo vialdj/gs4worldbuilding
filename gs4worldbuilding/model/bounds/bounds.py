@@ -2,17 +2,17 @@
 
 
 class Bounds(object):
-    def __init__(self, min, max):
-        if max < min:
+    def __init__(self, lower, upper):
+        if upper < lower:
             raise ValueError('inconsistent bounds')
-        self.min = min
-        self.max = max
+        self.lower = lower
+        self.upper = upper
 
     def __iter__(self):
         """return boundaries"""
-        return iter([self.min, self.max])
+        return iter([self.lower, self.upper])
 
     def __eq__(self, obj):
         return (isinstance(obj, type(self)) and
-                self.min == obj.min and
-                self.max == obj.max)
+                self.lower == obj.lower and
+                self.upper == obj.upper)

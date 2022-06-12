@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
+from astropy import units as u
 
 from .. import model
 from . import Atmosphere, Terrestrial
 from ..random import RandomGenerator
-
-from astropy import units as u
 
 
 class StandardIce(Terrestrial):
@@ -32,7 +30,9 @@ class StandardIce(Terrestrial):
 
     def random_hydrographic_coverage(self):
         """roll of 2d-10 minimum at 0 and divided by 10"""
-        self.hydrographic_coverage = max(RandomGenerator().roll2d6(-10, continuous=True) / 10, 0)
+        self.hydrographic_coverage = max(RandomGenerator()
+                                         .roll2d6(-10, continuous=True) / 10,
+                                         0)
 
     def __init__(self, **kw):
-        super(StandardIce, self).__init__(**kw)
+        super().__init__(**kw)

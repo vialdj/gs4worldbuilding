@@ -21,7 +21,7 @@ def make_first_gas_giant_radius(star):
         return RandomGenerator().roll1d6(-1, continuous=True) * .125 * star.snow_line.value
     elif star.gas_giant_arrangement == type(star).GasGiantArrangement.EPISTELLAR:
         # roll of 3d * .1 multiplied by the inner limit radius
-        return RandomGenerator().roll3d6(continuous=True) / 10 * star.limits.min.value
+        return RandomGenerator().roll3d6(continuous=True) / 10 * star.limits.upper.value
     return np.nan
 
 
@@ -35,7 +35,7 @@ def make_radius(limits, previous_radius, outward=False):
         # TODO: should not clamp orbit at a distance of exactly .15
         # but rather have it be at least .15
         radius = previous_radius - .15
-    if radius >= limits.min.value and radius <= limits.max.value:
+    if radius >= limits.lower.value and radius <= limits.upper.value:
         return radius
     return np.nan
 
@@ -49,17 +49,17 @@ def make_radii(star):
     # compute inner and outermost limits
     limits = star.limits
     if star.forbidden_zone:
-        if (star.forbidden_zone.max > star.limits.max and
-            star.forbidden_zone.min > star.limits.min):
+        if (star.forbidden_zone.upper > star.limits.upper and
+            star.forbidden_zone.lower > star.limits.lower):
             limits = model.bounds.QuantityBounds(
-                        star.limits.min,
-                        min(star.limits.max, star.forbidden_zone.min)
+                        star.limits.lower,
+                        min(star.limits.upper, star.forbidden_zone.lower)
                      )
-        elif (star.forbidden_zone.min < star.limits.min and
-              star.forbidden_zone.max < star.limits.max):
+        elif (star.forbidden_zone.lower < star.limits.lower and
+              star.forbidden_zone.upper < star.limits.upper):
             limits = model.bounds.QuantityBounds(
-                        max(star.limits.min, star.forbidden_zone.max),
-                        star.limits.max
+                        max(star.limits.lower, star.forbidden_zone.upper),
+                        star.limits.upper
                      )
 
     # place first radius
@@ -69,7 +69,7 @@ def make_radii(star):
         radii.append(fgg_radius)
     else:
         # divided outermost legal distance by roll of 1d * .05 + 1
-        radii.append(limits.max.value / (RandomGenerator().roll1d6(continuous=True) * .05 + 1))
+        radii.append(limits.upper.value / (RandomGenerator().roll1d6(continuous=True) * .05 + 1))
 
 
     # place radii

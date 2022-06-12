@@ -1,16 +1,14 @@
-# -*- coding: utf-8 -*-
+from astropy import units as u
 
 from . import Atmosphere, Terrestrial
 from .. import model
 from ..random import RandomGenerator
 
-from astropy import units as u
-
 
 class LargeIce(Terrestrial):
     """the large ice world model"""
     _designation = 'Large (Ice)'
- 
+
     class LargeIceAtmosphere(Atmosphere):
         """the large ice atmosphere model"""
         _composition = ['He', 'N2']
@@ -28,7 +26,9 @@ class LargeIce(Terrestrial):
 
     def random_hydrographic_coverage(self):
         """roll of 2d-10 minimum at 0 and divided by 10"""
-        self.hydrographic_coverage = max(RandomGenerator().roll2d6(-10, continuous=True) / 10, 0)
+        self.hydrographic_coverage = max(RandomGenerator()
+                                         .roll2d6(-10, continuous=True) / 10,
+                                         0)
 
     def __init__(self, **kw):
-        super(LargeIce, self).__init__(**kw)
+        super().__init__(**kw)

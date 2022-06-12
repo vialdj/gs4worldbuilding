@@ -8,22 +8,19 @@ class Model(ABC):
 
     def _set_bounded_property(self, prop, value):
         """setter for bounded value properties"""
-        bounds = getattr(self, '{}_bounds'.format(prop), None)
+        bounds = getattr(self, f'{prop}_bounds', None)
         if not bounds:
-            raise AttributeError('can\'t set attribute, no {}_bounds found'
-                                 .format(prop))
-        if value < bounds.min or value > bounds.max:
-            raise ValueError('{} value {} out of range {}'
-                             .format(prop, value, bounds))
-        setattr(self, '_{}'.format(prop), bounds.normalize(value))
+            raise AttributeError(f'can\'t set attribute, no {prop}_bounds found')
+        if value < bounds.lower or value > bounds.upper:
+            raise ValueError(f'{prop} value {value} out of range {bounds}')
+        setattr(self, f'_{prop}', bounds.normalize(value))
 
     def _get_bounded_property(self, prop):
         """getter for bounded value properties"""
-        bounds = getattr(self, '{}_bounds'.format(prop), None)
+        bounds = getattr(self, f'{prop}_bounds', None)
         if not bounds:
-            raise AttributeError('can\'t get attribute, no {}_bounds found'
-                                 .format(prop))
-        value = getattr(self, '_{}'.format(prop))
+            raise AttributeError(f"can't get attribute, no {prop}_bounds found")
+        value = getattr(self, f'_{prop}')
         return bounds.scale(value)
 
     @property
@@ -42,7 +39,4 @@ class Model(ABC):
             yield prop, getattr(self, prop)
 
     def __str__(self):
-        return ('{{class: {}, {}}}'
-                .format(self.__class__.__name__,
-                        ', '.join(['{}: {!s}'.format(prop, value)
-                                  for prop, value in self])))
+        return f"{{class: {self.__class__.__name__}, {', '.join(['{}: {!s}'.format(prop, value) for prop, value in self])}}}"

@@ -1,6 +1,6 @@
-from . import Model
-
 from abc import ABC
+
+from . import Model
 
 
 class RandomizableModel(Model, ABC):
@@ -14,7 +14,7 @@ class RandomizableModel(Model, ABC):
 constraints"""
         # randomizable properties
         if not self.locked:
-            props = list(filter(lambda x: hasattr(self, 'random_{}'.format(x)),
+            props = list(filter(lambda x: hasattr(self, f'random_{x}'),
                                 self._precedence))
             for prop in props:
-                getattr(type(self), 'random_{}'.format(prop))(self)
+                getattr(type(self), f'random_{prop}')(self)

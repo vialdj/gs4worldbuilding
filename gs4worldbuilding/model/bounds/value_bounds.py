@@ -1,28 +1,27 @@
-# -*- coding: utf-8 -*-
-
-from .bounds import Bounds
-
 from enum import Enum
+from ordered_enum import OrderedEnum
 
 import numpy as np
+
+from .bounds import Bounds
 
 
 class ValueBounds(Bounds):
 
     def normalize(self, value):
-        if issubclass(type(value), Enum) or type(value) is bool:
+        if isinstance(value, Enum) or isinstance(value, bool):
             return value
         if np.isnan(value):
             raise ValueError('can\'t normalize nan in bounds')
-        return (value - self.min) / (self.max - self.min)
+        return (value - self.lower) / (self.upper - self.lower)
 
     def scale(self, value):
-        if issubclass(type(value), Enum) or type(value) is bool:
-            return min(max(value, self.min), self.max)
-        return value * (self.max - self.min) + self.min
+        if isinstance(value, OrderedEnum) or isinstance(value, bool):
+            return min(max(value, self.lower), self.upper)
+        return value * (self.upper - self.lower) + self.lower
 
     def __str__(self):
-        if issubclass(type(self.min), Enum):
-            return '[{}, {}]'.format(self.min.name, self.max.name)
+        if isinstance(self.lower, Enum):
+            return f'[{self.lower.name}, {self.upper.name}]'
         else:
-            return '[{:.4g}, {:.4g}]'.format(self.min, self.max)
+            return f'[{self.lower:.4g}, {self.upper:.4g}]'

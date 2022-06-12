@@ -1,9 +1,7 @@
-# -*- coding: utf-8 -*-
+from astropy import units as u
 
 from . import Terrestrial
 from .. import model
-
-from astropy import units as u
 
 
 class LargeChthonian(Terrestrial):
@@ -16,4 +14,4 @@ class LargeChthonian(Terrestrial):
     _absorption = .97
 
     def __init__(self, **kw):
-        super(LargeChthonian, self).__init__(**kw)
+        super().__init__(**kw)

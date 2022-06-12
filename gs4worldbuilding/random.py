@@ -13,7 +13,7 @@ class RandomGenerator:
 
     def __new__(cls, *args, **kwargs):
         if RandomGenerator.__instance is None:
-            RandomGenerator.__instance = super(RandomGenerator, cls).__new__(cls, *args, **kwargs)
+            RandomGenerator.__instance = super().__new__(cls, *args, **kwargs)
         return RandomGenerator.__instance
 
     @property

@@ -1,14 +1,11 @@
-# -*- coding: utf-8 -*-
+import enum
+from ordered_enum.ordered_enum import ValueOrderedEnum
+from astropy import units as u
 
 from .star import Star
 from .orbit import Orbit
 from . import model
 from .random import RandomGenerator
-
-import enum
-
-from ordered_enum.ordered_enum import ValueOrderedEnum
-from astropy import units as u
 
 
 class CompanionStar(Star):
@@ -23,13 +20,21 @@ class CompanionStar(Star):
             """sum of a 3d6 roll over Stellar Orbital Eccentricity Table with
             modifiers if any"""
             if self._body.separation == CompanionStar.Separation.MODERATE:
-                self.eccentricity = RandomGenerator().truncnorm_draw(0, .8, .4151, .16553546447815948)
+                self.eccentricity = (RandomGenerator()
+                                     .truncnorm_draw(0, .8, .4151,
+                                                     .16553546447815948))
             elif self._body.separation == CompanionStar.Separation.CLOSE:
-                self.eccentricity = RandomGenerator().truncnorm_draw(0, .7, .3055, .1839014681833726)
+                self.eccentricity = (RandomGenerator()
+                                     .truncnorm_draw(0, .7, .3055,
+                                     .1839014681833726))
             elif self._body.separation == CompanionStar.Separation.VERY_CLOSE:
-                self.eccentricity = RandomGenerator().truncexpon_draw(0, .6, .1819450191678794)
+                self.eccentricity = (RandomGenerator()
+                                     .truncexpon_draw(0, .6,
+                                     .1819450191678794))
             else:
-                self.eccentricity = RandomGenerator().truncnorm_draw(0, .95, .5204, .142456449485448)
+                self.eccentricity = (RandomGenerator()
+                                     .truncnorm_draw(0, .95, .5204,
+                                     .142456449485448))
 
         def random_radius(self):
             """roll of 2d6 multiplied by the separation category radius"""
@@ -46,13 +51,13 @@ class CompanionStar(Star):
                     CompanionStar.Separation.VERY_CLOSE:
                     model.bounds.ValueBounds(0, .6)}
             return (rngs[self._body.separation]
-                    if self._body.separation in rngs.keys() else
+                    if self._body.separation in rngs else
                     model.bounds.ValueBounds(0, .95))
 
         @property
         def radius(self) -> u.Quantity:
             """The average orbital radius to the parent body in AU"""
-            return self._get_bounded_property('radius') * u.au
+            return self._get_bounded_property('radius')
 
         @property
         def radius_bounds(self) -> model.bounds.QuantityBounds:
@@ -67,11 +72,11 @@ class CompanionStar(Star):
             if not isinstance(value, u.Quantity):
                 raise ValueError('expected quantity type value')
             if 'length' not in value.unit.physical_type:
-                raise ValueError('can\'t set radius to value of %s physical type'
-                                 % value.unit.physical_type)
+                raise ValueError("can't set radius to value of " +
+                                 f"{value.unit.physical_type} physical type")
             self._set_bounded_property('radius', value)
 
-        def __init__(self, parent_body, body):
+        def __init__(self, parent_body: Star, body: Star):
             self._body = body
             self._parent_body = parent_body
 
@@ -89,24 +94,25 @@ radius multiplier in AU"""
         WIDE = 10 * u.au
         DISTANT = 50 * u.au
 
-    def random_seed_mass(self):
+    def random_seed_mass(self) -> None:
         """companion star random mass procedure"""
         mass = self._parent_body.mass.value
         # roll 1d6 - 1
-        r = RandomGenerator().roll1d6(-1)
-        if r >= 1:
+        roll = int(RandomGenerator().roll1d6(-1))
+        if roll >= 1:
             # sum of nd6 roll
-            s = sum([RandomGenerator().roll1d6() for _ in range(r)])
-            for _ in range(s):
+            rolls = int(sum([RandomGenerator().roll1d6()
+                             for _ in range(roll)]))
+            for _ in range(rolls):
                 # count down on the stellar mass table
                 mass -= (.05 if mass else .10)
         # add noise to value
-        n = .025 if mass <= 1.5 else .05
-        mass += RandomGenerator().rng.uniform(-n, n)
+        noise = .025 if mass <= 1.5 else .05
+        mass += RandomGenerator().rng.uniform(-noise, noise)
         # mass in [.1, parent_body.mass] range
         self.seed_mass = min(max(.1, mass) * u.M_sun, self._parent_body.mass)
 
-    def random_separation(self):
+    def random_separation(self) -> None:
         """sum of a 3d6 roll over Orbital Separation Table"""
         self.separation = RandomGenerator().choice(list(self.Separation),
                                                    self._separation_dist)
@@ -124,17 +130,17 @@ body mass"""
         return self._get_bounded_property('separation')
 
     @property
-    def separation_bounds(self) -> model.bounds.ValueBounds:
+    def separation_bounds(self) -> model.bounds.QuantityBounds:
         """resource range class variable"""
         return (self._separation_bounds if hasattr(self, '_separation_bounds')
-                else model.bounds.ValueBounds(self.Separation.VERY_CLOSE,
-                                              self.Separation.DISTANT))
+                else model.bounds.QuantityBounds(self.Separation.VERY_CLOSE,
+                                                 self.Separation.DISTANT))
 
     @separation.setter
     def separation(self, value):
         if not isinstance(value, self.Separation):
-            raise ValueError('separation value type must be {}'
-                             .format(self.Separation))
+            raise ValueError('separation value type must be ' +
+                             f'{self.Separation}')
         self._set_bounded_property('separation', value)
 
     @property
@@ -158,20 +164,20 @@ body mass"""
             if star_system.garden_host and tertiary_star:
                 self._separation_dist = [0, 0, 0, .01851851851853,
                                          .98148148148193]
-                self._separation_bounds = model.bounds.ValueBounds(
+                self._separation_bounds = model.bounds.QuantityBounds(
                                             self.Separation.WIDE,
                                             self.Separation.DISTANT
                                           )
             elif star_system.garden_host:
                 self._separation_dist = [0, .0463, .11574, .33796, .5]
-                self._separation_bounds = model.bounds.ValueBounds(
+                self._separation_bounds = model.bounds.QuantityBounds(
                                             self.Separation.CLOSE,
                                             self.Separation.DISTANT
                                           )
             elif tertiary_star:
                 self._separation_dist = [0, .00462963, .041666667, .212962963,
                                          .740740741]
-                self._separation_bounds = model.bounds.ValueBounds(
+                self._separation_bounds = model.bounds.QuantityBounds(
                                             self.Separation.CLOSE,
                                             self.Separation.DISTANT
                                           )
@@ -180,7 +186,7 @@ body mass"""
         else:
             self._separation_dist = [.740740741, .212962963, .041666667,
                                      .00462963, 0]
-            self._separation_bounds = model.bounds.ValueBounds(
+            self._separation_bounds = model.bounds.QuantityBounds(
                                         self.Separation.VERY_CLOSE,
                                         self.Separation.WIDE
                                       )

@@ -1,10 +1,8 @@
-# -*- coding: utf-8 -*-
+from astropy import units as u
 
 from . import Atmosphere, Terrestrial
 from .. import model
 from ..random import RandomGenerator
-
-from astropy import units as u
 
 
 class LargeAmmonia(Terrestrial):
@@ -29,7 +27,8 @@ class LargeAmmonia(Terrestrial):
 
     def random_hydrographic_coverage(self):
         """roll of 2d capped at 10 and divided by 10"""
-        self.hydrographic_coverage = min(RandomGenerator().roll2d6(continuous=True) / 10, 1)
+        self.hydrographic_coverage = min(RandomGenerator()
+                                         .roll2d6(continuous=True) / 10, 1)
 
     def __init__(self, **kw):
-        super(LargeAmmonia, self).__init__(**kw)
+        super().__init__(**kw)
