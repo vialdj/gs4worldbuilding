@@ -1,18 +1,16 @@
-from abc import ABC
+from abc import ABC, abstractmethod
+from typing import List
 
 from . import Model
 
 
 class RandomizableModel(Model, ABC):
-    """the Randomizable model specialization"""
+    '''the Randomizable model specialization'''
+    _precedence: List[str] = []
 
-    _precedence = []
-
-    def randomize(self):
-        """randomizes applicable properties values with precedence
-constraints"""
-        # randomizable properties
-        props = list(filter(lambda x: hasattr(self, f'random_{x}'),
-                            self._precedence))
-        for prop in props:
-            getattr(type(self), f'random_{prop}')(self)
+    @abstractmethod
+    def randomize(self) -> None:
+        '''randomizes applicable properties values with precedence
+constraints'''
+        raise NotImplementedError('Randomizable models should implement ' +
+                                  "the 'randomize' method")

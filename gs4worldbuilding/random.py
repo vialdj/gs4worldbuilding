@@ -1,94 +1,105 @@
-# -*- coding: utf-8 -*-
+from typing import List, Union, Optional, TypeVar
+from abc import ABC
+from ctypes import c_uint32
+from functools import wraps
 
 import numpy as np
-import ctypes
+from numpy.random import Generator
 from scipy.stats import truncnorm, truncexpon
 
 
-class RandomGenerator:
-    """Serves random generation through a seeded rng"""
-    __instance = None
-    __rng = None
-    __seed = 0
+def require_init(func):
+    '''init requirement decorator'''
+    @wraps(func)
+    def lazy_init(self, *args, **kwargs):
+        if not isinstance(self, RandomGenerator):
+            TypeError('require_init decorator is to be used only '
+                      + 'in RandomGenerator definition')
+        # accessing a protected member of a client class is a bad practice
+        if not getattr(self, '_rng'):
+            self.randomize_seed()
+        return func(self, *args, **kwargs)
+    return lazy_init
 
-    def __new__(cls, *args, **kwargs):
-        if RandomGenerator.__instance is None:
-            RandomGenerator.__instance = super().__new__(cls, *args, **kwargs)
-        return RandomGenerator.__instance
 
-    @property
-    def rng(self):
-        """the readonly numpy random number generator"""
-        return self.__rng
+T = TypeVar("T")
 
-    def randomize_seed(self):
-        """Randomize seed with value in 0 INT_MAX range"""
-        self.seed = np.random.randint(ctypes.c_uint32(-1).value // 2)
 
-    def _seed_dependent(func):
-        def init_seed(*args, **kwargs):
-            self = args[0]
-            if not self.__rng:
-                self.randomize_seed()
-            return func(*args, **kwargs)
-        return init_seed
+class RandomGenerator(ABC):
+    '''singleton to serves random generation through a seeded rng'''
+    _rng: Optional[Generator] = None
+    __seed: Optional[int] = None
+    __instance: Optional['RandomGenerator'] = None
 
     @property
-    @_seed_dependent
-    def seed(self):
-        """the generator's seed"""
+    @require_init
+    def rng(self) -> Generator:
+        '''the wrapped numpy random number generator'''
+        assert self._rng
+        return self._rng
+
+    def randomize_seed(self) -> None:
+        '''Randomize seed with value in 0 INT_MAX range'''
+        self.seed = np.random.randint(c_uint32(-1).value // 2)
+
+    @property
+    @require_init
+    def seed(self) -> int:
+        '''the generator's seed'''
+        assert self.__seed
         return self.__seed
 
     @seed.setter
-    def seed(self, value):
+    def seed(self, value: int) -> None:
         self.__seed = value
-        self.__rng = np.random.default_rng(value)
+        self._rng = np.random.default_rng(value)
 
-    @_seed_dependent
-    def truncnorm_draw(self, lower, upper, mu, sigma):
-        """returns a continuous value from the corresponding truncated
-        normal distribution"""
+    def truncnorm_draw(self, lower, upper, mu, sigma) -> float:
+        '''returns a continuous value from the corresponding truncated
+        normal distribution'''
         a, b = (lower - mu) / sigma, (upper - mu) / sigma
-        return truncnorm(a, b, mu, sigma).rvs(random_state=self.__rng)
+        return truncnorm.rvs(a, b, loc=mu, scale=sigma, random_state=self.rng)
 
-    @_seed_dependent
-    def truncexpon_draw(self, lower, upper, sigma):
-        """returns a continuous value from the corresponding truncated
-        exponential distribution"""
-        mu = lower
+    def truncexpon_draw(self, lower, upper, sigma) -> float:
+        '''returns a continuous value from the corresponding truncated
+        exponential distribution'''
         b = (upper - lower) / sigma
-        return truncexpon(b, mu, sigma).rvs(random_state=self.__rng)
+        return truncexpon.rvs(b=b, loc=lower, scale=sigma,
+                              random_state=self.rng)
 
-    @_seed_dependent
-    def roll1d6(self, modifier=0, continuous=False):
-        """returns a discrete or continuous value mimicking a
-        d6 roll probability function"""
+    def roll1d6(self, modifier=0, continuous=False) -> Union[int, float]:
+        '''returns a discrete or continuous value mimicking a
+        d6 roll probability function'''
         if continuous:
-            return self.__rng.uniform(1 + modifier, 6 + modifier)
-        return self.__rng.integers(1, 6) + modifier
+            return self.rng.uniform(1 + modifier, 6 + modifier)
+        return self.rng.integers(1, 6) + modifier
 
-    @_seed_dependent
-    def roll2d6(self, modifier=0, continuous=False):
-        """returns a discrete or continuous value mimicking a
-        2d6 roll probability function"""
+    def roll2d6(self, modifier=0, continuous=False) -> Union[int, float]:
+        '''returns a discrete or continuous value mimicking a
+        2d6 roll probability function'''
         if continuous:
             left = 2 + modifier
             right = 12 + modifier
             mode = (left + right) / 2
-            return self.__rng.triangular(left, mode, right)
-        return sum(self.__rng.integers(1, 6, 2)) + modifier
+            return self.rng.triangular(left, mode, right)
+        return sum(self.rng.integers(1, 6, 2)) + modifier
 
-    @_seed_dependent
-    def roll3d6(self, modifier=0, continuous=False):
-        """returns a discrete or continuous value mimicking a
-        3d6 roll probability function"""
+    def roll3d6(self, modifier=0, continuous=False) -> Union[int, float]:
+        '''returns a discrete or continuous value mimicking a
+        3d6 roll probability function'''
         if continuous:
             lower = 3 + modifier
             upper = 18 + modifier
             mu = ((upper - lower) / 2) + lower
             return self.truncnorm_draw(lower, upper, mu, sigma=2.958040)
-        return sum(self.__rng.integers(1, 6, 3)) + modifier
+        return sum(self.rng.integers(1, 6, 3)) + modifier
 
-    @_seed_dependent
-    def choice(self, a, p):
-        return a[self.__rng.choice(list(range(0, len(a))), p=p)]
+    def choice(self, values: List[T],
+               weights: Optional[List[float]] = None) -> T:
+        '''pick a random value in a list based on weight'''
+        return values[self.rng.choice(list(range(0, len(values))), p=weights)]
+
+    def __new__(cls, *args, **kwargs) -> 'RandomGenerator':
+        if RandomGenerator.__instance is None:
+            RandomGenerator.__instance = super().__new__(cls, *args, **kwargs)
+        return RandomGenerator.__instance

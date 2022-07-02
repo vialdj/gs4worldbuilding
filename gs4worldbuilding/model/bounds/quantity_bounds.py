@@ -1,11 +1,12 @@
 from astropy import units as u
 
-from .bounds import Bounds
+from gs4worldbuilding.model.bounds import Bounds
 
 
-class QuantityBounds(Bounds):
+class QuantityBounds(Bounds[u.Quantity]):
+    '''Bounds for astropy quantities'''
 
-    def normalize(self, value):
+    def normalize(self, value) -> float:
         return ((value.value - self.lower.value) /
                 (self.upper.value - self.lower.value))
 

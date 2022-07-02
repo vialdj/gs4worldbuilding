@@ -1,9 +1,9 @@
 from . import model
-from .world import World
-from .planet import Planet, InplacePlanet
-from .terrestrial import Terrestrial
+from .world import World, Resource
+from .planet import Planet
+from .terrestrial import Terrestrial, Size
 from .star_system import StarSystem
-from .star import Star
+from .star import Star, GasGiantArrangement
 from . import constants
 from . import units
 from .builder import Builder

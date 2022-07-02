@@ -1,140 +1,114 @@
-# -*- coding: utf-8 -*-
-
-from .atmosphere import Toxicity, Pressure
-from .. import model
-from ..random import RandomGenerator
-
+from abc import ABC
 import copy
+from typing import Callable, Type, Optional
+from gs4worldbuilding.model.randomizable_model import RandomizableModel
+
+from gs4worldbuilding.terrestrial import Atmosphere, Toxicity
+from gs4worldbuilding.random import RandomGenerator
 
 
-class Marginal():
-    """the Marginal class to be inherited by concrete marginal modifiers"""
+class MarginalMixin(ABC):
+    '''the Marginal class to be inherited by concrete marginal modifiers'''
 
     @property
-    def base(self):
-        """the base atmosphere"""
-        return (self._base if hasattr(self, '_base') else None)
+    def base(self) -> Atmosphere:
+        '''the base atmosphere'''
+        return self._base
+
+    @base.setter
+    def base(self, base: Atmosphere):
+        self._base = base
 
 
-def chlorine_or_fluorine(atmosphere):
-
-    class ChlorineOrFluorine(atmosphere, Marginal):
-        _toxicity = model.bounds.ValueBounds(
-                        Toxicity.HIGH,
-                        Toxicity.LETHAL
-                    )
-        _corrosive = model.bounds.ValueBounds(False, True)
+def chlorine_or_fluorine(atmosphere_type: Type['MarginalCandidate']):
+    '''decorator to make the atmosphere 'Chlorine of Fluorine' marginal'''
+    class ChlorineOrFluorine(atmosphere_type, MarginalMixin):
+        '''the 'Chlorine of Fluorine' marginal atmosphere'''
+        _toxicity = Toxicity.HIGH
 
     return ChlorineOrFluorine
 
 
-def high_carbon_dioxide(atmosphere):
-
-    class HighCarbonDioxide(atmosphere, Marginal):
-        _toxicity = model.bounds.ValueBounds(
-                        Toxicity.NONE,
-                        Toxicity.MILD
-                    )
-
-        @property
-        def pressure_category(self):
-            return Pressure.VERY_DENSE
+def high_carbon_dioxide(atmosphere_type: Type['MarginalCandidate']):
+    '''decorator to make the atmosphere 'High Carbon Dioxide' marginal'''
+    class HighCarbonDioxide(atmosphere_type, MarginalMixin):
+        '''the 'High Carbon Dioxide' marginal atmosphere'''
+        _toxicity = Toxicity.MILD
 
     return HighCarbonDioxide
 
 
-def high_oxygen(atmosphere):
-
-    class HighOxygen(atmosphere, Marginal):
-        _toxicity = model.bounds.ValueBounds(
-                        Toxicity.NONE,
-                        Toxicity.MILD
-                    )
-
-        @property
-        def pressure_category(self):
-            categories = sorted(list(Pressure),
-                                key=lambda x: x.value)
-            idx = categories.index(super().pressure_category)
-            idx = min(idx + 1, len(categories) - 1)
-            return categories[idx]
+def high_oxygen(atmosphere_type: Type['MarginalCandidate']):
+    '''decorator to make the atmosphere 'High Oxygen' marginal'''
+    class HighOxygen(atmosphere_type, MarginalMixin):
+        '''the 'High Oxygen' marginal atmosphere'''
+        _toxicity = Toxicity.MILD
 
     return HighOxygen
 
 
-def inert_gases(atmosphere):
-
-    class InertGases(atmosphere, Marginal):
-        pass
+def inert_gases(atmosphere_type: Type['MarginalCandidate']):
+    '''decorator to make the atmosphere 'Inert Gas' marginal'''
+    class InertGases(atmosphere_type, MarginalMixin):
+        '''the 'Inert Gas' marginal atmosphere'''
 
     return InertGases
 
 
-def low_oxygen(atmosphere):
-
-    class LowOxygen(atmosphere, Marginal):
-
-        @property
-        def pressure_category(self):
-            categories = sorted(list(Pressure),
-                                key=lambda x: x.value)
-            idx = categories.index(super().pressure_category)
-            idx = max(idx - 1, 0)
-            return categories[idx]
+def low_oxygen(atmosphere_type: Type['MarginalCandidate']):
+    '''decorator to make the atmosphere low oxygen marginal'''
+    class LowOxygen(atmosphere_type, MarginalMixin):
+        '''the 'Low Oxygen' marginal atmosphere'''
 
     return LowOxygen
 
 
-def nitrogen_compounds(atmosphere):
-
-    class NitrogenCompounds(atmosphere, Marginal):
-        _toxicity = model.bounds.ValueBounds(
-                        Toxicity.MILD,
-                        Toxicity.HIGH
-                    )
+def nitrogen_compounds(atmosphere_type: Type['MarginalCandidate']):
+    '''decorator to make the atmosphere 'Nitrogen Compounds' marginal'''
+    class NitrogenCompounds(atmosphere_type, MarginalMixin):
+        '''The 'Nitrogen Coumpounds' marginal atmosphere'''
+        _toxicity = Toxicity.MILD
 
     return NitrogenCompounds
 
 
-def sulfur_compounds(atmosphere):
-
-    class SulfurCompounds(atmosphere, Marginal):
-        _toxicity = model.bounds.ValueBounds(
-                        Toxicity.MILD,
-                        Toxicity.HIGH
-                    )
+def sulfur_compounds(atmosphere_type: Type['MarginalCandidate']):
+    '''decorator to make the atmosphere 'Sulfur Compounds' marginal'''
+    class SulfurCompounds(atmosphere_type, MarginalMixin):
+        '''The 'Sulfur Coumpounds' marginal atmosphere'''
+        _toxicity = Toxicity.MILD
 
     return SulfurCompounds
 
 
-def organic_toxins(atmosphere):
-
-    class OrganicToxins(atmosphere, Marginal):
-        _toxicity = model.bounds.ValueBounds(
-                        Toxicity.MILD,
-                        Toxicity.LETHAL
-                    )
+def organic_toxins(atmosphere_type: Type['MarginalCandidate']):
+    '''decorator to make the atmosphere 'Organic Toxins' marginal'''
+    class OrganicToxins(atmosphere_type, MarginalMixin):
+        '''the 'Organic toxins' marginal atmosphere'''
+        _toxicity = Toxicity.MILD
 
     return OrganicToxins
 
 
-def pollutants(atmosphere):
-
-    class Pollutants(atmosphere, Marginal):
+def pollutants(atmosphere_type: Type['MarginalCandidate']):
+    '''decorator to make the atmosphere 'Pollutants' marginal'''
+    class Pollutants(atmosphere_type, MarginalMixin):
+        '''the 'Pollutants' marginal atmosphere'''
         _toxicity = Toxicity.MILD
 
     return Pollutants
 
 
-class MarginalCandidate(object):
-    """the MarginalCandidate class to be inherited by marginalizable
-specialized atmospheres"""
+class MarginalCandidate(Atmosphere, RandomizableModel):
+    '''the MarginalCandidate class to be inherited by marginalizable
+specialized atmospheres'''
 
-    def make_marginal(self, marginal_type=None):
-        """makes a marginal candidate atmosphere marginal using the
-provided marginal modifier or one at random"""
+    def make_marginal(self,
+                      marginal_type: Optional[Callable] = None):
+        '''makes a marginal candidate atmosphere instance marginal using the
+provided marginal modifier or one at random'''
 
-        if isinstance(self, Marginal):
+        if isinstance(self, MarginalMixin):
             self.remove_marginal()
 
         marginal_dist = {
@@ -149,19 +123,17 @@ provided marginal modifier or one at random"""
             pollutants: .01852
         }
 
-        if marginal_type is None:
-            marginal_type = (RandomGenerator()
-                             .choice(list(marginal_dist.keys()),
-                                     list(marginal_dist.values())))
-
+        applied_type = (marginal_type if marginal_type else
+                        RandomGenerator().choice(list(marginal_dist.keys()),
+                                                 list(marginal_dist.values())))
         base = copy.copy(self)
         marginal = self
-        marginal.__class__ = marginal_type(type(self))
-        marginal._base = base
+        marginal.__class__ = applied_type(type(self))
+        marginal.base = base
 
-    def remove_marginal(self):
-
-        if isinstance(self, Marginal):
+    def remove_marginal(self) -> None:
+        '''remove the marginal modifier on instance if any'''
+        if isinstance(self, MarginalMixin):
             base_type = type(self._base)
-            atmosphere = self
-            atmosphere.__class__ = base_type
+            atmosphere_type = self
+            atmosphere_type.__class__ = base_type

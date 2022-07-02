@@ -1,39 +1,63 @@
-from gs4worldbuilding import terrestrial, StarSystem
-from .random import RandomGenerator
+from typing import Type, Dict, Optional
+
+from gs4worldbuilding import StarSystem
+from gs4worldbuilding.terrestrial import (
+    TinySulfur, TinyIce, TinyRock, SmallHadean, SmallIce,
+    SmallRock, StandardChthonian, StandardGreenhouse,
+    StandardAmmonia, StandardHadean, StandardIce,
+    StandardOcean, StandardGarden, LargeChthonian,
+    LargeGreenhouse, LargeAmmonia, LargeIce,
+    LargeGarden, LargeOcean
+)
+from gs4worldbuilding.asteroid_belt import AsteroidBelt
+from gs4worldbuilding.random import RandomGenerator
+from gs4worldbuilding.world import World
 
 
 class Builder():
+    '''Builder class'''
+    __instance: Optional['Builder'] = None
+    __world_distribution: Dict[Type[World], float] = {
+        TinySulfur: .0457488,
+        TinyIce: .16274024,
+        TinyRock: .11266216,
+        SmallHadean: .00312988,
+        SmallIce: .00938964,
+        SmallRock: .05007808,
+        StandardChthonian: .00300024,
+        StandardGreenhouse: .01200096,
+        StandardAmmonia: .05924988,
+        StandardHadean: .01877928,
+        StandardIce: .0312988,
+        StandardOcean: .11266216,
+        StandardGarden: .15899976,
+        LargeChthonian: .00300024,
+        LargeGreenhouse: .01200096,
+        LargeAmmonia: .02699892,
+        LargeIce: .00312988,
+        LargeGarden: .00300024,
+        LargeOcean: .00938964,
+        AsteroidBelt: .16274024
+    }
 
-    @staticmethod
-    def build_world():
-        dist = {terrestrial.TinySulfur: .0457488,
-                terrestrial.TinyIce: .16274024,
-                terrestrial.TinyRock: .11266216,
-                terrestrial.SmallHadean: .00312988,
-                terrestrial.SmallIce: .00938964,
-                terrestrial.SmallRock: .05007808,
-                terrestrial.StandardChthonian: .00300024,
-                terrestrial.StandardGreenhouse: .01200096,
-                terrestrial.StandardAmmonia: .05924988,
-                terrestrial.StandardHadean: .01877928,
-                terrestrial.StandardIce: .0312988,
-                terrestrial.StandardOcean: .11266216,
-                terrestrial.StandardGarden: .15899976,
-                terrestrial.LargeChthonian: .00300024,
-                terrestrial.LargeGreenhouse: .01200096,
-                terrestrial.LargeAmmonia: .02699892,
-                terrestrial.LargeIce: .00312988,
-                terrestrial.LargeGarden: .00300024,
-                terrestrial.LargeOcean: .00938964,
-                terrestrial.AsteroidBelt: .16274024
-                }
+    def __new__(cls, *args, **kwargs) -> 'Builder':
+        if Builder.__instance is None:
+            Builder.__instance = super().__new__(cls, *args, **kwargs)
+        return Builder.__instance
 
+    def build_world(self, seed: Optional[int] = None) -> World:
+        '''Draw a random world'''
+        if seed:
+            RandomGenerator().seed = seed
         # consecutive 3d6 rolls over Overall Type Table and World Type Table
-        type = RandomGenerator.choice(list(dist.keys()), list(dist.values()))
-        return type()
+        world_type = RandomGenerator().choice(
+            list(self.__world_distribution.keys()),
+            list(self.__world_distribution.values())
+        )
+        return world_type()
 
-    @staticmethod
-    def build_star_system(seed=None):
+    def build_star_system(self, seed: Optional[int] = None) -> StarSystem:
+        """Draw a full star system"""
         if seed:
             RandomGenerator().seed = seed
         return StarSystem()
